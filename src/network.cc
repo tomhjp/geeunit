@@ -114,7 +114,7 @@ void network::adddevice (devicekind dkind, name_t did, devlink& dev)
  * name.                                                               
  *
  */
-void network::addinput (devlink dev, name iid)
+void network::addinput (devlink dev, name_t iid)
 {
   inplink i = new inputrec;
   i->id = iid;
@@ -130,7 +130,7 @@ void network::addinput (devlink dev, name iid)
  * name.                                                               
  *
  */
-void network::addoutput (devlink dev, name oid)
+void network::addoutput (devlink dev, name_t oid)
 {
   outplink o = new outputrec;
   o->id = oid;

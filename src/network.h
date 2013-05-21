@@ -10,13 +10,13 @@ typedef enum {aswitch, aclock, andgate, nandgate, orgate,
 	      norgate, xorgate, dtype, baddevice} devicekind;
 
 struct outputrec {
-  name       id;
+  name_t     id;
   asignal    sig;
   outputrec* next;
 };
 typedef outputrec* outplink;
 struct inputrec {
-  name      id;
+  name_t    id;
   outplink  connect;
   inputrec* next;
 };
@@ -58,11 +58,11 @@ class network {
     /* Adds a device to the device list with given name and returns a link */
     /* to it via 'dev'.                                                    */
  
-  void addinput (devlink dev, name iid);
+  void addinput (devlink dev, name_t iid);
     /* Adds an input to the device pointed to by 'dev' with the specified  */
     /* name.                                                               */
  
-  void addoutput (devlink dev, name oid);
+  void addoutput (devlink dev, name_t oid);
     /* Adds an output to the device pointed to by 'dev' with the specified */
     /* name.                                                               */
 

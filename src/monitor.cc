@@ -9,7 +9,7 @@ using namespace std;
  * entry in the monitor table. 'ok' is set true if operation succeeds. 
  *
  */
-void monitor::makemonitor (name dev, name outp, bool& ok)
+void monitor::makemonitor (name_t dev, name_t outp, bool& ok)
 {
   devlink d;
   outplink o;
@@ -36,7 +36,7 @@ void monitor::makemonitor (name dev, name outp, bool& ok)
  * set true if operation succeeds.                                     
  *
  */
-void monitor::remmonitor (name dev, name outp, bool& ok)
+void monitor::remmonitor (name_t dev, name_t outp, bool& ok)
 {
   int i, j;
   bool found;
@@ -83,7 +83,7 @@ asignal monitor::getmonsignal (int n)
  * Returns name of n'th monitor. 
  *
  */
-void monitor::getmonname (int n, name& dev, name& outp)
+void monitor::getmonname (int n, name_t& dev, name_t& outp)
 {
   dev = mtab.sigs[n].devid;
   outp = mtab.sigs[n].op->id;
@@ -139,7 +139,7 @@ void monitor::displaysignals (void)
 {
   const int margin = 20;
   int n, i;
-  name dev, outp;
+  name_t dev, outp;
   int namesize;
   for (n = 0; n < moncount (); n++) {
     getmonname (n, dev, outp);
