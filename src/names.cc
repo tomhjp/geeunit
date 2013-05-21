@@ -1,9 +1,7 @@
-#include "names.h"
 #include <iostream>
-#include <string>
 #include <cstdlib>
-
-#include <vector>
+#include <string>
+#include <algorithm>
 
 #include "names.h"
 
@@ -32,7 +30,7 @@ name_t names::lookup (namestring_t str)
 
 name_t names::cvtname (namestring_t str)
 {
-  /* over to you */
+    return 0;
 }
 
 void names::writename (name_t index)

@@ -2,6 +2,7 @@
 #define names_h
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -9,7 +10,7 @@ const int maxnames  = 200;  /* max number of distinct names */
 const int maxlength = 8;    /* max chars in a name string   */
 const int blankname = -1;   /* special name                 */
 
-typedef int name_t;
+typedef unsigned int name_t;
 typedef string namestring_t;
 
 class names{
