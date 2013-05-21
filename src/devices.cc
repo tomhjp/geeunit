@@ -80,7 +80,7 @@ void devices::setswitch (name sid, asignal level, bool& ok)
  * Called by makedevice.
  *
  */
-void devices::makeswitch (name id, int setting, bool& ok)
+void devices::makeswitch (name_t id, int setting, bool& ok)
 {
   devlink d;
   ok = (setting <= 1);
@@ -98,7 +98,7 @@ void devices::makeswitch (name id, int setting, bool& ok)
  * Called by makedevice.
  *
  */
-void devices::makeclock (name id, int frequency)
+void devices::makeclock (name_t id, int frequency)
 {
   devlink d;
   netz->adddevice (aclock, id, d);
@@ -114,12 +114,12 @@ void devices::makeclock (name id, int frequency)
  * Called by makedevice.
  *
  */
-void devices::makegate (devicekind dkind, name did, int ninputs, bool& ok)
+void devices::makegate (devicekind dkind, name_t did, int ninputs, bool& ok)
 {
   const int maxinputs = 16;
   devlink d;
   int n;
-  namestring iname;
+  namestring_t iname;
   ok = (ninputs <= maxinputs);
   if (ok) {
     netz->adddevice (dkind, did, d);
@@ -146,7 +146,7 @@ void devices::makegate (devicekind dkind, name did, int ninputs, bool& ok)
  * Called by makedevice.
  *
  */
-void devices::makedtype (name id)
+void devices::makedtype (name_t id)
 {
   devlink d;
   netz->adddevice (dtype, id, d);
@@ -167,7 +167,7 @@ void devices::makedtype (name id)
  * number of inputs. 'ok' returns true if operation succeeds.         
  *
  */
-void devices::makedevice (devicekind dkind, name did, int variant, bool& ok)
+void devices::makedevice (devicekind dkind, name_t did, int variant, bool& ok)
 {
   ok = true;
   switch (dkind) {
@@ -415,7 +415,7 @@ void devices::writedevice (devicekind k)
  * 'baddevice' is returned if the name is not a legal device.    
  *
  */
-devicekind devices::devkind (name id)
+devicekind devices::devkind (name_t id)
 {
   devicekind d;
   d = aswitch;

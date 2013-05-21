@@ -1,5 +1,6 @@
 OPENGL_LIBS = -lglut -lGL -lGLU
 
+# returns g++
 CXX = $(shell wx-config --cxx)
 
 SRC = logsim.cc names.cc scanner.cc network.cc parser.cc monitor.cc devices.cc userint.cc gui.cc guitest.cc
@@ -30,7 +31,7 @@ depend:
 	makedepend $(SRC)
 
 # DO NOT DELETE
-
+# additional dependencies
 logsim.o: logsim.h names.h devices.h network.h monitor.h parser.h userint.h
 logsim.o: gui.h 
 names.o: names.h

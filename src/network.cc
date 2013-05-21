@@ -20,7 +20,7 @@ devlink network::devicelist (void)
  * found.                                                               
  *
  */
-devlink network::finddevice (name id)
+devlink network::finddevice (name_t id)
 {
   devlink d;
   bool found;
@@ -41,7 +41,7 @@ devlink network::finddevice (name id)
  * name.  Returns NULL if not found.                                    
  *
  */
-inplink network::findinput (devlink dev, name id)
+inplink network::findinput (devlink dev, name_t id)
 {
   inplink i;
   bool found;
@@ -62,7 +62,7 @@ inplink network::findinput (devlink dev, name id)
  * name.  Returns NULL if not found.                                    
  *
  */
-outplink network::findoutput (devlink dev, name id)
+outplink network::findoutput (devlink dev, name_t id)
 {
   outplink o;
   bool found;
@@ -83,7 +83,7 @@ outplink network::findoutput (devlink dev, name id)
  * to it via 'dev'.                                                    
  *
  */
-void network::adddevice (devicekind dkind, name did, devlink& dev)
+void network::adddevice (devicekind dkind, name_t did, devlink& dev)
 {
   dev = new devicerec;
   dev->id = did;
@@ -147,7 +147,7 @@ void network::addoutput (devlink dev, name oid)
  * succeeds.                                                           
  *
  */
-void network::makeconnection (name idev, name inp, name odev, name outp, bool& ok)
+void network::makeconnection (name_t idev, name_t inp, name_t odev, name_t outp, bool& ok)
 {
   devlink din, dout;
   outplink o;
