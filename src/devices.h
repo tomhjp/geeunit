@@ -8,11 +8,11 @@ class devices{
   names* nmz;      // the version of the names module we use.
   network* netz;   // the version of the network module we use.  
   
-  typedef name devicetable[baddevice + 1]; 
+  typedef name_t devicetable[baddevice + 1]; 
   devicetable dtab;
   bool        steadystate;
-  name        clkpin, datapin, setpin;
-  name        clrpin, qpin, qbarpin;     /* Input and Output Pin names */
+  name_t      clkpin, datapin, setpin;
+  name_t      clrpin, qpin, qbarpin;     /* Input and Output Pin names */
   bool        debugging;
 
   void showdevice (devlink d);
@@ -36,7 +36,7 @@ public:
     /* variant is used with such things as gates where it specifies the    */
     /* number of inputs. 'ok' returns true if operation succeeds.          */
  
-  void setswitch (name sid, asignal level, bool& ok);
+  void setswitch (name_t sid, asignal level, bool& ok);
     /* Sets the state of the named switch. 'ok' returns false if switch    */
     /* not found.                                                          */
  

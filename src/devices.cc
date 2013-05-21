@@ -61,7 +61,7 @@ void devices::showdevice (devlink d)
  * not found.                                                        
  *
  */
-void devices::setswitch (name sid, asignal level, bool& ok)
+void devices::setswitch (name_t sid, asignal level, bool& ok)
 {
   devlink d;
   d = netz->finddevice (sid);

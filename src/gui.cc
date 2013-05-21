@@ -111,7 +111,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glRasterPos2f(margin,0.5*height);
                 
                 wxString traceText;
-                traceText = wxT("CLK");
+                traceText = wxT("CLOCK");
                 
                 for (int k = 0; k < traceText.Len(); k++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[k]);
                 glColor3f(1.0, 0.0, 0.0);
