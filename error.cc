@@ -26,7 +26,7 @@ void Error::printErrMsg(void)
 /******************************************************************************/
 /* Methods for subclasses (ie. specific errors)   */ 
 
-Example::Example(void)
+Example::Example(void) 
 {
     errorMessage = "The specific error message for this kind of error";
 }

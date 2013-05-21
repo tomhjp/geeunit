@@ -5,9 +5,10 @@ using namespace std;
 
 class Error 
 {
+  protected:  
 	int lineCalled; 
+	string errorMessage; 
   public: 
-    string errorMessage; 
 	void printErrMsg(void); 
 	void setLine(int a);
     Error(void);

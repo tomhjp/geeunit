@@ -24,10 +24,11 @@ bool Device::numParamsValid(int numParams)
 
 
 /* Constructor for the Clk class */ 
-Clk::Clk(void)
+Clk::Clk(void) : Device()
 {
     validNumParams = 1;
 }
+
 
 /* Checks the parameter passed to CLK devices is in the correct range */ 
 bool Clk::paramInValidRange(int param) 
