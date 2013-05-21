@@ -41,12 +41,13 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     int margin = 20;
     int unitWidth, unitHeight;
     int x;
+    int labelWidth = 30;
     GetClientSize(&width,&height);
             
-    traceboxWidth = width - 2*margin;
+    traceboxWidth = width - 2*margin - labelWidth;
     traceboxHeight = height - 2*margin;            
     unitWidth = traceboxWidth / lenTrace;
-    unitHeight = 0.8*traceboxHeight / (2*numTraces); 
+    unitHeight = 20; 
   
 
     
@@ -95,16 +96,26 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 if (i%2)
                 {
                     y = (traceboxHeight + margin - 2*unitHeight*j);
-                    x = margin + unitWidth*i;
+                    x = margin + labelWidth + unitWidth*i;
                 }
                 else
                 {
                     y = (traceboxHeight + margin - unitHeight - 2*unitHeight*j);
-                    x = (margin + unitWidth*i);
+                    x = (margin + labelWidth + unitWidth*i);
                 }
                 
                 glVertex2f(x, y); 
                 glVertex2f(x + unitWidth, y);
+                
+                glColor3f(1.0, 0.0, 0.0);
+                glRasterPos2f(margin,0.5*height);
+                
+                wxString traceText;
+                traceText = wxT("CLK");
+                
+                for (int k = 0; k < traceText.Len(); k++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[k]);
+                glColor3f(1.0, 0.0, 0.0);
+                
             }
             glEnd();
         }
