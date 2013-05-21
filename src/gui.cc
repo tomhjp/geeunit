@@ -32,55 +32,94 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // When the simulator is run, the number of cycles is passed as a parameter and the first monitor
   // trace is displayed.
 {
-  float y;
-  unsigned int i;
-  asignal s;
+    float y;
+    unsigned int i;
+    asignal s;
+    int width, height,traceboxWidth,traceboxHeight;
+    int numTraces = 10;
+    int lenTrace = 20;
+    int margin = 20;
+    int unitWidth, unitHeight;
+    int x;
+    GetClientSize(&width,&height);
+            
+    traceboxWidth = width - 2*margin;
+    traceboxHeight = height - 2*margin;            
+    unitWidth = traceboxWidth / lenTrace;
+    unitHeight = 0.8*traceboxHeight / (2*numTraces); 
+  
 
-  if (cycles >= 0) cyclesdisplayed = cycles;
-
-  SetCurrent();
-  if (!init) {
-    InitGL();
-    init = true;
-  }
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0)) { // draw the first monitor signal, get trace from monitor class
-
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINE_STRIP);
-    for (i=0; i<cyclesdisplayed; i++) {
-      if (mmz->getsignaltrace(0, i, s)) {
-	if (s==low) y = 10.0;
-	if (s==high) y = 30.0;
-	glVertex2f(20*i+10.0, y); 
-	glVertex2f(20*i+30.0, y);
-      }
-    }
-    glEnd();
-
-  } else { // draw an artificial trace
-
-    glColor3f(0.0, 1.0, 0.0);
-    glBegin(GL_LINE_STRIP);
-    for (i=0; i<5; i++) {
-      if (i%2) y = 10.0;
-      else y = 30.0;
-      glVertex2f(20*i+10.0, y); 
-      glVertex2f(20*i+30.0, y);
-    }
-    glEnd();
     
-  }
+    if (cycles >= 0) cyclesdisplayed = cycles;
 
-  // Example of how to use GLUT to draw text on the canvas
-  glColor3f(0.0, 0.0, 1.0);
-  glRasterPos2f(10, 100);
-  for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
+    SetCurrent();
+  
+    if (!init) 
+    {
+        InitGL();
+        init = true;
+    }
+    glClear(GL_COLOR_BUFFER_BIT);
 
-  // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
-  glFlush();
-  SwapBuffers();
+    if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0))
+    { // draw the first monitor signal, get trace from monitor class
+
+        glColor3f(0.0, 0.0, 1.0);
+        glBegin(GL_LINE_STRIP);
+        for (i=0; i<cyclesdisplayed; i++) 
+        {
+          if (mmz->getsignaltrace(0, i, s)) 
+          {
+              if (s==low) y = 100.0;
+              if (s==high) y = 130.0;
+              glVertex2f(20*i+10.0, y); 
+              glVertex2f(20*i+30.0, y);
+          }
+        }
+        glEnd();
+
+    }
+    
+ 
+  
+    else // draw an artificial trace 
+    { 
+
+
+        for (int j=0;j<numTraces;j++)
+        {
+            glColor3f(1.0, 0.0, 0.0);
+            glBegin(GL_LINE_STRIP);
+            for (i=0; i<lenTrace; i++) 
+            {
+                if (i%2)
+                {
+                    y = (traceboxHeight + margin - 2*unitHeight*j);
+                    x = margin + unitWidth*i;
+                }
+                else
+                {
+                    y = (traceboxHeight + margin - unitHeight - 2*unitHeight*j);
+                    x = (margin + unitWidth*i);
+                }
+                
+                glVertex2f(x, y); 
+                glVertex2f(x + unitWidth, y);
+            }
+            glEnd();
+        }
+    
+    }
+
+    // Example of how to use GLUT to draw text on the canvas
+    glColor3f(0.0, 0.0, 0.0);
+    glRasterPos2f(margin, 0.15*height);
+  
+    for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
+
+    // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
+    glFlush();
+    SwapBuffers();
 }
 
 void MyGLCanvas::InitGL()
@@ -179,7 +218,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
   
   // *********************************************************************************************
-  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("test")), 0, wxALL,10);
+  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("About")), 0, wxALL,10);
   // *********************************************************************************************
   
   button_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Cycles")), 0, wxTOP|wxLEFT|wxRIGHT, 10);
@@ -267,7 +306,7 @@ void MyFrame::runnetwork(int ncycles)
 
 void MyFrame::aboutfunction()
 {
-  wxMessageDialog about(this, wxT("Example wxWidgets GUI\nAndrew Gee\nFebruary 2011"), wxT("About Logsim"), wxICON_INFORMATION | wxOK);
+  wxMessageDialog about(this, wxT("Example wxWidgets GUI\nDavid Mclean & Tom Proctor\nFebruary 2013"), wxT("About Logsim"), wxICON_INFORMATION | wxOK);
   about.ShowModal();
   return;
 }
