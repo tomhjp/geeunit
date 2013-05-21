@@ -15,6 +15,7 @@ names::names(void)  /* the constructor */
 
 name names::lookup (namestring str)
 {
+  /* new comment */
   /* over to you */
 }
 

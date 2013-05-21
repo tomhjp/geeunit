@@ -2,15 +2,15 @@ using namespace std;
 
 class Device
 {
-  private: 
-    const int validNumParams;    /* Valid number of parameters passed. 1 in all cases in client's original spec */ 
+    int validNumParams;   /* Valid number of parameters passed. 1 in all cases in client's original spec */ 
   public:
+  
     Device(void);
     bool numParamsValid(int numParams);  /* Checks the number of parameters passed is correct*/
     bool paramInValidRange(int param);  /* Checks the parameter passed is in a valid range*/ 
 };
 
-class Dtype: Device
+class Dtype: public Device
 { 
   public:
     Dtype(void);

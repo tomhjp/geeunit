@@ -1,20 +1,22 @@
 #include <string>
+
 using namespace std; 
 
 
-class Error {
-  private:
-	static string errorMessage; 
+class Error 
+{
 	int lineCalled; 
   public: 
-	void printErrMsg(void){
-		cout << "Error: " << lineCalled << ": " << errorMessage <<endl;} 		 
-	void setLine(int a){
-		lineCalled = a; } 
+    string errorMessage; 
+	void printErrMsg(void); 
+	void setLine(int a);
+    Error(void);
 }; 
 
-class InheritedErrorExample : private Error{
-	errorMessage = "Particular error message"; 
+class Example : Error
+{
+    public:
+    Example(void);
 };
 
 
