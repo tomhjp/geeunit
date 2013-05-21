@@ -16,10 +16,10 @@ class devices{
   bool        debugging;
 
   void showdevice (devlink d);
-  void makeswitch (name id, int setting, bool& ok);
-  void makeclock (name id, int frequency);
-  void makegate (devicekind dkind, name did, int ninputs, bool& ok);
-  void makedtype (name id);
+  void makeswitch (name_t id, int setting, bool& ok);
+  void makeclock (name_t id, int frequency);
+  void makegate (devicekind dkind, name_t did, int ninputs, bool& ok);
+  void makedtype (name_t id);
   void signalupdate (asignal target, asignal& sig);
   asignal inv (asignal s);
   void execswitch (devlink d);
@@ -31,7 +31,7 @@ class devices{
   void outsig (asignal s);
 
 public:
-  void makedevice (devicekind dkind, name did, int variant, bool& ok);
+  void makedevice (devicekind dkind, name_t did, int variant, bool& ok);
     /* Adds a device to the network of the specified kind and name.  The   */
     /* variant is used with such things as gates where it specifies the    */
     /* number of inputs. 'ok' returns true if operation succeeds.          */
@@ -45,7 +45,7 @@ public:
     /* cycle. 'ok' is returned false if network fails to stabilise (i.e.   */
     /* it is oscillating). */                                             
  
-  devicekind devkind (name id);
+  devicekind devkind (name_t id);
     /* Returns the kind of device corresponding to the given name.         */
     /* 'baddevice' is returned if the name is not a legal device.          */
  

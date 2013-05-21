@@ -102,7 +102,7 @@ void userint::rdnumber (int& n, int lo, int hi)
  * Read the next token from the input text string.
  *
  */
-void userint::rdstring (namestring &n)
+void userint::rdstring (namestring_t &n)
 {
   int i = 0;
   skip ();
@@ -127,7 +127,7 @@ void userint::rdstring (namestring &n)
  */
 void userint::rdname (name& n)
 {
-  namestring ns;
+  namestring_t ns;
   rdstring (ns);
   if (cmdok) {
     n = nmz->cvtname (ns);

@@ -22,7 +22,7 @@ struct inputrec {
 };
 typedef inputrec* inplink;
 struct devicerec {
-  name id;
+  name_t id;
   inplink ilist;
   outplink olist;
   devicerec* next;
@@ -42,19 +42,19 @@ class network {
   devlink devicelist (void);
     /* Returns list of devices                                             */
  
-  devlink finddevice (name id);
+  devlink finddevice (name_t id);
    /* Returns link to device with specified name. Returns NULL if not       */
    /* found.                                                               */
  
-  inplink findinput (devlink dev, name id);
+  inplink findinput (devlink dev, name_t id);
     /* Returns link to input of device pointed to by dev with specified    */
     /* name.  Returns NULL if not found.                                    */
  
-  outplink findoutput (devlink dev, name id);
+  outplink findoutput (devlink dev, name_t id);
     /* Returns link to output of device pointed to by dev with specified   */
     /* name.  Returns NULL if not found.                                    */
  
-  void adddevice (devicekind dkind, name did, devlink& dev);
+  void adddevice (devicekind dkind, name_t did, devlink& dev);
     /* Adds a device to the device list with given name and returns a link */
     /* to it via 'dev'.                                                    */
  
@@ -66,7 +66,7 @@ class network {
     /* Adds an output to the device pointed to by 'dev' with the specified */
     /* name.                                                               */
 
-  void makeconnection (name idev, name inp, name odev, name outp, bool& ok);
+  void makeconnection (name_t idev, name_t inp, name_t odev, name_t outp, bool& ok);
     /* Makes a connection between the 'inp' input of device 'idev' and the */
     /* 'outp' output of device 'odev'. 'ok' is set true if operation       */
     /* succeeds.                                                           */
