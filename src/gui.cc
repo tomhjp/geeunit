@@ -143,6 +143,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
+  EVT_BUTTON(MY_BUTTON_ID2,MyFrame::OnButton2)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
 END_EVENT_TABLE()
@@ -176,6 +177,11 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   wxBoxSizer *button_sizer = new wxBoxSizer(wxVERTICAL);
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
+  
+  // *********************************************************************************************
+  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("test")), 0, wxALL,10);
+  // *********************************************************************************************
+  
   button_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Cycles")), 0, wxTOP|wxLEFT|wxRIGHT, 10);
   spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
   button_sizer->Add(spin, 0 , wxALL, 10);
@@ -196,8 +202,7 @@ void MyFrame::OnExit(wxCommandEvent &event)
 void MyFrame::OnAbout(wxCommandEvent &event)
   // Callback for the about menu item
 {
-  wxMessageDialog about(this, wxT("Example wxWidgets GUI\nAndrew Gee\nFebruary 2011"), wxT("About Logsim"), wxICON_INFORMATION | wxOK);
-  about.ShowModal();
+	aboutfunction();
 }
 
 void MyFrame::OnButton(wxCommandEvent &event)
@@ -209,6 +214,19 @@ void MyFrame::OnButton(wxCommandEvent &event)
   mmz->resetmonitor ();
   runnetwork(spin->GetValue());
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
+}
+
+void MyFrame::OnButton2(wxCommandEvent &event)
+  // Callback for second pushbutton
+{
+	int n, ncycles;
+	aboutfunction();
+	
+	wxString mytext = wxT("Testing the about function");
+	cyclescompleted = 0;
+	mmz->resetmonitor ();
+	runnetwork(spin->GetValue());
+	canvas->Render(mytext,cyclescompleted);
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
@@ -245,4 +263,11 @@ void MyFrame::runnetwork(int ncycles)
   }
   if (ok) cyclescompleted = cyclescompleted + ncycles;
   else cyclescompleted = 0;
+}
+
+void MyFrame::aboutfunction()
+{
+  wxMessageDialog about(this, wxT("Example wxWidgets GUI\nAndrew Gee\nFebruary 2011"), wxT("About Logsim"), wxICON_INFORMATION | wxOK);
+  about.ShowModal();
+  return;
 }
