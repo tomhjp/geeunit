@@ -9,6 +9,8 @@ L_OBJECTS = logsim.o names.o scanner.o network.o parser.o monitor.o devices.o us
 
 G_OBJECTS = guitest.o names.o network.o monitor.o devices.o gui.o
 
+NT_OBJECTS = namestest.o names.o
+
 # implementation
 
 .SUFFIXES:	.o .cc
@@ -22,7 +24,10 @@ logsim:	$(L_OBJECTS)
 	$(CXX) -o logsim $(L_OBJECTS) `wx-config --libs --gl_libs` $(OPENGL_LIBS)
 
 guitest: $(G_OBJECTS)
-	 $(CXX) -o guitest $(G_OBJECTS) `wx-config --libs --gl_libs` $(OPENGL_LIBS)
+	$(CXX) -o guitest $(G_OBJECTS) `wx-config --libs --gl_libs` $(OPENGL_LIBS)
+
+namestest: $(NT_OBJECTS)
+	$(CXX) -o namestest $(NT_OBJECTS)
 
 clean: 
 	rm -f *.o logsim guitest
@@ -42,3 +47,4 @@ devices.o: devices.h names.h network.h
 userint.o: userint.h names.h network.h devices.h monitor.h
 gui.o: gui.h names.h devices.h network.h monitor.h
 guitest.o: guitest.h names.h devices.h network.h monitor.h gui.h
+namestest.o: namestest.h names.h

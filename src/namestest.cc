@@ -7,7 +7,7 @@ using namespace std;
 
 int main(void)
 {
-    names* namesObj = new names();
-    namesObj->lookup("Hello");
-    namesObj->writename(0);
+    names namesObj;
+    namesObj.lookup("Hello");
+    namesObj.writename(0);
 }
