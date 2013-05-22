@@ -11,6 +11,8 @@ G_OBJECTS = guitest.o names.o network.o monitor.o devices.o gui.o
 
 NT_OBJECTS = namestest.o names.o
 
+ST_OBJECTS = scannertest.o scanner.o names.o
+
 # implementation
 
 .SUFFIXES:	.o .cc
@@ -28,6 +30,9 @@ guitest: $(G_OBJECTS)
 
 namestest: $(NT_OBJECTS)
 	$(CXX) -o namestest $(NT_OBJECTS)
+
+scannertest: $(ST_OBJECTS)
+	$(CXX) -o scannertest $(ST_OBJECTS)
 
 clean: 
 	rm -f *.o logsim guitest
@@ -48,3 +53,4 @@ userint.o: userint.h names.h network.h devices.h monitor.h
 gui.o: gui.h names.h devices.h network.h monitor.h
 guitest.o: guitest.h names.h devices.h network.h monitor.h gui.h
 namestest.o: namestest.h names.h
+scannertest.o: scannertest.h scanner.h names.h

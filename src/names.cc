@@ -10,10 +10,10 @@ using namespace std;
 
 /* Name storage and retrieval routines */
 
-names::names(void)  /* the constructor */
-{
-    return;
-}
+//names::names(void)  /* the constructor */
+//{
+//    return;
+//}
 
 name_t names::lookup (namestring_t str)
 {
@@ -52,35 +52,3 @@ int names::namelength (name_t index)
 {
     return table[index].length();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
