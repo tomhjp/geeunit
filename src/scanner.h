@@ -24,6 +24,7 @@ class scanner_t
     void getnumber(int &number);
     name_t getname(namestring_t &str);
     symbol_t symbolType(namestring_t namestring);
+    void incrementPosition(void);
 public:
     scanner_t(names *namesObjin, const char *defname);
       /* Constructor for the scanner class

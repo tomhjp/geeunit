@@ -5,7 +5,9 @@
 
 #include "scanner.h"
 
-/* Public methods of scanner_t ******************************/
+/***********************************************************/
+/************** Public methods of scanner_t ****************/
+/***********************************************************/
 scanner_t::scanner_t(names *namesObjin, const char *defname)
 {
     namesObj = namesObjin;
@@ -15,6 +17,8 @@ scanner_t::scanner_t(names *namesObjin, const char *defname)
         cout << "Error: cannot open file " << defname << "for reading" << endl;
         exit(1);
     }
+    line = 1;   // first line is line 1
+    col = 1;    // First possible cursor position is column 1
 }
 
 scanner_t::~scanner_t()
@@ -25,23 +29,22 @@ scanner_t::~scanner_t()
 void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
 {
     eofile = (inf.get(ch) == 0);    // get first character
+    incrementPosition();
     if (!eofile)
     {
-        if (isspace(ch))
-        { // Skip spaces first
-            skipspaces();
-        }
+        // Skip spaces first
+        skipspaces();
+        // Then check if the next symbol is a number
         if (isdigit(ch))
-        { // Then check if the next symbol is a number
+        {
             getnumber(num);
-            cout << num << endl;     // debugging output
             symbol = numsym;
             return;
         }
+        // Finally process symbols that are some sort of string
         else if (isalpha(ch))
-        { // Finally process symbols that are some sort of string
+        {
             getname(namestring);
-            cout << namestring << endl;       // debugging output
             symbol = symbolType(namestring);
             return;
         }
@@ -55,13 +58,17 @@ void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
 
 void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
 {
-    oLine = line;
-    oCol = col;
     ok = true;
+    if (line >= 0) oLine = line;
+    else ok = false;
+    if (col >= 0) oCol = col-1;     // column has moved on 1 since the last symbol outputted
+    else ok = false;
 }
 
 
-/* Private methods of scanner_t ******************************/
+/***********************************************************/
+/************** Private methods of scanner_t ***************/
+/***********************************************************/
 void scanner_t::skipspaces(void)
 {
     while (!eofile)
@@ -69,6 +76,7 @@ void scanner_t::skipspaces(void)
         if (!isspace(ch))
             break;
         eofile = (inf.get(ch) == 0);
+        incrementPosition();
     }
 }
 
@@ -88,6 +96,7 @@ void scanner_t::getnumber(int &number)
             break;
         }
         eofile = (inf.get(ch) == 0);
+        incrementPosition();
     }
 }
 
@@ -121,6 +130,7 @@ name_t scanner_t::getname(namestring_t &str)
             return namesObj->lookup(outstr);
         }
         eofile = (inf.get(ch) == 0);
+        incrementPosition();
     }
     return namesObj->lookup(outstr);
 }
@@ -151,4 +161,14 @@ symbol_t scanner_t::symbolType(namestring_t namestring)
     else                                        s = strsym;
 
     return s;
+}
+
+void scanner_t::incrementPosition(void)
+{
+    col++;
+    if (ch == '\n')
+    {
+        line++;
+        col = 0;
+    }
 }
