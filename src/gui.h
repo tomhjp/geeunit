@@ -5,6 +5,7 @@
 #include <wx/glcanvas.h>
 #include <wx/spinctrl.h>
 #include <wx/textctrl.h>
+#include <wx/combobox.h>
 #include "names.h"
 #include "devices.h"
 #include "monitor.h"
@@ -16,6 +17,7 @@ enum {
   MY_TEXTCTRL_ID,
   MY_BUTTON_ID,
   MY_BUTTON_ID2,
+  MY_COMBO_BOX
 }; // widget identifiers
 
 class MyGLCanvas;
@@ -38,6 +40,7 @@ class MyFrame: public wxFrame
   void OnAbout(wxCommandEvent& event);    // callback for about menu item
   void OnButton(wxCommandEvent& event);   // callback for push button
   void OnButton2(wxCommandEvent& event);
+  void OnSelect(wxCommandEvent& event);
   void OnSpin(wxSpinEvent& event);        // callback for spin control
   void OnText(wxCommandEvent& event);     // callback for text entry field
   void aboutfunction();
