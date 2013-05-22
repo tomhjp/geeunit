@@ -7,7 +7,7 @@
 using namespace std;
 
 const int maxnames  = 200;  /* max number of distinct names */
-const int maxlength = 8;    /* max chars in a name string   */
+const int maxlength = 10;   /* max chars in a name string   */
 const int blankname = -1;   /* special name                 */
 
 typedef unsigned int name_t;
