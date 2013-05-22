@@ -33,7 +33,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // trace is displayed.
 {
     float y;
-    unsigned int i;
+    unsigned int i,j;
     asignal s;
     int width, height,traceboxWidth,traceboxHeight;
     int numTraces = 10;
@@ -48,6 +48,9 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     traceboxHeight = height - 2*margin;            
     unitWidth = traceboxWidth / lenTrace;
     unitHeight = 20; 
+    
+    wxString traceText;
+    traceText = wxT("CLOCK");
   
 
     
@@ -73,16 +76,13 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
           {
               if (s==low) y = 100.0;
               if (s==high) y = 130.0;
+              
               glVertex2f(20*i+10.0, y); 
               glVertex2f(20*i+30.0, y);
           }
         }
         glEnd();
-
     }
-    
- 
-  
     else // draw an artificial trace 
     { 
 
@@ -107,26 +107,31 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glVertex2f(x, y); 
                 glVertex2f(x + unitWidth, y);
                 
-                glColor3f(1.0, 0.0, 0.0);
-                glRasterPos2f(margin,0.5*height);
-                
-                wxString traceText;
-                traceText = wxT("CLOCK");
-                
-                for (int k = 0; k < traceText.Len(); k++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[k]);
-                glColor3f(1.0, 0.0, 0.0);
-                
+                    
+
+                                
             }
             glEnd();
         }
     
     }
+    
+    for ( int j=0;j<10;j++);
+    {
+        // y = (traceboxHeight + margin - unitHeight*j);;
+        glRasterPos2f(30,400
+        );
+        for (i = 0; i < traceText.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
+    
+    }
+    
 
     // Example of how to use GLUT to draw text on the canvas
     glColor3f(0.0, 0.0, 0.0);
     glRasterPos2f(margin, 0.15*height);
-  
+
     for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
+
 
     // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
     glFlush();
@@ -193,17 +198,23 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
-  EVT_BUTTON(MY_BUTTON_ID2,MyFrame::OnButton2)
+  EVT_BUTTON(MY_BUTTON_ID2, MyFrame::OnButton2)
+  EVT_COMBOBOX(TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
 END_EVENT_TABLE()
-  
+
+
+
+
 MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
 		 names *names_mod, devices *devices_mod, monitor *monitor_mod, long style):
   wxFrame(parent, wxID_ANY, title, pos, size, style)
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
 {
+  int numTraces = 10;
+  int numSwitches = 3;
   SetIcon(wxIcon(wx_icon));
 
   nmz = names_mod;
@@ -223,16 +234,36 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
   canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
-  topsizer->Add(canvas, 1, wxEXPAND | wxALL, 10);
+  topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM, 30);
 
   wxBoxSizer *button_sizer = new wxBoxSizer(wxVERTICAL);
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
   
-  // *********************************************************************************************
-  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("About")), 0, wxALL,10);
-  // *********************************************************************************************
+  wxString traceList[numTraces];
+  for (int i=0;i<numTraces;i++)
+  {
+  wxString text;
+  text.Printf(wxT("Trace %d"),i+1);
+  traceList[i] = text;
+  }
   
-  button_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Cycles")), 0, wxTOP|wxLEFT|wxRIGHT, 10);
+  wxString switchList[numSwitches];
+  for (int i=0;i<numSwitches;i++)
+  {
+  wxString text;
+  text.Printf(wxT("Trace %d"),i+1);
+  switchList[i] = text;
+  }
+  
+  
+  // *********************************************************************************************
+  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("TESTING")), 0, wxALL ,10);
+  button_sizer->Add(new wxComboBox(this,TRACE_COMBO_BOX, wxT("Choose trace to ZAP"),wxDefaultPosition, wxDefaultSize,numTraces,traceList),0,wxALL,10);
+  button_sizer->Add(new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch to change"),wxDefaultPosition, wxDefaultSize,numSwitches,switchList),0,wxALL,10);
+  // *********************************************************************************************
+
+  
+  button_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Cycles")), 0, wxALL, 10);
   spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
   button_sizer->Add(spin, 0 , wxALL, 10);
 
@@ -269,14 +300,6 @@ void MyFrame::OnButton(wxCommandEvent &event)
 void MyFrame::OnButton2(wxCommandEvent &event)
   // Callback for second pushbutton
 {
-	int n, ncycles;
-	aboutfunction();
-	
-	wxString mytext = wxT("Testing the about function");
-	cyclescompleted = 0;
-	mmz->resetmonitor ();
-	runnetwork(spin->GetValue());
-	canvas->Render(mytext,cyclescompleted);
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
@@ -321,3 +344,12 @@ void MyFrame::aboutfunction()
   about.ShowModal();
   return;
 }
+
+void MyFrame::OnSelect(wxCommandEvent &event)
+{
+    wxString author = event.GetString();
+    wxMessageDialog about(this, wxT("Example wxWidgets GUI\nDavid Mclean & Tom Proctor\nFebruary 2013"), author, wxICON_INFORMATION | wxOK);
+  about.ShowModal();
+    
+}
+
