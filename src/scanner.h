@@ -1,6 +1,14 @@
 #ifndef scanner_h
 #define scanner_h
 
+#include "names.h"
+
+typedef enum {namesym, numsym, startfsym, devsym, consym, monsym,
+              endsym, endfsym, qsym, qbarsym, inpsym
+              clksym, switchsym, andsym, nandsym, orsym, norsym, dtypesym, xorsym,
+              commasym, semicolsym, opsym, cpsym, equalsym, dotsym} symbol_t;
+              /* opsym and cpsym = open and close parenthesis sym */
+
 class scanner_t
 {
     unsigned int line, col;
