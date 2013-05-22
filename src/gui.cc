@@ -199,7 +199,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
   EVT_BUTTON(MY_BUTTON_ID2, MyFrame::OnButton2)
-  EVT_COMBOBOX(MY_COMBO_BOX, MyFrame::OnSelect)
+  EVT_COMBOBOX(TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
 END_EVENT_TABLE()
@@ -213,6 +213,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
 {
+  int numTraces = 10;
+  int numSwitches = 3;
   SetIcon(wxIcon(wx_icon));
 
   nmz = names_mod;
@@ -237,14 +239,27 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   wxBoxSizer *button_sizer = new wxBoxSizer(wxVERTICAL);
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
   
-  wxString authors[3];
-  authors[0] = wxT("McLean");
-  authors[1] = wxT("Proctor");
-  authors[2] = wxT("Renner");
+  wxString traceList[numTraces];
+  for (int i=0;i<numTraces;i++)
+  {
+  wxString text;
+  text.Printf(wxT("Trace %d"),i+1);
+  traceList[i] = text;
+  }
+  
+  wxString switchList[numSwitches];
+  for (int i=0;i<numSwitches;i++)
+  {
+  wxString text;
+  text.Printf(wxT("Trace %d"),i+1);
+  switchList[i] = text;
+  }
+  
   
   // *********************************************************************************************
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("TESTING")), 0, wxALL ,10);
-  button_sizer ->Add(new wxComboBox(this,MY_COMBO_BOX, wxT("Testing"),wxDefaultPosition, wxDefaultSize,3,authors),0,wxALL,10);
+  button_sizer->Add(new wxComboBox(this,TRACE_COMBO_BOX, wxT("Choose trace to ZAP"),wxDefaultPosition, wxDefaultSize,numTraces,traceList),0,wxALL,10);
+  button_sizer->Add(new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch to change"),wxDefaultPosition, wxDefaultSize,numSwitches,switchList),0,wxALL,10);
   // *********************************************************************************************
 
   
