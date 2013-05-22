@@ -199,7 +199,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
   EVT_BUTTON(MY_BUTTON_ID2, MyFrame::OnButton2)
-  EVT_COMBOBOX(MY_COMBO_BOX,MyFrame::OnAbout)
+  EVT_COMBOBOX(MY_COMBO_BOX, MyFrame::OnSelect)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
 END_EVENT_TABLE()
@@ -246,8 +246,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("TESTING")), 0, wxALL ,10);
   button_sizer ->Add(new wxComboBox(this,MY_COMBO_BOX, wxT("Testing"),wxDefaultPosition, wxDefaultSize,3,authors),0,wxALL,10);
   // *********************************************************************************************
-  
-/*  ,0,(-1,-1),3,authors,0)*/
+
   
   button_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Cycles")), 0, wxALL, 10);
   spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
@@ -286,14 +285,6 @@ void MyFrame::OnButton(wxCommandEvent &event)
 void MyFrame::OnButton2(wxCommandEvent &event)
   // Callback for second pushbutton
 {
-	int n, ncycles;
-	aboutfunction();
-	
-	wxString mytext = wxT("Testing the about function");
-	cyclescompleted = 0;
-	mmz->resetmonitor ();
-	runnetwork(spin->GetValue());
-	canvas->Render(mytext,cyclescompleted);
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
@@ -339,7 +330,11 @@ void MyFrame::aboutfunction()
   return;
 }
 
-void MyFrame::OnComboBox(wxCommandEvent &event)
+void MyFrame::OnSelect(wxCommandEvent &event)
 {
+    wxString author = event.GetString();
+    wxMessageDialog about(this, wxT("Example wxWidgets GUI\nDavid Mclean & Tom Proctor\nFebruary 2013"), author, wxICON_INFORMATION | wxOK);
+  about.ShowModal();
+    
 }
 

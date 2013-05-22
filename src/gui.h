@@ -40,7 +40,7 @@ class MyFrame: public wxFrame
   void OnAbout(wxCommandEvent& event);    // callback for about menu item
   void OnButton(wxCommandEvent& event);   // callback for push button
   void OnButton2(wxCommandEvent& event);
-  void OnComboBox(wxCommandEvent& event);
+  void OnSelect(wxCommandEvent& event);
   void OnSpin(wxSpinEvent& event);        // callback for spin control
   void OnText(wxCommandEvent& event);     // callback for text entry field
   void aboutfunction();
