@@ -12,6 +12,8 @@ typedef enum {strsym, numsym, startfsym, devsym, connsym, monsym, endsym, endfsy
               badsym, eofsym} symbol_t;
               /* opsym and cpsym = open and close parenthesis sym */
 
+typedef enum {validPunc, invalidPunc, slash, star} punc_t;
+
 class scanner_t
 {
     ifstream inf;           // input file
@@ -25,6 +27,9 @@ class scanner_t
     name_t getname(namestring_t &str);
     symbol_t symbolType(namestring_t namestring);
     void incrementPosition(void);
+    void getpunc(namestring_t &str);
+    punc_t puncType(char ch);
+    bool skipcomment(void);
 public:
     scanner_t(names *namesObjin, const char *defname);
       /* Constructor for the scanner class
