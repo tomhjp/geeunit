@@ -6,99 +6,6 @@
 #include "scanner.h"
 
 /***********************************************************/
-/************** Public methods of scanner_t ****************/
-/***********************************************************/
-scanner_t::scanner_t(names *namesObjin, const char *defname)
-{
-    namesObj = namesObjin;
-    inf.open(defname);
-    if (!inf)
-    {
-        cout << "Error: cannot open file " << defname << "for reading" << endl;
-        exit(1);
-    }
-    line = 1;   // first line is line 1
-    col = 1;    // First possible cursor position is column 1
-    
-    eofile = (inf.get(ch) == 0);    // get first character
-    incrementPosition();
-}
-
-scanner_t::~scanner_t()
-{
-    return;
-}
-
-void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
-{
-    if (!eofile)
-    {
-        // Skip spaces first
-        skipspaces();
-        // Then check if the next symbol is a number
-        if (isdigit(ch))
-        {
-            //cout << "NUMBER" << endl;
-            getnumber(num);
-            symbol = numsym;
-            return;
-        }
-        // Process symbols that are some sort of string
-        else if (isalpha(ch))
-        {
-            //cout << "NAME" << endl;
-            getname(namestring);
-            symbol = symbolType(namestring);
-            return;
-        }
-        else if (puncType(ch) == slash)
-        {
-            //cout << "COMMENT" << endl;
-            // namestring will be unaffected if the following ch is '*'
-            // i.e. namestring unaffected if it really is a comment.
-            // Otherwise, skipcomment needs to function like getpunc method
-            bool isComment = skipcomment();
-            if (!isComment)
-            {
-                getpunc(namestring);
-                symbol = symbolType(namestring);
-                return;
-            }
-            else
-            {
-                // found a comment so now look at next symbol
-                nextSymbol(symbol, namestring, num);
-            }
-        }
-        else
-        {
-            //cout << "PUNC/MISCELLANEOUS" << endl;
-            getpunc(namestring);
-            symbol = symbolType(namestring);
-            if (eofile)
-                symbol = eofsym;
-            return;
-        }
-    }
-    else
-    {
-        cout << "EOF" << endl;
-        symbol = eofsym;
-        return;
-    }
-}
-
-void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
-{
-    ok = true;
-    if (line >= 0) oLine = line;
-    else ok = false;
-    if (col >= 0) oCol = col-1;     // column has moved on 1 since the last symbol outputted
-    else ok = false;
-}
-
-
-/***********************************************************/
 /************** Private methods of scanner_t ***************/
 /***********************************************************/
 void scanner_t::skipspaces(void)
@@ -115,40 +22,50 @@ void scanner_t::skipspaces(void)
 /* Called when '/' is found */
 bool scanner_t::skipcomment(void)
 {
-    //cout << "SKIPCOMMENT" << endl;
+    /* Save state of scanner in case we're not actually processing a
+     * comment and need to backtrack */
     char chstart = ch;
+    unsigned int linestart = line, colstart = col;
+    bool eofilestart = eofile;
     streampos pos = inf.tellg();
 
+    /* Setup for searching for the comment */
     string str = "";
     bool prefixFound = false;
     bool suffixFound = false;
     string prefix("/*");
     string suffix("*/");
     
+    /* Start searching */
     while (!eofile && (!prefixFound || !suffixFound))
     {
-        str += ch;
+        str += ch;          // save comment so we can search for key characters
         if (!prefixFound)
         {
+            /* Look for prefix */
             if (str.compare(0,prefix.size(),prefix) == 0)
                 prefixFound = true;
         }
         if (!prefixFound && str.size() >= 2)
-            break;
+            break;          // break if the string didn't start with '/*' afterall
         if (prefixFound && !suffixFound)
         {
+            /* Look for suffix */
             if (str.compare(str.size()-2,str.size(),suffix) == 0)
                 suffixFound = true;
         }
         eofile = (inf.get(ch) == 0);
         incrementPosition();
     }
+    /* No comment found */
     if (!prefixFound)
     {
-        return false;       // no comment found
-        ch = chstart;       // go back to where skipcomment started
-        //inf.seekg(pos);
+        /* Return scanner to state before skipcomment was called */
+        ch = chstart; line = linestart; col = colstart; eofile = eofilestart;
+        inf.seekg(pos);
+        return false;
     }
+    /* Comment found, return true */
     else
         return true;        // prefixFound && !suffixFound => whole file is comment after prefix
 }
@@ -159,12 +76,10 @@ void scanner_t::getnumber(int &number)
     while (!eofile)
     {
         if (isdigit(ch))
-        {
-            num += ch;
-        }
+            num += ch;                      // build up the number as a string
         else
         {
-            number = atoi(num.c_str());
+            number = atoi(num.c_str());     // convert string to int at end
             break;
         }
         eofile = (inf.get(ch) == 0);
@@ -185,26 +100,29 @@ name_t scanner_t::getname(namestring_t &str)
         {
             if (outstr.length() == maxlength)
             {
+                /* Exceeded maxlength */
                 error = true;
                 toolongstr += ch;
             }
             else
             {
+                /* Normal operation before maxlength reached */
                 outstr += ch;
                 toolongstr += ch;
             }
         }
         else
         {
+            /* end of name string when no longer alpha characters */
             str = outstr;
             if (error)
                 cout << "Warning: " << toolongstr << " exceeded maxlength " << maxlength << endl;
-            return namesObj->lookup(outstr);
+            return namesObj->lookup(outstr);    // add name to names class
         }
         eofile = (inf.get(ch) == 0);
         incrementPosition();
     }
-    return namesObj->lookup(outstr);
+    return namesObj->lookup(outstr);    // still add name to names class if eofile reached
 }
 
 void scanner_t::getpunc(namestring_t &str)
@@ -214,14 +132,9 @@ void scanner_t::getpunc(namestring_t &str)
     while (!eofile)
     {
         if (!isalnum(ch) && !isspace(ch))
-        {
             str += ch;
-        }
         else
-        {
-            //cout << "getpunc got " << str << endl;
             return;
-        }
         eofile = (inf.get(ch) == 0);
         incrementPosition();
     }
@@ -282,4 +195,113 @@ punc_t scanner_t::puncType(char ch)
         return star;
     else
         return invalidPunc;
+}
+
+
+
+
+
+
+
+/***********************************************************/
+/************** Public methods of scanner_t ****************/
+/***********************************************************/
+scanner_t::scanner_t(names *namesObjin, const char *defname)
+{
+    namesObj = namesObjin;
+    inf.open(defname);
+    if (!inf)
+    {
+        cout << "Error: cannot open file " << defname << "for reading" << endl;
+        exit(1);
+    }
+    line = 1;   // first line is line 1
+    col = 1;    // First possible cursor position is column 1
+    
+    eofile = (inf.get(ch) == 0);    // get first character
+    incrementPosition();
+}
+
+scanner_t::~scanner_t()
+{
+    return;
+}
+
+void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
+{
+    if (!eofile)
+    {
+        /* Skip spaces first */
+        skipspaces();
+
+        /* Then check if the next symbol is a number */
+        if (isdigit(ch))
+        {
+            //cout << "NUMBER" << endl;
+            getnumber(num);
+            symbol = numsym;
+            return;
+        }
+
+        /* Process symbols that are some sort of string */
+        else if (isalpha(ch))
+        {
+            getname(namestring);
+            symbol = symbolType(namestring);
+            return;
+        }
+
+        /* If the character is a slash, guess that it's going to be a comment */
+        else if (puncType(ch) == slash)
+        {
+            /* skipcomment discards everything in between comment
+             * characters and returns the input file to the place it
+             * started if it turns out the '/' character wasn't followed
+             * by '*' */
+            bool isComment = skipcomment();
+            if (!isComment)
+            {
+                /* Turns out it was some sort of string starting with '/' */
+                getpunc(namestring);
+                symbol = symbolType(namestring);
+                return;
+            }
+            else
+            {
+                /* Comment has been discarded, now call nextSymbol so
+                 * that the variables passed in actually get populated */
+                nextSymbol(symbol, namestring, num);
+            }
+        }
+
+        else
+        {
+            /* Some sort of string starting with punctuation */
+            getpunc(namestring);
+            symbol = symbolType(namestring);
+            /* ch will still be \n if eofile is reached so overwrite it
+             * if the end of the file has been read in already */
+            if (eofile)
+                symbol = eofsym;
+            return;
+        }
+    }
+
+    else
+    {
+        cout << "EOF" << endl;
+        symbol = eofsym;
+        return;
+    }
+}
+
+void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
+{
+    ok = true;
+
+    if (line >= 0) oLine = line;
+    else ok = false;
+
+    if (col >= 0) oCol = col-1;     // column has moved on 1 since the last symbol outputted
+    else ok = false;
 }

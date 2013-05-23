@@ -8,7 +8,7 @@ using namespace std;
 void printout(symbol_t s)
 {
     cout << "Symbol type: ";
-    string str = "";
+    string str;
     switch (s)
     {
         case (strsym)       : str = "strsym";           break;
@@ -27,32 +27,17 @@ int main(void)
     names namesObj;
     const char* file = "testfile";
     scanner_t scanner(&namesObj, file);
-    symbol_t symbol = strsym; namestring_t name; int num;
-    int line, col; bool ok;
+
+    symbol_t symbol; namestring_t name; int num;
     
-    int i = 1;
+    /* Read through whole file outputting one symbol and its type at a time */
     while (symbol != eofsym)
     {
-        //cout << "Symbol: " << i++ << endl;
         scanner.nextSymbol(symbol, name, num);
-        /*if (symbol == numsym)
+        printout(symbol);
+        if (symbol == numsym)
             cout << num << endl;
         else
-            cout << name << endl;*/
-        printout(symbol);
-        cout << name << " " << num << endl;
+            cout << name << endl;
     }
-    /*
-    scanner.nextSymbol(symbol, name, num);
-    cout << name << " " << num << endl;
-    scanner.nextSymbol(symbol, name, num);
-    cout << name << " " << num << endl;
-    //scanner.getPosition(line, col, ok);
-    //cout << line << " " << col << " " << ok << endl;
-    scanner.nextSymbol(symbol, name, num);
-    cout << name << " " << num << endl;
-    scanner.nextSymbol(symbol, name, num);
-    cout << name << " " << num << endl;
-    //scanner.getPosition(line, col, ok);
-    //cout << line << " " << col << " " << ok << endl;*/
 }
