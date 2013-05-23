@@ -18,7 +18,8 @@ bool parser::readin (void)
     smz->nextSymbol(symbol, namestring, num); 
     if(symbol != startfsym) addError(noStrtFile); 
     smz->nextSymbol(symbol, namestring, num); 
-    if(symbol != devsym) addError(expDevSym);    
+    if(symbol == endfsym) return true;
+    else if(symbol != devsym) addError(expDevSym);    
     // 1. build up context vector    
     // 2. call syntax checker
     // 3. if(syntax = good) call semantics checker
