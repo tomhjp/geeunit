@@ -17,7 +17,8 @@ enum {
   MY_SPINCNTRL_ID = wxID_HIGHEST + 1,
   MY_TEXTCTRL_ID,
   MY_BUTTON_ID,
-  MY_BUTTON_ID2,
+  ZAP_BUTTON,
+  SWITCH_BUTTON,
   TRACE_COMBO_BOX,
   SWITCH_COMBO_BOX
 }; // widget identifiers
@@ -43,7 +44,8 @@ class MyFrame: public wxFrame
     void OnExit(wxCommandEvent& event);     // callback for exit menu item
     void OnAbout(wxCommandEvent& event);    // callback for about menu item
     void OnButton(wxCommandEvent& event);   // callback for push button
-    void OnButton2(wxCommandEvent& event);
+    void OnButtonZap(wxCommandEvent& event);
+    void OnButtonSwitch(wxCommandEvent& event);
     void OnSelect(wxCommandEvent& event);
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field

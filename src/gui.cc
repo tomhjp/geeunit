@@ -204,7 +204,7 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
-  EVT_BUTTON(MY_BUTTON_ID2, MyFrame::OnButton2)
+  EVT_BUTTON(ZAP_BUTTON, MyFrame::OnButtonZap)
   EVT_COMBOBOX(TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
@@ -242,11 +242,12 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
   topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM, 30);
 
+  wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
   wxBoxSizer *button_sizer = new wxBoxSizer(wxVERTICAL);
   button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
   
-  wxString traceList[numTraces];
-  for (int i=0;i<numTraces;i++)
+  wxString traceList[canvas->traceVector.size()];
+  for (int i=0;i<canvas->traceVector.size();i++)
   {
       wxString text;
       text.Printf(wxT("Trace %d"),i+1);
@@ -263,12 +264,13 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   
   
   // *********************************************************************************************
-
-  traceComboBox = new wxComboBox(this,TRACE_COMBO_BOX, wxT("Choose trace to ZAP"),wxDefaultPosition, wxDefaultSize,numTraces,traceList);
+  traceComboBox = new wxComboBox(this,TRACE_COMBO_BOX, wxT("Choose trace to ZAP"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
   switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch to change"), wxDefaultPosition, wxDefaultSize, numSwitches, switchList); 
+  
   button_sizer->Add(traceComboBox,0,wxLEFT|wxRIGHT,100);
+  button_sizer->Add(new wxButton(this, ZAP_BUTTON, wxT("ZAP")), 0, wxLEFT|wxRIGHT ,100);
   button_sizer->Add(switchComboBox,0,wxLEFT|wxRIGHT,100);
-  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("TESTING")), 0, wxLEFT|wxRIGHT ,100);
+  button_sizer->Add(new wxButton(this, SWITCH_BUTTON, wxT("Switch")), 0, wxLEFT|wxRIGHT ,100);
   // *********************************************************************************************
 
   
@@ -306,16 +308,36 @@ void MyFrame::OnButton(wxCommandEvent &event)
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
 
-void MyFrame::OnButton2(wxCommandEvent &event)
+void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for second pushbutton
 {
     
-    int selection = traceComboBox->GetSelection();
+    wxString selectionStr = traceComboBox->GetStringSelection();
     wxString text;
-    text.Printf(wxT("Trace %d removed"),selection);
-
+    text.Printf(wxT("%s removed"),selectionStr.c_str());
+    
+    int selection = traceComboBox->GetSelection();
     canvas->traceVector.erase(canvas->traceVector.begin() + selection);
+
     canvas->Render(text,-1);
+    traceComboBox->Delete(selection);
+        
+}
+
+void MyFrame::OnButtonSwitch(wxCommandEvent &event)
+  // Callback for second pushbutton
+{
+    /*
+    wxString selectionStr = traceComboBox->GetStringSelection();
+    wxString text;
+    text.Printf(wxT("%s removed"),selectionStr.c_str());
+    
+    int selection = traceComboBox->GetSelection();
+    canvas->traceVector.erase(canvas->traceVector.begin() + selection);
+
+    canvas->Render(text,-1);
+    traceComboBox->Delete(selection);
+    */    
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
