@@ -1,7 +1,11 @@
+#ifndef error_h
+#define error_h
+
 #include <string>
 
 using namespace std; 
 
+typedef enum{noStrtFile, expDevSym} errorcode_t;
 
 class Error 
 {
@@ -21,3 +25,5 @@ class Example : Error
 };
 
 
+
+#endif

@@ -17,7 +17,8 @@ enum {
   MY_TEXTCTRL_ID,
   MY_BUTTON_ID,
   MY_BUTTON_ID2,
-  MY_COMBO_BOX
+  TRACE_COMBO_BOX,
+  SWITCH_COMBO_BOX
 }; // widget identifiers
 
 class MyGLCanvas;
