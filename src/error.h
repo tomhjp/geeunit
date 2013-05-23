@@ -10,7 +10,8 @@ typedef enum{noStrtFile, expDevSym} errorcode_t;
 class Error 
 {
   protected:  
-	int lineCalled; 
+	int line;
+	int col; 
 	string errorMessage; 
   public: 
 	void printErrMsg(void); 
@@ -18,10 +19,10 @@ class Error
     Error(void);
 }; 
 
-class Example : Error
+class noStrtFile : Error
 {
     public:
-    Example(void);
+    noStrtFile(int l, int c);
 };
 
 

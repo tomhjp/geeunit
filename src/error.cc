@@ -5,28 +5,22 @@
 using namespace std; 
 
 
-
-
 /**************************************************************************/
 /* Methods for the superclass Error  */ 
-
-/* Sets the linecalled variable to the number passed */
-void Error::setLine(int a)
-{
-    lineCalled = a; 
-}
 
 /* Prints out the error message and line where the error occurred */ 
 void Error::printErrMsg(void) 
 {
-   cout << "Error: " << lineCalled << ": " << errorMessage <<endl;
+   cout << "Error: " << line << ": " << errorMessage <<endl;
 } 
 
 
 /******************************************************************************/
 /* Methods for subclasses (ie. specific errors)   */ 
 
-Example::Example(void) 
+noStrtFile::noStrtFile(int l, int c) 
 {
-    errorMessage = "The specific error message for this kind of error";
+    errorMessage = "Expected 'STARTFILE' keyword";
+    line = l;
+    col = c;
 }
