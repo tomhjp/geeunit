@@ -38,29 +38,28 @@ void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
         // Then check if the next symbol is a number
         if (isdigit(ch))
         {
-            cout << "NUMBER" << endl;
+            //cout << "NUMBER" << endl;
             getnumber(num);
             symbol = numsym;
             return;
         }
-        // Finally process symbols that are some sort of string
+        // Process symbols that are some sort of string
         else if (isalpha(ch))
         {
-            cout << "NAME" << endl;
+            //cout << "NAME" << endl;
             getname(namestring);
             symbol = symbolType(namestring);
             return;
         }
         else if (puncType(ch) == slash)
         {
-            cout << "COMMENT" << endl;
+            //cout << "COMMENT" << endl;
             // namestring will be unaffected if the following ch is '*'
             // i.e. namestring unaffected if it really is a comment.
             // Otherwise, skipcomment needs to function like getpunc method
             bool isComment = skipcomment();
             if (!isComment)
             {
-                cout << "/ WITHOUT COMMENT" << endl;
                 getpunc(namestring);
                 symbol = symbolType(namestring);
                 return;
@@ -68,16 +67,16 @@ void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
             else
             {
                 // found a comment so now look at next symbol
-                cout << "COMMENT - CALLING NEXTSYMBOL" << endl;
                 nextSymbol(symbol, namestring, num);
-                //cout << "Skipped comment, ch = " << ch << endl;
             }
         }
         else
         {
-            cout << "PUNC/MISCELLANEOUS" << endl;
+            //cout << "PUNC/MISCELLANEOUS" << endl;
             getpunc(namestring);
             symbol = symbolType(namestring);
+            if (eofile)
+                symbol = eofsym;
             return;
         }
     }
@@ -106,7 +105,7 @@ void scanner_t::skipspaces(void)
 {
     while (!eofile)
     {
-        if (!isspace(ch))
+        if (!isspace(ch) && (int)ch != 10)
             break;
         eofile = (inf.get(ch) == 0);
         incrementPosition();
@@ -257,6 +256,7 @@ symbol_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("."))           s = dotsym;
     /* If first char is alphabetic then namestring was retrieved with getname and is a name */
     else if (isalpha(firstchar))                 s = strsym;
+    else if (!namestring.compare("\0"))          s = eofsym;
     else                                         s = badsym;
 
     return s;
