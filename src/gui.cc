@@ -205,7 +205,8 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
   EVT_BUTTON(ZAP_BUTTON, MyFrame::OnButtonZap)
-  EVT_COMBOBOX(TRACE_COMBO_BOX, MyFrame::OnSelect)
+  EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
+  EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
 END_EVENT_TABLE()
@@ -219,58 +220,67 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
 {
-  int numTraces = 10;
-  int numSwitches = 3;
-  SetIcon(wxIcon(wx_icon));
-
-  nmz = names_mod;
-  dmz = devices_mod;
-  mmz = monitor_mod;
-  if (nmz == NULL || dmz == NULL || mmz == NULL) {
-    cout << "Cannot operate GUI without names, devices and monitor classes" << endl;
-    exit(1);
-  }
-
-  wxMenu *fileMenu = new wxMenu;
-  fileMenu->Append(wxID_ABOUT, wxT("&About"));
-  fileMenu->Append(wxID_EXIT, wxT("&Quit"));
-  wxMenuBar *menuBar = new wxMenuBar;
-  menuBar->Append(fileMenu, wxT("&File"));
-  SetMenuBar(menuBar);
-
-  wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
-  canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
-  topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM, 30);
-
-  wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
-  wxBoxSizer *button_sizer = new wxBoxSizer(wxVERTICAL);
-  button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
+    int numTraces = 10;
+    int numSwitches = 3;
+    SetIcon(wxIcon(wx_icon));
+    
+    nmz = names_mod;
+    dmz = devices_mod;
+    mmz = monitor_mod;
   
-  wxString traceList[canvas->traceVector.size()];
-  for (int i=0;i<canvas->traceVector.size();i++)
-  {
-      wxString text;
-      text.Printf(wxT("Trace %d"),i+1);
-      traceList[i] = text;
-  }
+    if (nmz == NULL || dmz == NULL || mmz == NULL) 
+    {
+        cout << "Cannot operate GUI without names, devices and monitor classes" << endl;
+        exit(1);
+    }
+
+    wxMenu *fileMenu = new wxMenu;
+    fileMenu->Append(wxID_ABOUT, wxT("&About"));
+    fileMenu->Append(wxID_EXIT, wxT("&Quit"));
+    wxMenuBar *menuBar = new wxMenuBar;
+    menuBar->Append(fileMenu, wxT("&File"));
+    SetMenuBar(menuBar);
+
+    wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
+    canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
+    topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM, 300);
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
   
-  wxString switchList[numSwitches];
-  for (int i=0;i<numSwitches;i++)
-  {
-      wxString text;
-      text.Printf(wxT("Switch %d"),i+1);
-      switchList[i] = text;
-  }
+    wxString traceList[canvas->traceVector.size()];
+    for (int i=0;i<canvas->traceVector.size();i++)
+    {
+        wxString text;
+        text.Printf(wxT("Trace %d"),i+1);
+        traceList[i] = text;
+    }
+  
+    wxString switchList[numSwitches];
+    for (int i=0;i<numSwitches;i++)
+    {
+        wxString text;
+        text.Printf(wxT("Switch %d"),i+1);
+        switchList[i] = text;
+    }  
+
+
+ 
   
   
   // *********************************************************************************************
-  traceComboBox = new wxComboBox(this,TRACE_COMBO_BOX, wxT("Choose trace to ZAP"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
+  zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
   switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch to change"), wxDefaultPosition, wxDefaultSize, numSwitches, switchList); 
+  addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to Add"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
   
-  button_sizer->Add(traceComboBox,0,wxLEFT|wxRIGHT,100);
-  button_sizer->Add(new wxButton(this, ZAP_BUTTON, wxT("ZAP")), 0, wxLEFT|wxRIGHT ,100);
-  button_sizer->Add(switchComboBox,0,wxLEFT|wxRIGHT,100);
-  button_sizer->Add(new wxButton(this, SWITCH_BUTTON, wxT("Switch")), 0, wxLEFT|wxRIGHT ,100);
+  wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+  combo_sizer->Add(zapTraceComboBox,0,wxTOP|wxBOTTOM,0);
+  combo_sizer->Add(addTraceComboBox,0,wxTOP|wxBOTTOM,0);
+  SetSizer(combo_sizer);
+  //combo_sizer->Add(new wxButton(this, ZAP_BUTTON, wxT("ZAP")), 0, wxLEFT|wxRIGHT ,10);
+  //combo_sizer->Add(switchComboBox,0,wxLEFT|wxRIGHT,10);
+  //combo_sizer->Add(new wxButton(this, SWITCH_BUTTON, wxT("Switch")), 0, wxLEFT|wxRIGHT ,10);
+  //SetSizer(combo_sizer);
   // *********************************************************************************************
 
   
@@ -312,15 +322,15 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for second pushbutton
 {
     
-    wxString selectionStr = traceComboBox->GetStringSelection();
+    wxString selectionStr = zapTraceComboBox->GetStringSelection();
     wxString text;
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
-    int selection = traceComboBox->GetSelection();
+    int selection = zapTraceComboBox->GetSelection();
     canvas->traceVector.erase(canvas->traceVector.begin() + selection);
 
     canvas->Render(text,-1);
-    traceComboBox->Delete(selection);
+    zapTraceComboBox->Delete(selection);
         
 }
 
@@ -328,15 +338,15 @@ void MyFrame::OnButtonSwitch(wxCommandEvent &event)
   // Callback for second pushbutton
 {
     /*
-    wxString selectionStr = traceComboBox->GetStringSelection();
+    wxString selectionStr = zapTraceComboBox->GetStringSelection();
     wxString text;
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
-    int selection = traceComboBox->GetSelection();
+    int selection = zapTraceComboBox->GetSelection();
     canvas->traceVector.erase(canvas->traceVector.begin() + selection);
 
     canvas->Render(text,-1);
-    traceComboBox->Delete(selection);
+    zapTraceComboBox->Delete(selection);
     */    
 }
 

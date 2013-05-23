@@ -19,7 +19,8 @@ enum {
   MY_BUTTON_ID,
   ZAP_BUTTON,
   SWITCH_BUTTON,
-  TRACE_COMBO_BOX,
+  ZAP_TRACE_COMBO_BOX,
+  ADD_TRACE_COMBO_BOX,
   SWITCH_COMBO_BOX
 }; // widget identifiers
 
@@ -37,7 +38,8 @@ class MyFrame: public wxFrame
     names *nmz;                             // pointer to names class
     devices *dmz;                           // pointer to devices class
     monitor *mmz;                           // pointer to monitor class
-    wxComboBox *traceComboBox;              // pointer to combobox object
+    wxComboBox *zapTraceComboBox;              // pointer to combobox object
+    wxComboBox *addTraceComboBox;
     wxComboBox *switchComboBox;             // pointer to combobox object
     int cyclescompleted;                    // how many simulation cycles have been completed
     void runnetwork(int ncycles);           // function to run the logic network
