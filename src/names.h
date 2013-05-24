@@ -4,19 +4,24 @@
 #include <string>
 #include <vector>
 
+#include "typedefs.h"
+
 using namespace std;
+
+struct namestruct_t {
+    namestring_t namestring;
+    int line;
+    int col;
+};
 
 const int maxnames  = 200;  /* max number of distinct names */
 const int maxlength = 12;   /* max chars in a name string   */
 const int blankname = -1;   /* special name                 */
 
-typedef unsigned int name_t;
-typedef string namestring_t;
-
 class names{
-    vector<namestring_t> table;
+    vector<namestruct_t> table;
 public:
-    name_t lookup (namestring_t str);
+    name_t lookup (symbol_t &symbol);
     /* Returns the internal representation of the name given in character  */
     /* form.  If the name is not already in the name table, it is          */
     /* automatically inserted.                                             */
@@ -39,6 +44,3 @@ public:
 };
 
 #endif /* names_h */
-
-
-
