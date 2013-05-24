@@ -16,9 +16,11 @@
 enum { 
   MY_SPINCNTRL_ID = wxID_HIGHEST + 1,
   MY_TEXTCTRL_ID,
-  MY_BUTTON_ID,
-  ZAP_BUTTON,
-  SWITCH_BUTTON,
+  RUN_BUTTON,
+  ZAP_TRACE_BUTTON,
+  ADD_TRACE_BUTTON,
+  SWITCH_BUTTON_1,
+  SWITCH_BUTTON_2,
   ZAP_TRACE_COMBO_BOX,
   ADD_TRACE_COMBO_BOX,
   SWITCH_COMBO_BOX
@@ -34,20 +36,31 @@ class MyFrame: public wxFrame
 	  long style = wxDEFAULT_FRAME_STYLE); // constructor
  private:
     MyGLCanvas *canvas;                     // GL drawing area widget to draw traces
-    wxSpinCtrl *spin;                       // control widget to select the number of cycles
+
     names *nmz;                             // pointer to names class
     devices *dmz;                           // pointer to devices class
     monitor *mmz;                           // pointer to monitor class
-    wxComboBox *zapTraceComboBox;              // pointer to combobox object
+    
+    wxSpinCtrl *spin;                       // control widget to select the number of cycles
+    wxComboBox *zapTraceComboBox;           // pointer to combobox object
+    wxButton   *zapTraceButton;
     wxComboBox *addTraceComboBox;
+    wxButton   *addTraceButton;
     wxComboBox *switchComboBox;             // pointer to combobox object
+    wxButton   *switchButton1;
+    wxButton   *switchButton2;
+    wxButton   *runButton;
+    wxTextCtrl *commandLine;
+    
     int cyclescompleted;                    // how many simulation cycles have been completed
     void runnetwork(int ncycles);           // function to run the logic network
     void OnExit(wxCommandEvent& event);     // callback for exit menu item
     void OnAbout(wxCommandEvent& event);    // callback for about menu item
-    void OnButton(wxCommandEvent& event);   // callback for push button
+    void OnRunButton(wxCommandEvent& event);   // callback for push button
     void OnButtonZap(wxCommandEvent& event);
-    void OnButtonSwitch(wxCommandEvent& event);
+    void OnButtonAdd(wxCommandEvent& event);
+    void OnButtonSwitch1(wxCommandEvent& event);
+    void OnButtonSwitch2(wxCommandEvent& event);
     void OnSelect(wxCommandEvent& event);
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
@@ -74,6 +87,7 @@ class MyGLCanvas: public wxGLCanvas
         void InitGL();                     // function to initialise GL context
         void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
+        void OnScroll(wxScrollWinEvent& event);
         void OnMouse(wxMouseEvent& event); // callback for mouse events inside 
         DECLARE_EVENT_TABLE()
 };
