@@ -25,18 +25,25 @@ class parser {
     vector<symbol_t> context;  
     /* Used to define which syntax/semantic rules to apply */ 
     section_t section;
+    
+    int needskeyflag;   // used to check for the next keyword, as defined by the section
+    int skipflag;       // used to tell parser to ignore rest of line up to keyword or ';'
+    int nodevsymflag;   // prevent repeated "no KEYWORD keyword" errors
+    int noconsymflag;
+    int nomonsymflag; 
+    int noendfsymflag;
+    
     /* Vector of errors. returned to main after the whole file has been parsed */
     vector<Error*> errorvector;
     
     /************* Private Functions ****************************************/ 
-    void preStartFCheck(symbol_t symbol);
+    void preStartFCheck(symbol_t symbol);	//check functions for each of the sections of the file 
     void devSectCheck(symbol_t symbol);
     void conSectCheck(symbol_t symbol);
     void monSectCheck(symbol_t symbol);
-    void postEndFCheck(symbol_t symbol);
-    void checkPreStartFSyntax(void); 
-    void skipToBreak(void);
-    void setSection(section_t sec); 
+    void postEndFCheck(symbol_t symbol); 
+    void skipToBreak(void);					//skips to the next END or ;
+    void nextKeyWordCheck(symbol_t symbol); //checks that the next symbol after END, etc, is as expected
     
     
   public:

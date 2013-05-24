@@ -14,6 +14,10 @@ void Error::printErrMsg(void)
    cout << "Error: " << line << ": " << errorMessage <<endl;
 } 
 
+Error::Error()
+{
+	return;
+}
 
 /******************************************************************************/
 /* Methods for subclasses (ie. specific errors)   */ 
@@ -24,3 +28,33 @@ noStrtFile::noStrtFile(int l, int c)
     line = l;
     col = c;
 }
+
+expDevSym::expDevSym(int l, int c)
+{
+    errorMessage = "Expected 'DEVICES' keyword"; 
+    line = l;
+    col = c;
+}
+
+expMonSym::expMonSym(int l, int c)
+{
+	errorMessage = "Expected 'MONITORS' keyword";
+	line = l;
+	col = c;
+}
+
+expConSym::expConSym(int l, int c)
+{
+	errorMessage = "Expected 'CONNECTIONS' keyword"; 
+	line = l;
+	col = c; 
+}
+
+expEndFSym::expEndFSym(int l, int c)
+{
+	errorMessage = "Expected 'ENDFILE' keyword"; 
+	line = l;
+	col = c;
+}
+
+

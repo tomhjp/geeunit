@@ -15,7 +15,6 @@ class Error
 	string errorMessage; 
   public: 
 	void printErrMsg(void); 
-	void setLine(int a);
     Error(void);
 }; 
 
@@ -25,6 +24,28 @@ class noStrtFile : Error
     noStrtFile(int l, int c);
 };
 
+class expDevSym : Error
+{
+    public:
+    expDevSym(int l, int c);
+};
 
+class expMonSym : Error
+{
+    public:
+    expMonSym(int l, int c);
+};
+
+class expConSym : Error
+{
+    public:
+    expConSym(int l, int c);
+};
+
+class expEndFSym : Error
+{
+    public:
+    expEndFSym(int l, int c);
+};
 
 #endif

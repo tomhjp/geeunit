@@ -9,22 +9,88 @@ using namespace std;
 
 void parser::preStartFCheck(symbol_t symbol)
 {
-    context.pushback(symbol); 
-    if(symbol != startfsym)
-    { 
-       errorvector.pushback(new noStrtFile(symbol.line, symbol.col);
-       skipToBreak(); 
+    if(symbol != startfsym) 
+    {
+        errorvector.push_back(new noStrtFile(symbol.line, symbol.col));
+        skipflag=1; 
     }
+    else needskeyflag=1;
     return;
 }
 
-void parser::setSection(section_t sec)
+void parser::nextKeyWordCheck(symbol_t symbol)
 {
-    section = sec; 
-    return;
+    if(section==prestartf)
+    {
+        if(symbol.s != devsym && nodevsymflag == 0)
+        {
+            errorvector.push_back(new expDevSym(symbol.line, symbol.col));
+            nodevsymflag = 1; 
+            return;
+        }
+        else if(symbol.s != devsym && nodevsymflag == 1) 
+            return;
+        else
+        {
+            needskeyflag=0; 
+            section=devsect;
+            return; 
+        }
+    }
+    else if(section==devsect)
+    {
+    	if(symbol.s != connsym && noconsymflag == 0)
+    	{
+    		errorvector.push_back(new expConSym(symbol.line, symbol.col));
+    		noconsymflag = 1;
+    		return;
+    	}                   
+		else if(symbol.s != connsym && noconsymflag == 1)
+			return;
+		else
+		{
+			needskeyflag=0;
+			section=consect;
+			return;
+		}
+	}
+	else if(section==consect)
+	{
+    	if(symbol.s != monsym && nomonsymflag == 0)
+    	{
+    		errorvector.push_back(new expMonSym(symbol.line, symbol.col));
+    		nomonsymflag = 1;
+    		return;
+    	}                   
+		else if(symbol.s != monsym && nomonsymflag == 1)
+			return;
+		else
+		{
+			needskeyflag=0;
+			section=monsect;
+			return;
+		}
+	}
+	else if(section==monsect)
+	{
+    	if(symbol.s != endfsym)
+    	{
+    		errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
+    		noendfsymflag = 1;
+    		return;
+    	}                   
+		else if(symbol.s != consym && noendfsymflag == 1)
+			return;
+		else
+		{
+			needskeyflag=0;
+			section=postendfsect;
+			return;
+		}
+	}
 }
 
-
+	
 /*****************************************************************************/
 /****************** Public methods *******************************************/
 
@@ -32,11 +98,13 @@ void parser::setSection(section_t sec)
 
 void parser::readin (symbol_t symbol)
 {   
-    if(section = prestartf) preStartFCheck(symbol); 
-    else if(section = devsect) devSectCheck(symbol); 
-    else if(section = monsect) monSectCheck(symbol);
-    else if(section = consect) conSectCheck(symbol);
-    else if(section = postendf) postEndFCheck(symbol);
+    if(skipflag == 1) skipToBreak();
+    else if(needskeyflag == 1) nextKeyWordCheck(symbol);
+    else if(section == prestartf) preStartFCheck(symbol); 
+    else if(section == devsect) devSectCheck(symbol); 
+    else if(section == monsect) monSectCheck(symbol);
+    else if(section == consect) conSectCheck(symbol);
+    else if(section == postendf) postEndFCheck(symbol);
     else cout << "Erm, something's gone wrong" << endl; //PANIC.        
 }
 
@@ -56,5 +124,8 @@ parser::parser (network* network_mod, devices* devices_mod,
 
     /* any other initialisation you want to do? */
     section = prestartf; 
+    needskeyflag = 0;
+    skipflag = 0;
+    nodevsymflag = 0;
 }
 
