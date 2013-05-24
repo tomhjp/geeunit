@@ -29,7 +29,7 @@ noStrtFile::noStrtFile(int l, int c)
     col = c;
 }
 
-expDevSym::expDevSym(int l, int c)
+expDeviSym::expDeviSym(int l, int c)
 {
     errorMessage = "Expected 'DEVICES' keyword"; 
     line = l;
@@ -54,6 +54,13 @@ expEndFSym::expEndFSym(int l, int c)
 {
 	errorMessage = "Expected 'ENDFILE' keyword"; 
 	line = l;
+	col = c;
+}
+
+noSemiCol::noSemiCol(int l, int c)
+{
+	errorMessage = "No semicolon before 'END' keyword";
+	line=l;
 	col = c;
 }
 

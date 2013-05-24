@@ -5,8 +5,6 @@
 
 using namespace std; 
 
-typedef enum{noStrtFile, expDevSym} errorcode_t;
-
 class Error 
 {
   protected:  
@@ -18,34 +16,41 @@ class Error
     Error(void);
 }; 
 
-class noStrtFile : Error
+class noStrtFile : public Error
 {
     public:
     noStrtFile(int l, int c);
 };
 
-class expDevSym : Error
+class expDeviSym : public Error
 {
     public:
-    expDevSym(int l, int c);
+    expDeviSym(int l, int c);
 };
 
-class expMonSym : Error
+class expMonSym : public Error
 {
     public:
     expMonSym(int l, int c);
 };
 
-class expConSym : Error
+class expConSym : public Error
 {
     public:
     expConSym(int l, int c);
 };
 
-class expEndFSym : Error
+class expEndFSym : public Error
 {
     public:
     expEndFSym(int l, int c);
 };
+
+class noSemiCol : public Error
+{
+	public:
+	noSemiCol(int l, int c);
+}; 
+
 
 #endif

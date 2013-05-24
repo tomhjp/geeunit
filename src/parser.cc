@@ -9,26 +9,42 @@ using namespace std;
 
 void parser::preStartFCheck(symbol_t symbol)
 {
-    if(symbol != startfsym) 
+    if(symbol.symboltype != startfsym) 
     {
-        errorvector.push_back(new noStrtFile(symbol.line, symbol.col));
+       // errorvector.push_back(new noStrtFile(symbol.line, symbol.col));
         skipflag=1; 
     }
     else needskeyflag=1;
     return;
 }
 
+void parser::devSectCheck(symbol_t symbol)
+{
+	if(symbol.symboltype == endsym)
+	{
+		errorvector.push_back(new noSemiCol(symbol.line, symbol.col));
+		needskeyflag = 1;
+	}	
+	else if(symbol.symboltype != semicolsym)
+	{
+		context.push_back(symbol);
+		return;
+	}
+	else ;
+}
+/* Finds the next expected keyword after a keyword  */ 
+/* only called if the needskeyfalg = 1 */ 
 void parser::nextKeyWordCheck(symbol_t symbol)
 {
-    if(section==prestartf)
+    if(section==prestartfsect)
     {
-        if(symbol.s != devsym && nodevsymflag == 0)
-        {
-            errorvector.push_back(new expDevSym(symbol.line, symbol.col));
+        if((symbol.symboltype != devsym) && (nodevsymflag == 0))
+        {	
+            errorvector.push_back(new expDeviSym(symbol.line, symbol.col));
             nodevsymflag = 1; 
             return;
         }
-        else if(symbol.s != devsym && nodevsymflag == 1) 
+        else if(symbol.symboltype != devsym && nodevsymflag == 1) 
             return;
         else
         {
@@ -39,13 +55,13 @@ void parser::nextKeyWordCheck(symbol_t symbol)
     }
     else if(section==devsect)
     {
-    	if(symbol.s != connsym && noconsymflag == 0)
+    	if(symbol.symboltype != connsym && noconsymflag == 0)
     	{
     		errorvector.push_back(new expConSym(symbol.line, symbol.col));
     		noconsymflag = 1;
     		return;
     	}                   
-		else if(symbol.s != connsym && noconsymflag == 1)
+		else if(symbol.symboltype != connsym && noconsymflag == 1)
 			return;
 		else
 		{
@@ -56,13 +72,13 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 	}
 	else if(section==consect)
 	{
-    	if(symbol.s != monsym && nomonsymflag == 0)
+    	if(symbol.symboltype != monsym && nomonsymflag == 0)
     	{
     		errorvector.push_back(new expMonSym(symbol.line, symbol.col));
     		nomonsymflag = 1;
     		return;
     	}                   
-		else if(symbol.s != monsym && nomonsymflag == 1)
+		else if(symbol.symboltype != monsym && nomonsymflag == 1)
 			return;
 		else
 		{
@@ -73,13 +89,13 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 	}
 	else if(section==monsect)
 	{
-    	if(symbol.s != endfsym)
+    	if(symbol.symboltype != endfsym && noendfsymflag == 0)
     	{
     		errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
     		noendfsymflag = 1;
     		return;
     	}                   
-		else if(symbol.s != consym && noendfsymflag == 1)
+		else if(symbol.symboltype != endfsym && noendfsymflag == 1)
 			return;
 		else
 		{
@@ -100,11 +116,11 @@ void parser::readin (symbol_t symbol)
 {   
     if(skipflag == 1) skipToBreak();
     else if(needskeyflag == 1) nextKeyWordCheck(symbol);
-    else if(section == prestartf) preStartFCheck(symbol); 
+    else if(section == prestartfsect) preStartFCheck(symbol); 
     else if(section == devsect) devSectCheck(symbol); 
     else if(section == monsect) monSectCheck(symbol);
     else if(section == consect) conSectCheck(symbol);
-    else if(section == postendf) postEndFCheck(symbol);
+    else if(section == postendfsect) postEndFCheck(symbol);
     else cout << "Erm, something's gone wrong" << endl; //PANIC.        
 }
 
@@ -123,7 +139,7 @@ parser::parser (network* network_mod, devices* devices_mod,
                          /* netz->makeconnection (i1, i2, o1, o2, ok);   */
 
     /* any other initialisation you want to do? */
-    section = prestartf; 
+    section = prestartfsect; 
     needskeyflag = 0;
     skipflag = 0;
     nodevsymflag = 0;

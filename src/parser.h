@@ -12,7 +12,7 @@
 using namespace std;
 
 
-typedef enum {prestartf, devsect, consect, monsect, postendf} section_t; 
+typedef enum {prestartfsect, devsect, consect, monsect, postendfsect} section_t; 
 
 
 class parser {
@@ -33,7 +33,7 @@ class parser {
     int nomonsymflag; 
     int noendfsymflag;
     
-    /* Vector of errors. returned to main after the whole file has been parsed */
+    /* Vector of pointers to errors. returned to main after the whole file has been parsed */
     vector<Error*> errorvector;
     
     /************* Private Functions ****************************************/ 
