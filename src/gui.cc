@@ -20,10 +20,16 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     wxGLCanvas(parent, id, pos, size, style, name, wxglcanvas_attrib_list)
   // Constructor - initialises private variables
 {
-  mmz = monitor_mod;
-  nmz = names_mod;
-  init = false;
-  cyclesdisplayed = -1;
+    mmz = monitor_mod;
+    nmz = names_mod;
+    init = false;
+    cyclesdisplayed = -1;
+    
+    for (int i=0;i<10;i++)
+    {
+        traceVector.push_back(i);
+    }
+      
 }
 
 void MyGLCanvas::Render(wxString example_text, int cycles)
@@ -37,6 +43,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     asignal s;
     int width, height,traceboxWidth,traceboxHeight;
     int numTraces = 10;
+  
     int lenTrace = 20;
     int margin = 20;
     int unitWidth, unitHeight;
@@ -47,10 +54,10 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     traceboxWidth = width - 2*margin - labelWidth;
     traceboxHeight = height - 2*margin;            
     unitWidth = traceboxWidth / lenTrace;
-    unitHeight = 20; 
-    
-    wxString traceText;
-    traceText = wxT("CLOCK");
+    unitHeight = 20;
+    int num = 1;
+
+   
   
 
     
@@ -64,10 +71,8 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         init = true;
     }
     glClear(GL_COLOR_BUFFER_BIT);
-
     if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0))
     { // draw the first monitor signal, get trace from monitor class
-
         glColor3f(0.0, 0.0, 1.0);
         glBegin(GL_LINE_STRIP);
         for (i=0; i<cyclesdisplayed; i++) 
@@ -84,55 +89,55 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         glEnd();
     }
     else // draw an artificial trace 
-    { 
-
-
-        for (int j=0;j<numTraces;j++)
+    {   
+        for (int j=0;j<traceVector.size();j++)
         {
+            
             glColor3f(1.0, 0.0, 0.0);
             glBegin(GL_LINE_STRIP);
             for (i=0; i<lenTrace; i++) 
             {
                 if (i%2)
                 {
-                    y = (traceboxHeight + margin - 2*unitHeight*j);
+                    y = (traceboxHeight + margin - 2.5*unitHeight*j);
                     x = margin + labelWidth + unitWidth*i;
                 }
+                
                 else
                 {
-                    y = (traceboxHeight + margin - unitHeight - 2*unitHeight*j);
+                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*j);
                     x = (margin + labelWidth + unitWidth*i);
                 }
                 
                 glVertex2f(x, y); 
-                glVertex2f(x + unitWidth, y);
-                
-                    
-
-                                
+                glVertex2f(x + unitWidth, y);                          
             }
             glEnd();
+            
+            y = (traceboxHeight-1 - 2.5*unitHeight*j);
+            glColor3f(0.0, 0.0, 0.0);
+            glRasterPos2f(margin/2,y);
+            
+            wxString traceText;
+            traceText.Printf(wxT("CLK%d"),traceVector[j]);
+                      
+            for (i = 0; i < traceText.Len() ; i++)
+            {        
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
+            }
+                
+            
         }
     
     }
     
-    for ( int j=0;j<10;j++);
-    {
-        // y = (traceboxHeight + margin - unitHeight*j);;
-        glRasterPos2f(30,400
-        );
-        for (i = 0; i < traceText.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
-    
-    }
-    
+
 
     // Example of how to use GLUT to draw text on the canvas
     glColor3f(0.0, 0.0, 0.0);
     glRasterPos2f(margin, 0.15*height);
-
     for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
-
-
+    
     // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
     glFlush();
     SwapBuffers();
@@ -164,7 +169,7 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
   wxPaintDC dc(this); // required for correct refreshing under MS windows
   GetClientSize(&w, &h);
   text.Printf(wxT("Canvas redrawn by OnPaint callback, canvas size is %d by %d"), w, h);
-  Render(text);
+  Render(text,-1);
 }
 
 void MyGLCanvas::OnSize(wxSizeEvent& event)
@@ -188,18 +193,20 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
   if (event.Dragging()) text.Printf(wxT("Mouse dragged to %d %d"), event.m_x, h-event.m_y);
   if (event.Leaving()) text.Printf(wxT("Mouse left window at %d %d"), event.m_x, h-event.m_y);
 
-  if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text);
+  if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text,-1);
 }
 
 // MyFrame ///////////////////////////////////////////////////////////////////////////////////////
 
+wxString str = wxT("hello");
 
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
   EVT_BUTTON(MY_BUTTON_ID, MyFrame::OnButton)
-  EVT_BUTTON(MY_BUTTON_ID2, MyFrame::OnButton2)
-  EVT_COMBOBOX(TRACE_COMBO_BOX, MyFrame::OnSelect)
+  EVT_BUTTON(ZAP_BUTTON, MyFrame::OnButtonZap)
+  EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
+  EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
   EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
 END_EVENT_TABLE()
@@ -213,53 +220,67 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
 {
-  int numTraces = 10;
-  int numSwitches = 3;
-  SetIcon(wxIcon(wx_icon));
-
-  nmz = names_mod;
-  dmz = devices_mod;
-  mmz = monitor_mod;
-  if (nmz == NULL || dmz == NULL || mmz == NULL) {
-    cout << "Cannot operate GUI without names, devices and monitor classes" << endl;
-    exit(1);
-  }
-
-  wxMenu *fileMenu = new wxMenu;
-  fileMenu->Append(wxID_ABOUT, wxT("&About"));
-  fileMenu->Append(wxID_EXIT, wxT("&Quit"));
-  wxMenuBar *menuBar = new wxMenuBar;
-  menuBar->Append(fileMenu, wxT("&File"));
-  SetMenuBar(menuBar);
-
-  wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
-  canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
-  topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM, 30);
-
-  wxBoxSizer *button_sizer = new wxBoxSizer(wxVERTICAL);
-  button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
+    int numTraces = 10;
+    int numSwitches = 3;
+    SetIcon(wxIcon(wx_icon));
+    
+    nmz = names_mod;
+    dmz = devices_mod;
+    mmz = monitor_mod;
   
-  wxString traceList[numTraces];
-  for (int i=0;i<numTraces;i++)
-  {
-  wxString text;
-  text.Printf(wxT("Trace %d"),i+1);
-  traceList[i] = text;
-  }
+    if (nmz == NULL || dmz == NULL || mmz == NULL) 
+    {
+        cout << "Cannot operate GUI without names, devices and monitor classes" << endl;
+        exit(1);
+    }
+
+    wxMenu *fileMenu = new wxMenu;
+    fileMenu->Append(wxID_ABOUT, wxT("&About"));
+    fileMenu->Append(wxID_EXIT, wxT("&Quit"));
+    wxMenuBar *menuBar = new wxMenuBar;
+    menuBar->Append(fileMenu, wxT("&File"));
+    SetMenuBar(menuBar);
+
+    wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
+    canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
+    topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM, 300);
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->Add(new wxButton(this, MY_BUTTON_ID, wxT("Run")), 0, wxALL, 10);
   
-  wxString switchList[numSwitches];
-  for (int i=0;i<numSwitches;i++)
-  {
-  wxString text;
-  text.Printf(wxT("Trace %d"),i+1);
-  switchList[i] = text;
-  }
+    wxString traceList[canvas->traceVector.size()];
+    for (int i=0;i<canvas->traceVector.size();i++)
+    {
+        wxString text;
+        text.Printf(wxT("Trace %d"),i+1);
+        traceList[i] = text;
+    }
+  
+    wxString switchList[numSwitches];
+    for (int i=0;i<numSwitches;i++)
+    {
+        wxString text;
+        text.Printf(wxT("Switch %d"),i+1);
+        switchList[i] = text;
+    }  
+
+
+ 
   
   
   // *********************************************************************************************
-  button_sizer->Add(new wxButton(this, MY_BUTTON_ID2, wxT("TESTING")), 0, wxALL ,10);
-  button_sizer->Add(new wxComboBox(this,TRACE_COMBO_BOX, wxT("Choose trace to ZAP"),wxDefaultPosition, wxDefaultSize,numTraces,traceList),0,wxALL,10);
-  button_sizer->Add(new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch to change"),wxDefaultPosition, wxDefaultSize,numSwitches,switchList),0,wxALL,10);
+  zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
+  switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch to change"), wxDefaultPosition, wxDefaultSize, numSwitches, switchList); 
+  addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to Add"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
+  
+  wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+  combo_sizer->Add(zapTraceComboBox,0,wxTOP|wxBOTTOM,0);
+  combo_sizer->Add(addTraceComboBox,0,wxTOP|wxBOTTOM,0);
+  SetSizer(combo_sizer);
+  //combo_sizer->Add(new wxButton(this, ZAP_BUTTON, wxT("ZAP")), 0, wxLEFT|wxRIGHT ,10);
+  //combo_sizer->Add(switchComboBox,0,wxLEFT|wxRIGHT,10);
+  //combo_sizer->Add(new wxButton(this, SWITCH_BUTTON, wxT("Switch")), 0, wxLEFT|wxRIGHT ,10);
+  //SetSizer(combo_sizer);
   // *********************************************************************************************
 
   
@@ -283,7 +304,7 @@ void MyFrame::OnExit(wxCommandEvent &event)
 void MyFrame::OnAbout(wxCommandEvent &event)
   // Callback for the about menu item
 {
-	aboutfunction();
+    wxString text = wxT("Example");
 }
 
 void MyFrame::OnButton(wxCommandEvent &event)
@@ -297,9 +318,36 @@ void MyFrame::OnButton(wxCommandEvent &event)
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
 
-void MyFrame::OnButton2(wxCommandEvent &event)
+void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for second pushbutton
 {
+    
+    wxString selectionStr = zapTraceComboBox->GetStringSelection();
+    wxString text;
+    text.Printf(wxT("%s removed"),selectionStr.c_str());
+    
+    int selection = zapTraceComboBox->GetSelection();
+    canvas->traceVector.erase(canvas->traceVector.begin() + selection);
+
+    canvas->Render(text,-1);
+    zapTraceComboBox->Delete(selection);
+        
+}
+
+void MyFrame::OnButtonSwitch(wxCommandEvent &event)
+  // Callback for second pushbutton
+{
+    /*
+    wxString selectionStr = zapTraceComboBox->GetStringSelection();
+    wxString text;
+    text.Printf(wxT("%s removed"),selectionStr.c_str());
+    
+    int selection = zapTraceComboBox->GetSelection();
+    canvas->traceVector.erase(canvas->traceVector.begin() + selection);
+
+    canvas->Render(text,-1);
+    zapTraceComboBox->Delete(selection);
+    */    
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
@@ -308,7 +356,7 @@ void MyFrame::OnSpin(wxSpinEvent &event)
   wxString text;
 
   text.Printf(wxT("New spinctrl value %d"), event.GetPosition());
-  canvas->Render(text);
+  canvas->Render(text,-1);
 }
 
 void MyFrame::OnText(wxCommandEvent &event)
@@ -317,7 +365,7 @@ void MyFrame::OnText(wxCommandEvent &event)
   wxString text;
 
   text.Printf(wxT("New text entered %s"), event.GetString().c_str());
-  canvas->Render(text);
+  canvas->Render(text,-1);
 }
 
 void MyFrame::runnetwork(int ncycles)
@@ -338,18 +386,17 @@ void MyFrame::runnetwork(int ncycles)
   else cyclescompleted = 0;
 }
 
-void MyFrame::aboutfunction()
+void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
 {
-  wxMessageDialog about(this, wxT("Example wxWidgets GUI\nDavid Mclean & Tom Proctor\nFebruary 2013"), wxT("About Logsim"), wxICON_INFORMATION | wxOK);
+  wxString message;
+  message.Printf(wxT("Trace Selected: %s \nSwitch Selected: %s"),traceStr.c_str(),switchStr.c_str());
+  wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
   about.ShowModal();
   return;
 }
 
 void MyFrame::OnSelect(wxCommandEvent &event)
 {
-    wxString author = event.GetString();
-    wxMessageDialog about(this, wxT("Example wxWidgets GUI\nDavid Mclean & Tom Proctor\nFebruary 2013"), author, wxICON_INFORMATION | wxOK);
-  about.ShowModal();
-    
+    wxString trace = event.GetString();
 }
 

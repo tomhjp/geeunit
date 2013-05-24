@@ -12,7 +12,7 @@
 using namespace std;
 
 
-typedef enum {devsect, consect, monsect} section_t; 
+typedef enum {prestartf, devsect, consect, monsect, postendf} section_t; 
 
 
 class parser {
@@ -22,35 +22,39 @@ class parser {
     scanner_t* smz;
     
     /* context vector - contains the symbols that make up the current line */ 
-    vector<symbol_t> curline; 
-
-    /* errorvector - contains pointers to the Error objects created by parsing */ 
-    vector<Error*> errorvector; 
-
+    vector<symbol_t> context;  
     /* Used to define which syntax/semantic rules to apply */ 
     section_t section;
+    
+    int needskeyflag;   // used to check for the next keyword, as defined by the section
+    int skipflag;       // used to tell parser to ignore rest of line up to keyword or ';'
+    int nodevsymflag;   // prevent repeated "no KEYWORD keyword" errors
+    int noconsymflag;
+    int nomonsymflag; 
+    int noendfsymflag;
+    
+    /* Vector of errors. returned to main after the whole file has been parsed */
+    vector<Error*> errorvector;
+    
+    /************* Private Functions ****************************************/ 
+    void preStartFCheck(symbol_t symbol);	//check functions for each of the sections of the file 
+    void devSectCheck(symbol_t symbol);
+    void conSectCheck(symbol_t symbol);
+    void monSectCheck(symbol_t symbol);
+    void postEndFCheck(symbol_t symbol); 
+    void skipToBreak(void);					//skips to the next END or ;
+    void nextKeyWordCheck(symbol_t symbol); //checks that the next symbol after END, etc, is as expected
+    
     
   public:
     /* Reads the definition of the logic system and builds the             */
     /* corresponding internal representation via calls to the 'Network'    */
     /* module and the 'Devices' module.                                    */
-    bool readin ();
+    void readin (symbol_t symbol);
     
-    /* gets the context vector for the current line for syntax checking classes */
-    /* (NB. syntax can be checked without examining the exact input, just check */
-    /* that the symbol type input is correct)                                   */
-    vector<symbol_t> getContext(void);  
-    
-    /* sets the section currently being parsed */ 
-    void setSection(section_t sec); 
-    
-    /* calls the relevant syntax checking class */ 
-    /* return value is an error code. 0 = syntax check passed  */ 
-    int checkSyntax(section_t sec);     
-    
-    /* creates a new Error object of the correct subclass type and skips forwards */ 
-    /* in the definition file to the next valid point                           */ 
-    void addError(errorcode_t errorcode);
+    /* Populated with pointers to Error objects BY THE PARSER */
+    /* called after hte whole file has been parsed             */  
+    vector<Error*> getErrorVector(void); 
     
     /* the constructor takes pointers to various other classes as parameters */
     parser (network* network_mod, devices* devices_mod,

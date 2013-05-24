@@ -5,28 +5,56 @@
 using namespace std; 
 
 
-
-
 /**************************************************************************/
 /* Methods for the superclass Error  */ 
-
-/* Sets the linecalled variable to the number passed */
-void Error::setLine(int a)
-{
-    lineCalled = a; 
-}
 
 /* Prints out the error message and line where the error occurred */ 
 void Error::printErrMsg(void) 
 {
-   cout << "Error: " << lineCalled << ": " << errorMessage <<endl;
+   cout << "Error: " << line << ": " << errorMessage <<endl;
 } 
 
+Error::Error()
+{
+	return;
+}
 
 /******************************************************************************/
 /* Methods for subclasses (ie. specific errors)   */ 
 
-Example::Example(void) 
+noStrtFile::noStrtFile(int l, int c) 
 {
-    errorMessage = "The specific error message for this kind of error";
+    errorMessage = "Expected 'STARTFILE' keyword";
+    line = l;
+    col = c;
 }
+
+expDevSym::expDevSym(int l, int c)
+{
+    errorMessage = "Expected 'DEVICES' keyword"; 
+    line = l;
+    col = c;
+}
+
+expMonSym::expMonSym(int l, int c)
+{
+	errorMessage = "Expected 'MONITORS' keyword";
+	line = l;
+	col = c;
+}
+
+expConSym::expConSym(int l, int c)
+{
+	errorMessage = "Expected 'CONNECTIONS' keyword"; 
+	line = l;
+	col = c; 
+}
+
+expEndFSym::expEndFSym(int l, int c)
+{
+	errorMessage = "Expected 'ENDFILE' keyword"; 
+	line = l;
+	col = c;
+}
+
+
