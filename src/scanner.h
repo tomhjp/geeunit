@@ -9,8 +9,16 @@
 typedef enum {strsym, numsym, startfsym, devsym, connsym, monsym, endsym, endfsym,
               switchsym, andsym, nandsym, orsym, norsym, dtypesym, xorsym,
               commasym, semicolsym, opsym, cpsym, equalsym, dotsym,
-              badsym, eofsym} symbol_t;
+              badsym, eofsym} symboltype_t;
               /* opsym and cpsym = open and close parenthesis sym */
+
+struct symbol_t {
+    symboltype_t symboltype;
+    namestring_t namestring;
+    int num;
+    unsigned int line;
+    unsigned int col;
+};
 
 typedef enum {validPunc, invalidPunc, slash, star} punc_t;
 
@@ -35,7 +43,7 @@ private:
     void getpunc(namestring_t &str);
       /* Process a string that doesn't start with space, alpha or digit */
 
-    symbol_t symbolType(namestring_t namestring);
+    symboltype_t symbolType(namestring_t namestring);
       /* Return the symbol_t for a particular string such as 'END' or '.' */
 
     void incrementPosition(void);
@@ -58,13 +66,10 @@ public:
     ~scanner_t();
       /* Destructor for the scanner class */
 
-    void nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num);
-      /* Return the next symbol in the definition file 
-       * Arg1: Type of symbol, e.g. semicol, namesym numsym etc.
-       * Arg2: Returns the name if the symbol has one
-       * Arg3: Returns the number if the symbol is a number */
+    void nextSymbol(symbol_t &symbol);
+      /* Return the next symbol in the definition file in a struct */
 
-    void getPosition(int &line, int &col, bool &ok);
+    //void getPosition(int &line, int &col, bool &ok);
       /* Return the position of the last symbol the scanner scanned 
        * Arg1: line number
        * Arg2: column number
