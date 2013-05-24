@@ -206,6 +206,12 @@ punc_t scanner_t::puncType(char ch)
         return invalidPunc;
 }
 
+void scanner_t::saveCurPosition(symbol_t &symbol)
+{
+    symbol.line = line;
+    symbol.col = col-1;     // col represents col about to be read in scanner class
+}
+
 
 
 
@@ -254,22 +260,21 @@ void scanner_t::nextSymbol(symbol_t &symbol)
             if (!isComment)
             {
                 /* Turns out it was some sort of string starting with '/' */
-                symbol.line = line;
-                symbol.col = col;
+                saveCurPosition(symbol);
                 getpunc(symbol);
                 return;
             }
-            else
+            else if (isComment)
             {
                 /* Comment has been discarded, now call nextSymbol so
                  * that the variables passed in actually get populated */
                 nextSymbol(symbol);
+                return;
             }
         }
 
         /* Now at the beginning of what we will output as the next symbol */
-        symbol.line = line;
-        symbol.col = col;
+        saveCurPosition(symbol);
 
         /* Check if the next symbol is a number */
         if (isdigit(ch))
@@ -300,19 +305,7 @@ void scanner_t::nextSymbol(symbol_t &symbol)
 
     else
     {
-        cout << "EOF" << endl;
         symbol.symboltype = eofsym;
         return;
     }
 }
-
-/*void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
-{
-    ok = true;
-
-    if (line >= 0) oLine = line;
-    else ok = false;
-
-    if (col >= 0) oCol = col-1;     // column has moved on 1 since the last symbol outputted
-    else ok = false;
-}*/

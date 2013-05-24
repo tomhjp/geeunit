@@ -43,6 +43,10 @@ private:
     bool skipcomment(void);
       /* Process a string (hopefully a comment) that starts with a '/'
        * character */
+    
+    void saveCurPosition(symbol_t &symbol);
+      /* Save the current line and col values into symbol and subtract
+       * 1 from col to make it correct */
 
 public:
     scanner_t(names *namesObjin, const char *defname);
@@ -56,11 +60,6 @@ public:
     void nextSymbol(symbol_t &symbol);
       /* Return the next symbol in the definition file in a struct */
 
-    //void getPosition(int &line, int &col, bool &ok);
-      /* Return the position of the last symbol the scanner scanned 
-       * Arg1: line number
-       * Arg2: column number
-       * Arg3: flag to check function executed correctly */
 };
 
 #endif  /* scanner_h */
