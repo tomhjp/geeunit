@@ -15,13 +15,23 @@ using namespace std;
 //    return;
 //}
 
-name_t names::lookup (namestring_t str)
+name_t names::lookup (symbol_t &symbol)
 {
-    name_t index = find(table.begin(), table.end(), str) - table.begin();
-    if (index == table.end() - table.begin())
+    name_t index;
+    for (index=0; index<table.size(); index++)
     {
-        // str didn't exist, insert str into table
-        table.push_back(str);
+        if (table[index].namestring == symbol.namestring)
+            break;
+    }
+    if (index == table.size())
+    {
+        /* str didn't exist, make a namestruct and insert into table */
+        namestruct_t namestruct;
+        namestruct.namestring = symbol.namestring;
+        namestruct.line = symbol.line;
+        namestruct.col = symbol.col;
+
+        table.push_back(namestruct);
         return (name_t) table.size()-1;
     }
     else
@@ -39,7 +49,7 @@ void names::writename (name_t index)
     {
         if (index > table.size()-1)
         throw index;
-        cout << table[index];
+        cout << table[index].namestring;
     }
     catch (name_t index)
     {
@@ -50,5 +60,5 @@ void names::writename (name_t index)
 
 int names::namelength (name_t index)
 {
-    return table[index].length();
+    return table[index].namestring.length();
 }

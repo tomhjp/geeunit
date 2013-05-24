@@ -5,11 +5,11 @@
 
 using namespace std;
 
-void printout(symbol_t s)
+void printout(symbol_t &s)
 {
     cout << "Symbol type: ";
     string str;
-    switch (s)
+    switch (s.symboltype)
     {
         case (strsym)       : str = "strsym";           break;
         case (numsym)       : str = "numsym";           break;
@@ -24,14 +24,14 @@ void printout(symbol_t s)
 
 int main(void)
 {
-    names namesObj;
+    /*names namesObj;
     const char* file = "testfile";
     scanner_t scanner(&namesObj, file);
 
-    symbol_t symbol; namestring_t name; int num;
+    symbol_t symbol; namestring_t name; int num;*/
     
     /* Read through whole file outputting one symbol and its type at a time */
-    while (symbol != eofsym)
+    /*while (symbol != eofsym)
     {
         scanner.nextSymbol(symbol, name, num);
         printout(symbol);
@@ -39,5 +39,5 @@ int main(void)
             cout << num << endl;
         else
             cout << name << endl;
-    }
+    }*/
 }

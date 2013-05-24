@@ -4,21 +4,8 @@
 #include <fstream>
 #include <string>
 
+#include "typedefs.h"
 #include "names.h"
-
-typedef enum {strsym, numsym, startfsym, devsym, connsym, monsym, endsym, endfsym,
-              switchsym, andsym, nandsym, orsym, norsym, dtypesym, xorsym,
-              commasym, semicolsym, opsym, cpsym, equalsym, dotsym,
-              badsym, eofsym} symboltype_t;
-              /* opsym and cpsym = open and close parenthesis sym */
-
-struct symbol_t {
-    symboltype_t symboltype;
-    namestring_t namestring;
-    int num;
-    unsigned int line;
-    unsigned int col;
-};
 
 typedef enum {validPunc, invalidPunc, slash, star} punc_t;
 
@@ -34,13 +21,13 @@ private:
     void skipspaces(void);
       /* Skip spaces; will usually end on \n at eof */
 
-    void getnumber(int &number);
+    void getnumber(symbol_t &symbol);
       /* Process a string that starts with a digit */
 
-    name_t getname(namestring_t &str);
+    name_t getname(symbol_t &symbol);
       /* Process a string that starts with an alpha character */
 
-    void getpunc(namestring_t &str);
+    void getpunc(symbol_t &symbol);
       /* Process a string that doesn't start with space, alpha or digit */
 
     symboltype_t symbolType(namestring_t namestring);

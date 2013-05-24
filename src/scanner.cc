@@ -70,16 +70,17 @@ bool scanner_t::skipcomment(void)
         return true;        // prefixFound && !suffixFound => whole file is comment after prefix
 }
 
-void scanner_t::getnumber(int &number)
+void scanner_t::getnumber(symbol_t &symbol)
 {
-    string num = "";
+    string strnum = "";         // string to build up num in
     while (!eofile)
     {
         if (isdigit(ch))
-            num += ch;                      // build up the number as a string
+            strnum += ch;       // build up the number as a string
         else
         {
-            number = atoi(num.c_str());     // convert string to int at end
+            symbol.num = atoi(strnum.c_str());     // convert string to int at end
+            symbol.symboltype = numsym;
             break;
         }
         eofile = (inf.get(ch) == 0);
@@ -88,7 +89,7 @@ void scanner_t::getnumber(int &number)
 }
 
 
-name_t scanner_t::getname(namestring_t &str)
+name_t scanner_t::getname(symbol_t &symbol)
 {
     namestring_t outstr = "";
     string toolongstr = "";
@@ -114,27 +115,35 @@ name_t scanner_t::getname(namestring_t &str)
         else
         {
             /* end of name string when no longer alpha characters */
-            str = outstr;
+            symbol.namestring = outstr;
+            symbol.symboltype = symbolType(outstr);
             if (error)
                 cout << "Warning: " << toolongstr << " exceeded maxlength " << maxlength << endl;
-            return namesObj->lookup(outstr);    // add name to names class
+            return namesObj->lookup(symbol);    // add name to names class
         }
         eofile = (inf.get(ch) == 0);
         incrementPosition();
     }
-    return namesObj->lookup(outstr);    // still add name to names class if eofile reached
+    symbol.namestring = outstr;
+    symbol.symboltype = symbolType(outstr);
+    return namesObj->lookup(symbol);    // still add name to names class if eofile reached
 }
 
-void scanner_t::getpunc(namestring_t &str)
+
+void scanner_t::getpunc(symbol_t &symbol)
 {
-    str = "";
+    namestring_t str = "";
     
     while (!eofile)
     {
         if (!isalnum(ch) && !isspace(ch))
             str += ch;
         else
+        {
+            symbol.symboltype = symbolType(str);
+            symbol.namestring = str;
             return;
+        }
         eofile = (inf.get(ch) == 0);
         incrementPosition();
     }
@@ -142,9 +151,9 @@ void scanner_t::getpunc(namestring_t &str)
 
 /* Equate special strings in the definition file to a symbol_t
  * Only called for non-numbers */
-symbol_t scanner_t::symbolType(namestring_t namestring)
+symboltype_t scanner_t::symbolType(namestring_t namestring)
 {
-    symbol_t s;
+    symboltype_t s;
     char firstchar = namestring[0];
 
     /* namestring.compare(string) returns 0 if namestring and string identical */
@@ -227,32 +236,15 @@ scanner_t::~scanner_t()
     return;
 }
 
-void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
+void scanner_t::nextSymbol(symbol_t &symbol)
 {
     if (!eofile)
     {
         /* Skip spaces first */
         skipspaces();
 
-        /* Then check if the next symbol is a number */
-        if (isdigit(ch))
-        {
-            //cout << "NUMBER" << endl;
-            getnumber(num);
-            symbol = numsym;
-            return;
-        }
-
-        /* Process symbols that are some sort of string */
-        else if (isalpha(ch))
-        {
-            getname(namestring);
-            symbol = symbolType(namestring);
-            return;
-        }
-
         /* If the character is a slash, guess that it's going to be a comment */
-        else if (puncType(ch) == slash)
+        if (puncType(ch) == slash)
         {
             /* skipcomment discards everything in between comment
              * characters and returns the input file to the place it
@@ -262,27 +254,46 @@ void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
             if (!isComment)
             {
                 /* Turns out it was some sort of string starting with '/' */
-                getpunc(namestring);
-                symbol = symbolType(namestring);
+                symbol.line = line;
+                symbol.col = col;
+                getpunc(symbol);
                 return;
             }
             else
             {
                 /* Comment has been discarded, now call nextSymbol so
                  * that the variables passed in actually get populated */
-                nextSymbol(symbol, namestring, num);
+                nextSymbol(symbol);
             }
+        }
+
+        /* Now at the beginning of what we will output as the next symbol */
+        symbol.line = line;
+        symbol.col = col;
+
+        /* Check if the next symbol is a number */
+        if (isdigit(ch))
+        {
+            getnumber(symbol);
+            return;
+        }
+
+        /* Process symbols that are some sort of string */
+        else if (isalpha(ch))
+        {
+            getname(symbol);
+            return;
         }
 
         else
         {
             /* Some sort of string starting with punctuation */
-            getpunc(namestring);
-            symbol = symbolType(namestring);
+            getpunc(symbol);
+            symbol.symboltype = symbolType(symbol.namestring);
             /* ch will still be \n if eofile is reached so overwrite it
              * if the end of the file has been read in already */
             if (eofile)
-                symbol = eofsym;
+                symbol.symboltype = eofsym;
             return;
         }
     }
@@ -290,12 +301,12 @@ void scanner_t::nextSymbol(symbol_t &symbol, namestring_t &namestring, int &num)
     else
     {
         cout << "EOF" << endl;
-        symbol = eofsym;
+        symbol.symboltype = eofsym;
         return;
     }
 }
 
-void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
+/*void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
 {
     ok = true;
 
@@ -304,4 +315,4 @@ void scanner_t::getPosition(int &oLine, int &oCol, bool &ok)
 
     if (col >= 0) oCol = col-1;     // column has moved on 1 since the last symbol outputted
     else ok = false;
-}
+}*/
