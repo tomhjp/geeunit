@@ -1,13 +1,15 @@
 #ifndef parser_h
 #define parser_h
 
+#include <vector> 
 #include "names.h"
+#include "typedefs.h"
 #include "scanner.h"
 #include "network.h"
 #include "devices.h"
 #include "monitor.h"
 #include "error.h"
-#include <vector> 
+#include "device.h"
 
 using namespace std;
 
@@ -20,6 +22,7 @@ class parser {
     devices* dmz; 
     monitor* mmz;
     scanner_t* smz;
+    names* nmz;
     
     /* context vector - contains the symbols that make up the current line */ 
     vector<symbol_t> context;  
@@ -44,6 +47,7 @@ class parser {
     void postEndFCheck(symbol_t symbol); 
     void skipToBreak(void);					//skips to the next END or ;
     void nextKeyWordCheck(symbol_t symbol); //checks that the next symbol after END, etc, is as expected
+    bool checkDevLine(void);
     
     
   public:
@@ -58,7 +62,7 @@ class parser {
     
     /* the constructor takes pointers to various other classes as parameters */
     parser (network* network_mod, devices* devices_mod,
-	      monitor* monitor_mod, scanner_t* scanner_mod);
+	      monitor* monitor_mod, scanner_t* scanner_mod, names* names_mod);
 
 };
 

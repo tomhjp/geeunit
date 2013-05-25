@@ -40,8 +40,44 @@ name_t names::lookup (symbol_t &symbol)
 
 name_t names::cvtname (namestring_t str)
 {
-    return 0;
+	name_t index; 
+	
+    for (index=0; index<table.size(); index++)
+    {
+        if (table[index].namestring == str)
+            break;
+    }
+    if (index == table.size())
+	{
+		/* str doesn't yet exist  */ 
+		return blankname; 
+	}
+	else
+	{
+		/* str exists, and is at location index in the table  */ 
+		return index; 
+	}	
+
 }
+
+int names::getLine(namestring_t str)
+{
+	int linenum;
+	name_t index; 
+	index = cvtname(str); 
+	linenum = table[index].line; 
+	return linenum;
+}
+
+int names::getCol(namestring_t str)
+{
+	int colnum;
+	name_t index; 
+	index = cvtname(str); 
+	colnum = table[index].col; 
+	return colnum;
+}
+
 
 void names::writename (name_t index)
 {
