@@ -96,6 +96,13 @@ expNumSym::expNumSym(int l, int c)
 	line = l;
 	col = c;
 }	
+
+expDevTypeSym::expDevTypeSym(int l, int c)
+{
+	errorMessage = "Expected a device type keyword (eg. DTYPE, CLK, etc.)"; 
+	line = l;
+	col = c; 
+}
 	
 paramRangeErrSwitch::paramRangeErrSwitch(int l, int c)
 {
@@ -106,8 +113,15 @@ paramRangeErrSwitch::paramRangeErrSwitch(int l, int c)
 
 paramRangeErrGate::paramRangeErrGate(int l, int c)
 {
-	errorMessage = "Parameter out of valid range - the valid range is 1-16 (inclusive)";
+	errorMessage = "Parameter out of valid range - the valid range is 1-16";
 	line = l; 
+	col = c;
+}
+
+paramRangeErrClk::paramRangeErrClk(int l, int c)
+{
+	errorMessage = "Parameter out of valid range - the valid range is 1-65535";
+	line = l;
 	col = c;
 }
 

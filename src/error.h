@@ -82,6 +82,12 @@ class expNumSym: public Error
 	expNumSym(int l, int c);
 };
 
+class expDevTypeSym: public Error
+{
+	public:
+	expDevTypeSym(int l, int c);
+};
+
 class paramRangeErrSwitch: public Error
 {
 	public:
@@ -92,6 +98,12 @@ class paramRangeErrGate: public Error
 {
 	public:
 	paramRangeErrGate(int l, int c);
+};
+
+class paramRangeErrClk: public Error
+{
+	public;
+	paramRangeErrClk(int l, int c);
 };
 
 class expCPSym : public Error

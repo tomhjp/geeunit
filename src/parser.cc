@@ -66,12 +66,15 @@ bool parser::checkDevLine(void)
 		errorvector.push_back(new expDevName(context[0].line, context[0].col));
 		return false;
 	}
+	/* Second symbol must be '='  */
 	if(context[1].symboltype != equalsym)
 	{
 		errorvector.push_back(new expEqualSym(context[1].line, context[1].col));
 		return false;
 	}
-	if(context[2].symboltype == (switchsym || andsym || nandsym || orsym || norsym))
+	/* Third symbol must be a devicetype. The syntax branches depending on which devictype is called */
+	/* Thes ones take a single number as their parameter */  
+	if(context[2].symboltype == (clksym || switchsym || andsym || nandsym || orsym || norsym))
 	{
 		if(context[3].symboltype != opsym)
 		{
@@ -102,7 +105,15 @@ bool parser::checkDevLine(void)
 					errorvector.push_back(new paramRangeErrGate(context[4].line, context[4].col));
 					return false;
 				}
-			}			
+			}
+			else if(context[2].symboltype == clksym)
+			{
+				if(!clkdev.paramInValidRange(context[4].num))
+				{
+					errorvector.push_back(new paramRangeErrClk(context[4].line, context[4].col));
+					return false;
+				}
+			}
 		}
 		if(context[5].symboltype != cpsym)
 		{
@@ -115,6 +126,7 @@ bool parser::checkDevLine(void)
 			return false;
 		}
 	}
+	/* These take no parameters  */ 
 	else if(context[2].symboltype == (dtypesym || xorsym))
 	{
 		if(context[3].symboltype != semicolsym)
@@ -123,9 +135,18 @@ bool parser::checkDevLine(void)
 			return false;
 		}
 	}
+	/* the third symbol is not a devicetype */ 
+	else if(context[2].syboltype != (switchsym || andsym || nandsym || orsym || norsym || dtypesym || xorsym || clksym)
+	{
+		errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
+		return false; 
+	}
+	/* THE LINE HAS PASSED ALL SEMANTIC AND SYNTACTIC CHEKCS AND MUST NOW BE BUILT */ 
 	else
 	{
+		return true;
 	}
+	
 }
 
 /* Finds the next expected keyword after a keyword  */ 
