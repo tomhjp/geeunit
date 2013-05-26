@@ -170,6 +170,7 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("NOR"))         s = norsym;
     else if (!namestring.compare("DTYPE"))       s = dtypesym;
     else if (!namestring.compare("XOR"))         s = xorsym;
+    else if (!namestring.compare("CLK"))         s = clksym;
     else if (!namestring.compare(","))           s = commasym;
     else if (!namestring.compare(";"))           s = semicolsym;
     else if (!namestring.compare("("))           s = opsym;
