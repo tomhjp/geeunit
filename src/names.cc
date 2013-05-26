@@ -15,21 +15,17 @@ using namespace std;
 //    return;
 //}
 
-name_t names::lookup (symbol_t &symbol)
+name_t names::lookup (namestring_t str)
 {
     name_t index;
-    for (index=0; index<table.size(); index++)
-    {
-        if (table[index].namestring == symbol.namestring)
-            break;
-    }
-    if (index == table.size())
+    index = cvtname(str); 
+    if (index == blankname)
     {
         /* str didn't exist, make a namestruct and insert into table */
         namestruct_t namestruct;
-        namestruct.namestring = symbol.namestring;
-        namestruct.line = symbol.line;
-        namestruct.col = symbol.col;
+        namestruct.namestring = str;
+        //namestruct.line = symbol.line;
+        //namestruct.col = symbol.col;
 
         table.push_back(namestruct);
         return (name_t) table.size()-1;

@@ -21,7 +21,7 @@ const int blankname = -1;   /* special name                 */
 class names{
     vector<namestruct_t> table;
 public:
-    name_t lookup (symbol_t &symbol);
+    name_t lookup (namestring_t str);
     /* Returns the internal representation of the name given in character  */
     /* form.  If the name is not already in the name table, it is          */
     /* automatically inserted.                                             */
