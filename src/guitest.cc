@@ -13,6 +13,30 @@ bool MyApp::OnInit()
   dmz = new devices(nmz, netz);
   mmz = new monitor(nmz, netz);
 
+  bool ok = false;
+  devicekind dkind = aclock;
+  int variant = 2;
+  name_t did;
+  name_t oid = blankname;
+
+  did = nmz->lookup("myclk");
+  //cout << did << endl;
+  dmz->makedevice(dkind, did, variant, ok);
+  /*if (ok)
+    cout << "success: Made device" << endl;
+  else
+    cout << "fail: Did not make device" << endl;*/
+  netz->checknetwork(ok);
+  /*if (ok)
+    cout << "Network ok" << endl;
+  else
+    cout << "Network NOT ok" << endl;*/
+  //mmz->makemonitor(did, oid, ok);
+  /*if (ok)
+    cout << "SUCCESS: Made monitor ok" << endl;
+  else
+    cout << "Failed to make monitor" << endl;*/
+
   // glutInit cannot cope with Unicode command line arguments, so we pass
   // it some fake ASCII ones instead
   char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
