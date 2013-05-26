@@ -21,7 +21,6 @@ class scanner_t
 {
 private:
     ifstream inf;           // input file
-    names *namesObj;        // names object
     char ch;                // current character
     bool eofile;            // true when end of file is reached
     unsigned int line, col; // current line and column numbers
@@ -55,6 +54,12 @@ private:
     void saveCurPosition(symbol_t &symbol);
       /* Save the current line and col values into symbol and subtract
        * 1 from col to make it correct */
+
+    void replaceTabsWithSpaces(const char *defname);
+
+    void saveScannerState(streampos &pos, char &chstart, unsigned int &linestart, unsigned int &colstart, bool &eofilestart);
+
+    void restoreScannerState(streampos pos, char chstart, unsigned int linestart, unsigned int colstart, bool eofilestart);
 
 public:
     scanner_t(const char *defname);

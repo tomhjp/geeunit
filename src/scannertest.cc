@@ -29,7 +29,7 @@ void printout(symbol_t &s)
 
 int main(void)
 {
-    const char* file = "testfile";
+    const char* file = "dfile";
     scanner_t scanner(file);
 
     symbol_t symbol;

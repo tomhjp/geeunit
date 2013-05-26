@@ -10,7 +10,7 @@ typedef string namestring_t;
 
 typedef enum {strsym, numsym, startfsym, devsym, connsym, monsym, endsym, endfsym,
               switchsym, andsym, nandsym, orsym, norsym, dtypesym, xorsym, clksym,
-              commasym, semicolsym, opsym, cpsym, equalsym, dotsym,
+              commasym, semicolsym, opsym, cpsym, equalsym, dotsym, connpuncsym,
               badsym, eofsym} symboltype_t;
               /* opsym and cpsym = open and close parenthesis sym */
 

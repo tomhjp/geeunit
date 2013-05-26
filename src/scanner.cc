@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 #include <fstream>
+//#include <boost>
 
 #include "scanner.h"
 
@@ -25,10 +26,9 @@ bool scanner_t::skipcomment(void)
 {
     /* Save state of scanner in case we're not actually processing a
      * comment and need to backtrack */
-    char chstart = ch;
-    unsigned int linestart = line, colstart = col;
-    bool eofilestart = eofile;
-    streampos pos = inf.tellg();
+    char chstart; unsigned int linestart, colstart;
+    bool eofilestart; streampos pos;
+    saveScannerState(pos, chstart, linestart, colstart, eofilestart);
 
     /* Setup for searching for the comment */
     string str = "";
@@ -62,8 +62,7 @@ bool scanner_t::skipcomment(void)
     if (!prefixFound)
     {
         /* Return scanner to state before skipcomment was called */
-        ch = chstart; line = linestart; col = colstart; eofile = eofilestart;
-        inf.seekg(pos);
+        restoreScannerState(pos, chstart, linestart, colstart, eofilestart);
         return false;
     }
     /* Comment found, return true */
@@ -136,14 +135,41 @@ void scanner_t::getpunc(symbol_t &symbol)
 {
     namestring_t str = "";
     
-    while (!eofile)
+    /* Only want to retrieve one punctuation symbol at a time, so if rather than while */
+    if (!eofile)
     {
-        if (!isalnum(ch) && !isspace(ch))
-            str += ch;
-        else
+        if (ch == '-')
         {
+            /* Start looking for '->' so save scanner state to return if not found (badsym) */
+            eofile = (inf.get(ch) == 0);
+            incrementPosition();
+            char chstart; unsigned int linestart, colstart;
+            bool eofilestart; streampos pos;
+            saveScannerState(pos, chstart, linestart, colstart, eofilestart);
+            if (ch == '>')
+            {
+                symbol.namestring = "->";
+                symbol.symboltype = symbolType("->");
+                eofile = (inf.get(ch) == 0);
+                incrementPosition();
+                return;
+            }
+            else
+            {
+                symbol.namestring = "-";
+                symbol.symboltype = symbolType("-");
+                restoreScannerState(pos, chstart, linestart, colstart, eofilestart);
+                return;
+            }
+        }
+        if (!isalnum(ch) && !isspace(ch))
+        {
+            str += ch;
             symbol.symboltype = symbolType(str);
             symbol.namestring = str;
+        }
+        else
+        {
             return;
         }
         eofile = (inf.get(ch) == 0);
@@ -180,6 +206,7 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare(")"))           s = cpsym;
     else if (!namestring.compare("="))           s = equalsym;
     else if (!namestring.compare("."))           s = dotsym;
+    else if (!namestring.compare("->"))           s = connpuncsym;
     /* If first char is alphabetic then namestring was retrieved with getname and is a name */
     else if (isalpha(firstchar))                 s = strsym;
     else if (!namestring.compare("\0"))          s = eofsym;
@@ -220,6 +247,62 @@ void scanner_t::saveCurPosition(symbol_t &symbol)
 }
 
 
+/* Goes through file and replaces tabs with spaces to facilitate accurate reporting of column numbers */
+void scanner_t::replaceTabsWithSpaces(const char *defname)
+{
+    char ch;
+    bool eofile;
+    bool tabFound = false;
+
+    ifstream infile;
+    infile.open(defname);
+    if (!infile)
+    {
+        cout << "Error: cannot open file " << defname << "for reading" << endl;
+        exit(1);
+    }
+    string fileString = "";
+    eofile = (infile.get(ch) == 0);
+    while (!eofile)
+    {
+        if (ch == '\t')
+        {
+            tabFound = true;
+            fileString += "    ";
+        }
+        else
+            fileString += ch;
+        eofile = (infile.get(ch) == 0);
+    }
+    infile.close();
+    if (tabFound)
+    {
+        ofstream outfile;
+        outfile.open(defname);
+        outfile << fileString;
+        outfile.close();
+    }
+}
+
+
+void scanner_t::saveScannerState(streampos &pos, char &chstart, unsigned int &linestart, unsigned int &colstart, bool &eofilestart)
+{
+    chstart = ch;
+    linestart = line;
+    colstart = col;
+    eofilestart = eofile;
+    pos = inf.tellg();
+}
+
+
+void scanner_t::restoreScannerState(streampos pos, char chstart, unsigned int linestart, unsigned int colstart, bool eofilestart)
+{
+    ch = chstart;
+    line = linestart;
+    col = colstart;
+    eofile = eofilestart;
+    inf.seekg(pos);
+}
 
 
 
@@ -230,12 +313,20 @@ void scanner_t::saveCurPosition(symbol_t &symbol)
 /***********************************************************/
 scanner_t::scanner_t(const char *defname)
 {
+    replaceTabsWithSpaces(defname);
+
     inf.open(defname);
     if (!inf)
     {
         cout << "Error: cannot open file " << defname << "for reading" << endl;
         exit(1);
     }
+
+    /*string fileString = fileToString(defname);
+    boost::replace_all(fileString, '\t', "    ");
+    infile.close();
+    ofstream(defname) << fileString;*/
+
     line = 1;   // first line is line 1
     col = 1;    // First possible cursor position is column 1
     
