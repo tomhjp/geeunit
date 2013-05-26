@@ -129,7 +129,7 @@ void scanner_t::getname(symbol_t &symbol)
     symbol.symboltype = symbolType(outstr);
     return;
 }
-
+    
 
 void scanner_t::getpunc(symbol_t &symbol)
 {
@@ -207,6 +207,9 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("="))           s = equalsym;
     else if (!namestring.compare("."))           s = dotsym;
     else if (!namestring.compare("->"))           s = connpuncsym;
+    else if (!namestring.compare("DATA"))	 s = ddatasym;
+    else if (!namestring.compare("SET"))	 s = dsetsym;
+    else if (!namestring.compare("CLEAR"))	 s = dclearsym; 
     /* If first char is alphabetic then namestring was retrieved with getname and is a name */
     else if (isalpha(firstchar))                 s = strsym;
     else if (!namestring.compare("\0"))          s = eofsym;
