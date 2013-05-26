@@ -39,16 +39,19 @@ class parser {
     /* Vector of pointers to errors. returned to main after the whole file has been parsed */
     vector<Error*> errorvector;
     
-    /************* Private Functions ****************************************/ 
-    void preStartFCheck(symbol_t symbol);	//check functions for each of the sections of the file 
-    void devSectCheck(symbol_t symbol);
-    void conSectCheck(symbol_t symbol);
-    void monSectCheck(symbol_t symbol);
-    void postEndFCheck(symbol_t symbol); 
+    /************* Private Functions ****************************************/ 	
+    void mainLineBuild(symbol_t symbol);    // performs line building and calls line checking functions for DEV, CON, MON sections
     void skipToBreak(void);					//skips to the next END or ;
     void nextKeyWordCheck(symbol_t symbol); //checks that the next symbol after END, etc, is as expected
+    void preStartFCheck(symbol_t symbol);   // check functions for each of the sections of the file 
     bool checkDevLine(void);
-    
+    bool checkConLine(void);
+    bool checkMonLine(void);
+    void postEndFCheck(symbol_t symbol);
+    void endSection(void);
+    void makeDevLine(void);                 // carry out the operations defined by the line in the definition file
+    void makeConLine(void);                 // once the line has been parsed and if total number of errors is zero 
+    void makeMonLine(void);
     
   public:
     /* Reads the definition of the logic system and builds the             */

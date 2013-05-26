@@ -102,7 +102,7 @@ class paramRangeErrGate: public Error
 
 class paramRangeErrClk: public Error
 {
-	public;
+	public:
 	paramRangeErrClk(int l, int c);
 };
 
@@ -117,8 +117,30 @@ class expSemiColSym: public Error
 	public:
 	expSemiColSym(int l, int c);
 };	
-	
-	
+
+class unExpEndSym: public Error
+{
+    public:
+    unExpEndSym(int l, int c);
+};
+
+class devNameUndef: public Error
+{
+    public:
+    devNameUndef(int l, int c);
+};
+
+class expConnPuncSym: public Error	
+{
+    public:
+    expConnPuncSym(int l, int c);
+};
+
+class expDotSym: public Error
+{
+    public:
+    expDotSym(int l, int c);
+};	
 
 /***********************************************************/
 /********* more complex errors to report *******************/

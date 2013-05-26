@@ -139,7 +139,33 @@ expSemiColSym::expSemiColSym(int l, int c)
 	col = c;
 }
 
-		
+unExpEndSym::unExpEndSym(int l, int c)
+{
+    errorMessage = "Unexpected END symbol.  Did you forget a semicolon?";
+    line = l; 
+    col = c;
+}
+
+devNameUndef::devNameUndef(int l, int c)
+{
+    errorMessage = "Undefined device name";
+    line = l;
+    col = c;
+}
+
+expConnPuncSym::expConnPuncSym(int l, int c)
+{
+    errorMessage = "Expected '->' symbol";
+    line = l; 
+    col = c;
+}
+
+expDotSym::expDotSym(int l, int c)
+{
+    errorMessage = "Expected '.' symbol." ;
+    line = l;
+    col = c;
+}		
 
 
 	

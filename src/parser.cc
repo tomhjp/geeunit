@@ -19,13 +19,22 @@ void parser::preStartFCheck(symbol_t symbol)
     return;
 }
 
-void parser::devSectCheck(symbol_t symbol)
+/* Reads in symbols and builds up a line in the DEVICES, MONITORS and CONNECTIONS   */
+/* sections of the input file.  Calls the appropriate syntax and semantic check     */
+/* functions                                                                        */
+void parser::mainLineBuild(symbol_t symbol)
 {
-	if(symbol.symboltype == endsym)
-	{
-		errorvector.push_back(new noSemiCol(symbol.line, symbol.col));
-		needskeyflag = 1;
-	}	
+    if(symbol.symboltype == endsym && context.size()!= 0)
+    { 
+        errorvector.push_back(new unExpEndSym(symbol.line, symbol.col));
+        return;
+    }
+    /* The END symbol has been found in it's expected position - move on the section */
+    else if(symbol.symboltype == endsym && context.size() == 0)
+    {
+        needskeyflag = 1;
+        return;
+    }    
 	else if(symbol.symboltype != semicolsym)
 	{
 		context.push_back(symbol);
@@ -33,9 +42,61 @@ void parser::devSectCheck(symbol_t symbol)
 	}
 	else 
 	{
-		bool pass = checkDevLine();
-		if(pass); //make the device (look in devices class) 
-		return;
+	    if(section == devsect)
+	    {
+		    bool pass = checkDevLine();
+		    if(pass && errorvector.size()==0)
+		    {
+		        //make the device (look in devices class) 
+		        makeDevLine();        
+		        return;
+	        }
+	        else 
+	        {
+	            skipflag = 1;
+	            return;
+	        } 
+	    }
+	    else if(section == consect)
+	    {
+	        bool pass = checkConLine();
+	        if(pass && errorvector.size()==0)
+	        {
+	            // make the connection
+	            makeConLine();
+	            return; 
+	        }
+	        else if(!pass)
+	        {
+	            skipflag = 1;
+	            return;
+	        }
+		else 
+		{
+		    return;
+		}
+	    }
+	    else if(section == monsect)
+	    {
+	        bool pass = checkMonLine();
+	        if(pass && errorvector.size() == 0)
+	        {
+	            // make the monitor
+	            makeMonLine();
+	            return;
+	        }
+	        else if(!pass)
+	        {
+	            skipflag = 1;
+	            return;
+	        }
+		else
+		{
+		    return;
+		}
+	    }    
+	
+	
 	}	
 }
 
@@ -43,111 +104,174 @@ void parser::devSectCheck(symbol_t symbol)
 /* returns true if the line is syntactically and semantically correct */ 
 bool parser::checkDevLine(void)
 {
-	Dtype dtypedev;	// used to check validity of parameters passed from input file
-	Clk clkdev; 	// slightly strange variable names becuase too many of these were c++ keywords
-	Xor xorgate; 	
-	Gate gate; 
-	Switch switchdev; 
+    Dtype dtypedev;	// used to check validity of parameters passed from input file
+    Clk clkdev; 	// slightly strange variable names becuase too many of these were c++ keywords
+    Xor xorgate; 	
+    Gate gate; 
+    Switch switchdev; 
 	
-	/* First sybol in the line must be a devicename which is currently undefined. */ 
-	if(context[0].symboltype == strsym)
-	{
-		// search namelist for a device with this name. 
-		name_t namedefd;
-		namedefd = nmz->cvtname(context[0].namestring); 
-		if(namedefd != blankname)
-		{
-			errorvector.push_back(new nameAlreadyDefd(context[0].line, context[0].col, context[0].namestring, nmz));
-			return false;
-		}	
-	}
-	else
-	{
-		errorvector.push_back(new expDevName(context[0].line, context[0].col));
-		return false;
-	}
-	/* Second symbol must be '='  */
-	if(context[1].symboltype != equalsym)
-	{
-		errorvector.push_back(new expEqualSym(context[1].line, context[1].col));
-		return false;
-	}
-	/* Third symbol must be a devicetype. The syntax branches depending on which devictype is called */
-	/* Thes ones take a single number as their parameter */  
-	if(context[2].symboltype == (clksym || switchsym || andsym || nandsym || orsym || norsym))
-	{
-		if(context[3].symboltype != opsym)
-		{
-			errorvector.push_back(new expOPSym(context[3].line, context[3].col));
-			return false; 
-		}
-		if(context[4].symboltype != numsym)
-		{
-			errorvector.push_back(new expNumSym(context[4].line, context[4].col));
-			return false;
-		}
-		else
-		{
-			// number passed as parameter
-			// checks that the parameter passed is vaild
-			if(context[2].symboltype == switchsym)
-			{
-				if(!switchdev.paramInValidRange(context[4].num))
-				{
-					errorvector.push_back(new paramRangeErrSwitch(context[4].line, context[4].col));
-					return false; 
-				}	
-			}
-			else if(context[2].symboltype == (andsym || nandsym || orsym || norsym))
-			{
-				if(!gate.paramInValidRange(context[4].num))
-				{
-					errorvector.push_back(new paramRangeErrGate(context[4].line, context[4].col));
-					return false;
-				}
-			}
-			else if(context[2].symboltype == clksym)
-			{
-				if(!clkdev.paramInValidRange(context[4].num))
-				{
-					errorvector.push_back(new paramRangeErrClk(context[4].line, context[4].col));
-					return false;
-				}
-			}
-		}
-		if(context[5].symboltype != cpsym)
-		{
-			errorvector.push_back(new expCPSym(context[5].line, context[5].col));
-			return false;
-		}	
-		if(context[6].symboltype != semicolsym)
-		{
-			errorvector.push_back(new expSemiColSym(context[6].line, context[6].col));
-			return false;
-		}
-	}
-	/* These take no parameters  */ 
-	else if(context[2].symboltype == (dtypesym || xorsym))
-	{
-		if(context[3].symboltype != semicolsym)
-		{
-			errorvector.push_back(new expSemiColSym(context[3].line, context[3].col));
-			return false;
-		}
-	}
-	/* the third symbol is not a devicetype */ 
-	else if(context[2].syboltype != (switchsym || andsym || nandsym || orsym || norsym || dtypesym || xorsym || clksym)
-	{
-		errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
-		return false; 
-	}
-	/* THE LINE HAS PASSED ALL SEMANTIC AND SYNTACTIC CHEKCS AND MUST NOW BE BUILT */ 
-	else
-	{
-		return true;
-	}
-	
+    /* First sybol in the line must be a devicename which is currently undefined. */ 
+    if(context[0].symboltype == strsym)
+    {
+	    // search namelist for a device with this name. 
+	    name_t namedefd;
+	    namedefd = nmz->cvtname(context[0].namestring); 
+	    if(namedefd != blankname)
+	    {
+		    errorvector.push_back(new nameAlreadyDefd(context[0].line, context[0].col, context[0].namestring, nmz));
+		    return false;
+	    }	
+    }
+    else
+    {
+	    errorvector.push_back(new expDevName(context[0].line, context[0].col));
+	    return false;
+    }
+    /* Second symbol must be '='  */
+    if(context[1].symboltype != equalsym)
+    {
+	    errorvector.push_back(new expEqualSym(context[1].line, context[1].col));
+	    return false;
+    }
+    /* Third symbol must be a devicetype. The syntax branches depending on which devictype is called */
+    /* These devices take a single number as their parameter */  
+    if(context[2].symboltype == (clksym || switchsym || andsym || nandsym || orsym || norsym))
+    {
+	    if(context[3].symboltype != opsym)
+	    {
+		    errorvector.push_back(new expOPSym(context[3].line, context[3].col));
+		    return false; 
+	    }
+	    if(context[4].symboltype != numsym)
+	    {
+		    errorvector.push_back(new expNumSym(context[4].line, context[4].col));
+		    return false;
+	    }
+	    else
+	    {
+		    // a number has been passed as parameter
+		    // checks that the parameter passed is vaild
+		    if(context[2].symboltype == switchsym)
+		    {
+			    if(!switchdev.paramInValidRange(context[4].num))
+			    {
+				    errorvector.push_back(new paramRangeErrSwitch(context[4].line, context[4].col));
+				    return false; 
+			    }	
+		    }
+		    else if(context[2].symboltype == (andsym || nandsym || orsym || norsym))
+		    {
+			    if(!gate.paramInValidRange(context[4].num))
+			    {
+				    errorvector.push_back(new paramRangeErrGate(context[4].line, context[4].col));
+				    return false;
+			    }
+		    }
+		    else if(context[2].symboltype == clksym)
+		    {
+			    if(!clkdev.paramInValidRange(context[4].num))
+			    {
+				    errorvector.push_back(new paramRangeErrClk(context[4].line, context[4].col));
+				    return false;
+			    }
+		    }
+	    }
+	    if(context[5].symboltype != cpsym)
+	    {
+		    errorvector.push_back(new expCPSym(context[5].line, context[5].col));
+		    return false;
+	    }	
+	    if(context[6].symboltype != semicolsym)
+	    {
+		    errorvector.push_back(new expSemiColSym(context[6].line, context[6].col));
+		    return false;
+	    }
+    }
+    /* These are devicetypes which take no parameters  */ 
+    else if(context[2].symboltype == (dtypesym || xorsym))
+    {
+	    if(context[3].symboltype != semicolsym)
+	    {
+		    errorvector.push_back(new expSemiColSym(context[3].line, context[3].col));
+		    return false;
+	    }
+    }
+    /* the third symbol is not a devicetype */ 
+    else if(context[2].symboltype != (switchsym || andsym || nandsym || orsym || norsym || dtypesym || xorsym || clksym))
+    {
+	    errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
+	    return false; 
+    }
+    /* THE LINE HAS PASSED ALL SEMANTIC AND SYNTACTIC CHEKCS AND MUST NOW BE BUILT */ 
+    else
+    {
+	    return true;
+    }
+    
 }
+
+/* checks the syntax and semantics of a line in the CONNECTIONS section */ 
+bool parser::checkConLine(void)
+{
+    /* Find the device type of the output device */ 
+    /* returns 
+    devicekind opdevkind; 
+    name_t devid = nmz->cvtname(context[0].namestring);
+    opdevkind = dmz->devkind(devid);
+    
+    /* Find the device type of the input device */ 
+    devicekind opdevkind; 
+    name_t devid = nmz->cvtname(context[0].namestring);
+    opdevkind = dmz->devkind(devid);
+    if(context[0].symboltype != strsym)
+    {
+	errorvector.push_back(new expDevName(context[0].line, context[0].col));
+	return false;
+    }
+    else
+    {
+	if(nmz->cvtname(context[0].namestring == blankname))
+	{
+	    errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
+	    return false;
+	}    
+    }
+
+    if(opdevkind == dtype)
+    {
+	if(context[1].symboltype != dotsym)
+	{
+	    errorvector.push_back(new expDotSym(context[1].line, context[1].col));
+	    return false; 
+	}
+	if(context[2].symboltype
+	
+	
+	
+	
+    if(context[1].symboltype != connpuncsym)
+    {
+	errorvector.push_back(new expConnPuncSym(context[1].line, context[1].col));
+	return false;
+    }
+    if(context[2].symboltype != strsym)
+    {
+	errorvector.push_back(new expDevName(context[0].line, context[0].col));
+	return false;
+    }
+    else
+    {
+	if(nmz->cvtname(context[0].namestring == blankname))
+	{
+	    errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
+	    return false;
+	}    
+    }
+    if(context[3].symboltype != dotsym)
+    {
+	errorvector.push_back(new expDotSym(context[3].line, context[3].col));
+	return false; 
+    }
 
 /* Finds the next expected keyword after a keyword  */ 
 /* only called if the needskeyflag = 1 				*/ 
@@ -235,9 +359,7 @@ void parser::readin (symbol_t symbol)
     if(skipflag == 1) skipToBreak();
     else if(needskeyflag == 1) nextKeyWordCheck(symbol);
     else if(section == prestartfsect) preStartFCheck(symbol); 
-    else if(section == devsect) devSectCheck(symbol); 
-    else if(section == monsect) monSectCheck(symbol);
-    else if(section == consect) conSectCheck(symbol);
+    else if(section == (devsect || consect || monsect)) mainLineBuild(symbol); 
     else if(section == postendfsect) postEndFCheck(symbol);
     else cout << "Erm, something's gone wrong" << endl; //PANIC.        
 }
