@@ -9,6 +9,14 @@
 
 typedef enum {validPunc, invalidPunc, slash, star} punc_t;
 
+/********************************************************/
+/* The scanner class reads in a file and populates
+ * symbol_t structs with information about the next
+ * relevant string in the definition file. It does this
+ * for one definition file string every time nextSymbol
+ * is called
+ ********************************************************/
+
 class scanner_t
 {
 private:
@@ -24,7 +32,7 @@ private:
     void getnumber(symbol_t &symbol);
       /* Process a string that starts with a digit */
 
-    name_t getname(symbol_t &symbol);
+    void getname(symbol_t &symbol);
       /* Process a string that starts with an alpha character */
 
     void getpunc(symbol_t &symbol);
@@ -49,10 +57,9 @@ private:
        * 1 from col to make it correct */
 
 public:
-    scanner_t(names *namesObjin, const char *defname);
+    scanner_t(const char *defname);
       /* Constructor for the scanner class
-       * Arg1: pointer to an instance of names class
-       * Arg2: pointer to the definition file */
+       * Arg1: pointer to the definition file */
 
     ~scanner_t();
       /* Destructor for the scanner class */

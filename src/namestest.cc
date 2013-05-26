@@ -8,6 +8,6 @@ using namespace std;
 int main(void)
 {
     names namesObj;
-    namesObj.lookup("Hello");
+    namesObj.cvtname("Hello");
     namesObj.writename(0);
 }

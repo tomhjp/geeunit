@@ -29,9 +29,8 @@ void printout(symbol_t &s)
 
 int main(void)
 {
-    names namesObj;
     const char* file = "testfile";
-    scanner_t scanner(&namesObj, file);
+    scanner_t scanner(file);
 
     symbol_t symbol;
     

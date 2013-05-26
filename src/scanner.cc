@@ -91,7 +91,7 @@ void scanner_t::getnumber(symbol_t &symbol)
 }
 
 
-name_t scanner_t::getname(symbol_t &symbol)
+void scanner_t::getname(symbol_t &symbol)
 {
     namestring_t outstr = "";
     string toolongstr = "";
@@ -121,14 +121,14 @@ name_t scanner_t::getname(symbol_t &symbol)
             symbol.symboltype = symbolType(outstr);
             if (error)
                 cout << "Warning: " << toolongstr << " exceeded maxlength " << maxlength << endl;
-            return namesObj->lookup(symbol);    // add name to names class
+            return;
         }
         eofile = (inf.get(ch) == 0);
         incrementPosition();
     }
     symbol.namestring = outstr;
     symbol.symboltype = symbolType(outstr);
-    return namesObj->lookup(symbol);    // still add name to names class if eofile reached
+    return;
 }
 
 
@@ -195,7 +195,7 @@ void scanner_t::incrementPosition(void)
     if (ch == '\n')
     {
         line++;
-        col = 0;
+        col = 1;
     }
 }
 
@@ -228,9 +228,8 @@ void scanner_t::saveCurPosition(symbol_t &symbol)
 /***********************************************************/
 /************** Public methods of scanner_t ****************/
 /***********************************************************/
-scanner_t::scanner_t(names *namesObjin, const char *defname)
+scanner_t::scanner_t(const char *defname)
 {
-    namesObj = namesObjin;
     inf.open(defname);
     if (!inf)
     {
