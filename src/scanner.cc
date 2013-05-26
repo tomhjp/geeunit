@@ -19,6 +19,7 @@ void scanner_t::skipspaces(void)
     }
 }
 
+
 /* Called when '/' is found */
 bool scanner_t::skipcomment(void)
 {
@@ -69,6 +70,7 @@ bool scanner_t::skipcomment(void)
     else
         return true;        // prefixFound && !suffixFound => whole file is comment after prefix
 }
+
 
 void scanner_t::getnumber(symbol_t &symbol)
 {
@@ -149,6 +151,7 @@ void scanner_t::getpunc(symbol_t &symbol)
     }
 }
 
+
 /* Equate special strings in the definition file to a symbol_t
  * Only called for non-numbers */
 symboltype_t scanner_t::symbolType(namestring_t namestring)
@@ -185,6 +188,7 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     return s;
 }
 
+
 void scanner_t::incrementPosition(void)
 {
     col++;
@@ -194,6 +198,7 @@ void scanner_t::incrementPosition(void)
         col = 0;
     }
 }
+
 
 punc_t scanner_t::puncType(char ch)
 {
@@ -206,6 +211,7 @@ punc_t scanner_t::puncType(char ch)
     else
         return invalidPunc;
 }
+
 
 void scanner_t::saveCurPosition(symbol_t &symbol)
 {
@@ -238,10 +244,12 @@ scanner_t::scanner_t(names *namesObjin, const char *defname)
     incrementPosition();
 }
 
+
 scanner_t::~scanner_t()
 {
     return;
 }
+
 
 void scanner_t::nextSymbol(symbol_t &symbol)
 {
