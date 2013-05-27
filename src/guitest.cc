@@ -20,15 +20,15 @@ bool MyApp::OnInit()
   name_t oid = blankname;
 
   did = nmz->lookup("clk_1");
-  dmz->makedevice(dkind, did, variant, ok);
+  dmz->makedevice(dkind, did, 1, ok);
   mmz->makemonitor(did, oid, ok);
   
   did = nmz->lookup("clk_2");
-  dmz->makedevice(dkind, did, 5, ok);
+  dmz->makedevice(dkind, did, variant, ok);
   mmz->makemonitor(did, oid, ok);
   
   did = nmz->lookup("clk_3");
-  dmz->makedevice(dkind, did, 1, ok);
+  dmz->makedevice(dkind, did, 3, ok);
   
   /*if (ok)
     cout << "SUCCESS: Made monitor ok" << endl;

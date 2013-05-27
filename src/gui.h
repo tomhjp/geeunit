@@ -85,7 +85,8 @@ class MyGLCanvas: public wxGLCanvas
 	    
 
     void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
-    void populateMatrix();
+    void populateTraceMatrix();
+    void populateMonitorNameVector();
     void setCyclesDisplayed(int c);
     typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;
