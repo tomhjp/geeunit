@@ -219,7 +219,7 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
 
 // MyFrame ///////////////////////////////////////////////////////////////////////////////////////
 
-wxString str = wxT("hello");
+
 
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
@@ -298,37 +298,45 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // DEFINITIONS OF BUTTONS, CONTROLS AND SIZERS
   // *********************************************************************************************
   
+  //Define Zap Controls
     zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
     zapTraceButton = new wxButton(this, ZAP_TRACE_BUTTON, wxT("ZAP"));
-  
+    
+  // Define Add Controls
     addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to Add"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
     addTraceButton = new wxButton(this, ADD_TRACE_BUTTON, wxT("ADD"));
     
+  // Define Switch Controls  
     switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch "), wxDefaultPosition, wxDefaultSize, numSwitches, switchList); 
     switchButton1 = new wxButton(this, SWITCH_BUTTON_1, wxT("SWITCH TO 1"));
     switchButton2 = new wxButton(this, SWITCH_BUTTON_2, wxT("SWITCH TO 0"));
     
-    
+  // Define Other buttons  
     runButton = new wxButton(this, RUN_BUTTON, wxT("Run"));
     spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
     commandLine = new wxTextCtrl(this, MY_TEXTCTRL_ID, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
-
-  
+    commandLine->WriteText(wxT("#"));
+    
+  // Place Zap Controls
     wxBoxSizer *zap_sizer = new wxBoxSizer(wxVERTICAL);
     zap_sizer->Add(zapTraceComboBox,0,wxALL,0);
     zap_sizer->Add(zapTraceButton, 0, wxALIGN_CENTRE ,0);
-  
+    
+  // Place add controls
     wxBoxSizer *add_sizer = new wxBoxSizer(wxVERTICAL);
     add_sizer->Add(addTraceComboBox,0,wxALL,0);
     add_sizer->Add(addTraceButton, 0, wxALIGN_CENTRE ,0);
   
+  // Place switch combo
     wxBoxSizer *switch_sizer = new wxBoxSizer(wxVERTICAL);
     switch_sizer->Add(switchComboBox,0,wxEXPAND,0);
     
+  // Place switch buttons  
     wxBoxSizer *switchButton_sizer = new wxBoxSizer(wxHORIZONTAL);
     switchButton_sizer->Add(switchButton1,0,wxALL,0);
     switchButton_sizer->Add(switchButton2,0,wxALL,0);
     
+  // Place Buttons  
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
     button_sizer->Add(runButton, 0, wxTOP, 50);
     button_sizer->Add(spin, 0 , wxTOP, 50);
@@ -434,9 +442,10 @@ void MyFrame::OnSpin(wxSpinEvent &event)
 void MyFrame::OnText(wxCommandEvent &event)
   // Callback for the text entry field
 {
+  int numberOfLines = commandLine->GetNumberOfLines();
   wxString text;
-  text.Printf(wxT("New text entered %s"), event.GetString().c_str());
-  
+  text.Printf(wxT("cmd: %s"), commandLine->GetLineText(numberOfLines).c_str());
+  commandLine->WriteText(wxT("\n# "));
   canvas->Render(text,-1);
 }
 
