@@ -55,7 +55,6 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             
     traceboxWidth = width - 2*margin - labelWidth;
     traceboxHeight = height - 2*margin;            
-    unitWidth = traceboxWidth / lenTrace;
     unitHeight = 20;
     int num = 1;
 
@@ -72,37 +71,60 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         InitGL();
         init = true;
     }
-    cout << "Cycles displayed: " << cyclesdisplayed << endl << \
-            "Monitor count: " << mmz->moncount() << endl;
+//    cout << "Cycles displayed: " << cyclesdisplayed << endl << \
+//            "Monitor count: " << mmz->moncount() << endl;
+
     //getmonname(
     bool ok;
     for (int i=0; i<maxcycles; i++)
     {
         ok = mmz->getsignaltrace(0,i,s);
-        if (ok)
+        
+/*        if (ok)
             cout << s << endl;
         else
             cout << "Not ok" << endl;
+*/
     }
     glClear(GL_COLOR_BUFFER_BIT);
+    
+    //If there are monitors then draw the first monitor signal, get trace from monitor class
     if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0))
-    { // draw the first monitor signal, get trace from monitor class
-        glColor3f(0.0, 0.0, 1.0);
-        glBegin(GL_LINE_STRIP);
-        for (i=0; i<cyclesdisplayed; i++) 
+    { 
+        unitWidth = traceboxWidth / cyclesdisplayed;
+        if (unitWidth > 30)
+            unitWidth = 30;
+        for (int j=0;j<mmz->moncount();j++)
         {
-          //if (mmz->getsignaltrace(0, i, s)) 
-          //{
-              if (s==low) y = 100.0;
-              if (s==high) y = 130.0;
-              
-              glVertex2f(20*i+10.0, y); 
-              glVertex2f(20*i+30.0, y);
-          //}
-        }
-        glEnd();
+            glColor3f(0.0, 0.0, 1.0);
+            glBegin(GL_LINE_STRIP);
+            for (i=0; i<cyclesdisplayed; i++) 
+            {
+              if (mmz->getsignaltrace(j, i, s)) 
+              {
+                  if (s==low)
+                  {
+                      y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*j);
+                      x = margin + labelWidth + unitWidth*i;
+                      
+                  }
+                   
+                  if (s==high)
+                  {
+                      y = (traceboxHeight + margin - 2.5*unitHeight*j);
+                      x = margin + labelWidth + unitWidth*i;
+                  }
+                  glVertex2f(x, y); 
+                  glVertex2f(x+unitWidth, y);
+              }
+            }
+            glEnd();
+         }
+       
     }
-    else // draw an artificial trace 
+    
+  // If there are no montiors then draw an artificial trace.
+    else  
     {   
         for (int j=0;j<traceVector.size();j++)
         {
@@ -257,17 +279,32 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
         cout << "Cannot operate GUI without names, devices and monitor classes" << endl;
         exit(1);
     }
-
+    
+    wxMenuBar *menuBar = new wxMenuBar;
+    
     wxMenu *fileMenu = new wxMenu;
+    wxMenu *editMenu = new wxMenu;
+    wxMenu *viewMenu = new wxMenu;
+    wxMenu *searchMenu = new wxMenu;
+    wxMenu *toolsMenu = new wxMenu;
+    
     fileMenu->Append(wxID_ABOUT, wxT("&About"));
     fileMenu->Append(wxID_EXIT, wxT("&Quit"));
-    wxMenuBar *menuBar = new wxMenuBar;
+
+    
     menuBar->Append(fileMenu, wxT("&File"));
+    menuBar->Append(editMenu, wxT("&Edit"));
+    menuBar->Append(viewMenu, wxT("&View"));
+    menuBar->Append(searchMenu, wxT("&Search"));
+    menuBar->Append(toolsMenu, wxT("&Tools"));
+
+    
     SetMenuBar(menuBar);
 
-
+  // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
-    
+  
+  // Define the sizers required  
     wxBoxSizer *frame_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sidebar_sizer = new wxBoxSizer(wxVERTICAL);
@@ -275,7 +312,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
     
 
-  
+  // Make the Add/Zap combo-box strings
     wxString traceList[canvas->traceVector.size()];
     for (int i=0;i<canvas->traceVector.size();i++)
     {
@@ -283,7 +320,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
         text.Printf(wxT("Trace %d"),i+1);
         traceList[i] = text;
     }
-  
+    
+  // Make the switch combo-box strings
     wxString switchList[numSwitches];
     for (int i=0;i<numSwitches;i++)
     {
@@ -296,7 +334,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
  
   
   // DEFINITIONS OF BUTTONS, CONTROLS AND SIZERS
-  // *********************************************************************************************
+  // *********************************************************************************************************************************
   
   //Define Zap Controls
     zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
@@ -316,54 +354,60 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
     commandLine = new wxTextCtrl(this, MY_TEXTCTRL_ID, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
     commandLine->WriteText(wxT("#"));
+    staticText = new wxStaticText(this, wxID_ANY, wxT("Cycles"));
     
   // Place Zap Controls
     wxBoxSizer *zap_sizer = new wxBoxSizer(wxVERTICAL);
-    zap_sizer->Add(zapTraceComboBox,0,wxALL,0);
-    zap_sizer->Add(zapTraceButton, 0, wxALIGN_CENTRE ,0);
+    zap_sizer->Add(zapTraceComboBox,0,0,0);
+    zap_sizer->Add(zapTraceButton,  0,wxALIGN_CENTRE,0);
     
-  // Place add controls
+  // Place Add controls
     wxBoxSizer *add_sizer = new wxBoxSizer(wxVERTICAL);
-    add_sizer->Add(addTraceComboBox,0,wxALL,0);
-    add_sizer->Add(addTraceButton, 0, wxALIGN_CENTRE ,0);
+    add_sizer->Add(addTraceComboBox,0,0,0);
+    add_sizer->Add(addTraceButton,  0,wxALIGN_CENTRE,0);
   
   // Place switch combo
     wxBoxSizer *switch_sizer = new wxBoxSizer(wxVERTICAL);
-    switch_sizer->Add(switchComboBox,0,wxEXPAND,0);
+    switch_sizer->Add(switchComboBox,0,wxALIGN_CENTRE | wxEXPAND | wxTOP,30);
     
   // Place switch buttons  
     wxBoxSizer *switchButton_sizer = new wxBoxSizer(wxHORIZONTAL);
-    switchButton_sizer->Add(switchButton1,0,wxALL,0);
-    switchButton_sizer->Add(switchButton2,0,wxALL,0);
+    switchButton_sizer->Add(switchButton1,0,0,0);
+    switchButton_sizer->Add(switchButton2,0,0,0);
     
   // Place Buttons  
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    button_sizer->Add(runButton, 0, wxTOP, 50);
-    button_sizer->Add(spin, 0 , wxTOP, 50);
-    button_sizer->Add(new wxStaticText(this, wxID_ANY, wxT("Cycles")), 0, wxTOP, 50);
+    button_sizer->Add(runButton, 0, wxTOP, 30);
+    button_sizer->Add(spin, 0, wxEXPAND | wxTOP, 30);
+    button_sizer->Add(staticText,0,wxALIGN_CENTRE|wxTOP,30);
 
-  // *********************************************************************************************
+  // *********************************************************************************************************************************
 
   
+  
+  
   // NESTED SIZERS FOR PLACEMENT OF CONTROL LOOPS
-  //**********************************************************************************************
+  //**********************************************************************************************************************************
   frame_sizer->Add(topsizer,5, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,30);                             
-  frame_sizer->Add(commandLine,1, wxEXPAND | wxALL,20);                                             
+  frame_sizer->Add(commandLine,1,wxEXPAND | wxALL,20);                                             
   
   topsizer->Add(canvas,3,wxEXPAND,0);
   topsizer->Add(sidebar_sizer,2,wxALIGN_CENTRE,0);
   
   sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE);
+  sidebar_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
   sidebar_sizer->Add(button_sizer,0,wxALIGN_CENTRE);
   combo_sizer->Add(zap_sizer, 0, wxALIGN_CENTER);
   combo_sizer->Add(add_sizer, 0, wxALIGN_CENTRE);
-  combo_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
   switch_sizer->Add(switchButton_sizer,0,wxALIGN_CENTRE);
-//************************************************************************************************
+//************************************************************************************************************************************
   
 
   SetSizeHints(1000, 400);
   SetSizer(frame_sizer);
+  
+  runnetwork(10);
+  mmz->displaysignals();
 }
 
 void MyFrame::OnExit(wxCommandEvent &event)
@@ -386,6 +430,7 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
   cyclescompleted = 0;
   mmz->resetmonitor ();
   runnetwork(spin->GetValue());
+  mmz->displaysignals();
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
 
@@ -442,29 +487,36 @@ void MyFrame::OnSpin(wxSpinEvent &event)
 void MyFrame::OnText(wxCommandEvent &event)
   // Callback for the text entry field
 {
-  int numberOfLines = commandLine->GetNumberOfLines();
-  wxString text;
-  text.Printf(wxT("cmd: %s"), commandLine->GetLineText(numberOfLines).c_str());
-  commandLine->WriteText(wxT("\n# "));
-  canvas->Render(text,-1);
+    int numberOfLines = commandLine->GetNumberOfLines();
+    wxString text;
+    text.Printf(wxT("cmd: %s"), commandLine->GetLineText(numberOfLines).c_str());
+    commandLine->WriteText(wxT("\n# "));
+    canvas->Render(text,-1);
 }
 
 void MyFrame::runnetwork(int ncycles)
   // Function to run the network, derived from corresponding function in userint.cc
 {
-  bool ok = true;
-  int n = ncycles;
+    bool ok = true;
+    int n = ncycles;
 
-  while ((n > 0) && ok) {
-    dmz->executedevices (ok);
-    if (ok) {
-      n--;
-      mmz->recordsignals ();
-    } else
-      cout << "Error: network is oscillating" << endl;
-  }
-  if (ok) cyclescompleted = cyclescompleted + ncycles;
-  else cyclescompleted = 0;
+    while ((n > 0) && ok) 
+    {
+        dmz->executedevices (ok);
+        
+        if (ok) 
+            {
+               n--;
+               mmz->recordsignals ();
+            }
+        else
+        cout << "Error: network is oscillating" << endl;
+    }
+    
+  if (ok) 
+    cyclescompleted = cyclescompleted + ncycles;
+  else 
+    cyclescompleted = 0;
 }
 
 void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)

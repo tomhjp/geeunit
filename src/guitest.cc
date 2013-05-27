@@ -31,7 +31,8 @@ bool MyApp::OnInit()
     cout << "Network ok" << endl;
   else
     cout << "Network NOT ok" << endl;*/
-  //mmz->makemonitor(did, oid, ok);
+  mmz->makemonitor(did, oid, ok);
+  
   /*if (ok)
     cout << "SUCCESS: Made monitor ok" << endl;
   else

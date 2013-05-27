@@ -50,6 +50,7 @@ class MyFrame: public wxFrame
     wxButton   *switchButton1;
     wxButton   *switchButton2;
     wxButton   *runButton;
+    wxStaticText *staticText;
     wxTextCtrl *commandLine;
     
     int cyclescompleted;                    // how many simulation cycles have been completed
