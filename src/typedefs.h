@@ -11,7 +11,7 @@ typedef string namestring_t;
 typedef enum {strsym, numsym, startfsym, devsym, connsym, monsym, endsym, endfsym,
               switchsym, andsym, nandsym, orsym, norsym, dtypesym, xorsym, clksym,
               commasym, semicolsym, opsym, cpsym, equalsym, dotsym, connpuncsym,
-              badsym, eofsym, ddatasym, dsetsym, dclearsym} symboltype_t;
+              badsym, eofsym, ddatasym, dsetsym, dclearsym, qsym, qbarsym} symboltype_t;
               /* opsym and cpsym = open and close parenthesis sym */
 
 struct symbol_t {
