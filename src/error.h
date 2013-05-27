@@ -140,7 +140,26 @@ class expDotSym: public Error
 {
     public:
     expDotSym(int l, int c);
-};	
+};
+
+class expDtypeInput: public Error
+{
+    public:
+    expDtypeInput(int l, int c);
+};
+
+class expInputSym: public Error
+{
+    public:
+    expInputSym(int l, int c);
+};
+
+class invInputSym: public Error
+{
+    public:
+    invInputSym(int l, int c);
+}
+	
 
 /***********************************************************/
 /********* more complex errors to report *******************/

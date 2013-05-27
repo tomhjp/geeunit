@@ -213,30 +213,25 @@ bool parser::checkDevLine(void)
 /* checks the syntax and semantics of a line in the CONNECTIONS section */ 
 bool parser::checkConLine(void)
 {
-    /* Find the device type of the output device */ 
-    /* returns 
+    /* Find the device type of the output device. cvtname returns "blankname" if the device isn't found */ 
+    /* It will also return "blankname" if an incorrect symbol is in the context vector (ie. a 	*/
+    /* syntax error) so we don't need to worry about that here.					*/
     devicekind opdevkind; 
-    name_t devid = nmz->cvtname(context[0].namestring);
-    opdevkind = dmz->devkind(devid);
+    name_t opid = nmz->cvtname(context[0].namestring);
+    opdevkind = dmz->devkind(opid);
     
-    /* Find the device type of the input device */ 
-    devicekind opdevkind; 
-    name_t devid = nmz->cvtname(context[0].namestring);
-    opdevkind = dmz->devkind(devid);
     if(context[0].symboltype != strsym)
     {
 	errorvector.push_back(new expDevName(context[0].line, context[0].col));
 	return false;
     }
-    else
+    if(opid == blankname))
     {
-	if(nmz->cvtname(context[0].namestring == blankname))
-	{
-	    errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
-	    return false;
-	}    
-    }
+	errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
+	return false;
+    }    
 
+    /* Set of syntax and semantic checks for connections with DTYPE output devices  */
     if(opdevkind == dtype)
     {
 	if(context[1].symboltype != dotsym)
@@ -244,11 +239,57 @@ bool parser::checkConLine(void)
 	    errorvector.push_back(new expDotSym(context[1].line, context[1].col));
 	    return false; 
 	}
-	if(context[2].symboltype
+	if(context[2].symboltype != (qsym || qbarsym))
+	{
+	    errorvector.push_back(new expDtypeInput(context[2].line, context[2].col));
+	    return false;
+	}
+	if(context[3].symboltype != connpuncsym)
+	{
+	    errorvector.push_back(new expConnPuncSym(context[3].line, context[3].col));
+	    return false;
+	}
 	
+	/* Find the device type of the output device. cvtname returns "blankname" if the device isn't found */ 
+	devicekind ipdevkind; 
+	name_t ipid = nmz->cvtname(context[4].namestring);
+	ipdevkind = dmz->devkind(ipid);
 	
+	if(ipid == blankname)
+	{
+	    errorvector.push_back(new devNameUndef(context[4].line, context[4].col));
+	    return false;
+	}    
 	
+	if(context[5] != dotsym)    
+	{
+	    errorvector.push_back(new expDotSym(context[5].line, context[5].col));
+	    return false; 
+	}    
 	
+	/* Set of syntax and semantic checks for connections with DTYPE input and output devices  */
+	if(ipdevkind == dtype)
+	{
+	    if(context[6].symboltype != (ddatasym || clksym || dsetsym || dclearsym))
+	    {
+		errorvector.push_back(new expDtypeInput(context[6].line, context[6].col));
+		return false;
+	    }
+	    if(context[7] != semicolsym)
+	    {
+		errorvector.push_back(new expSemiColSym(context[7].line, context[7].col));
+		return false;
+	    }
+	    else
+	    {
+		return true; 
+	    }
+	/* Set of checks for connections with DTYPE output device and non-DTYPE input device */ 
+	else
+	{
+	    if context[6] != strsym)
+	    {
+		errorvector.push_back(new exp
     if(context[1].symboltype != connpuncsym)
     {
 	errorvector.push_back(new expConnPuncSym(context[1].line, context[1].col));
@@ -272,6 +313,18 @@ bool parser::checkConLine(void)
 	errorvector.push_back(new expDotSym(context[3].line, context[3].col));
 	return false; 
     }
+    if(context[4].symboltype != strsym)
+    {
+	errorvector.push_back(new expInputSym(context[4].line, context[4].col));
+	return false; 
+    }
+    namestring ipstring = context[4].namestring;
+    if(ipstring[0] != "I")
+    {
+	errorvector.push_back(new invInputSym(context[4].line, context[4].col));
+	return false; 
+    }
+    
 
 /* Finds the next expected keyword after a keyword  */ 
 /* only called if the needskeyflag = 1 				*/ 

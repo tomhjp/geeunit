@@ -165,7 +165,29 @@ expDotSym::expDotSym(int l, int c)
     errorMessage = "Expected '.' symbol." ;
     line = l;
     col = c;
-}		
+}	
+
+expDtypeInput::expDtypeInput(int l, int c)
+{
+    errorMessage = "Expected a dytpe input. Valid inputs are 'DATA', 'CLK', 'CLEAR', and 'SET'";
+    line = l; 
+    col = c;
+}
+
+expInputSym::expInputSym(int l, int c)
+{
+    errorMessage = "Expected a gate input.";
+    line = l; 
+    col = c;
+}
+
+invInputSym::invInputSym(int l, int c)
+{
+    errorMessage = "The input string entered is invalid";
+    line = l; 
+    col = c;
+}
+
 
 
 	
