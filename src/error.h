@@ -159,7 +159,20 @@ class invInputSym: public Error
     public:
     invInputSym(int l, int c);
 };
+
+class inputUnDefd: public Error
+{
+    public:
+    inputUnDefd(int l, int c);
+};
 	
+class inputPrevConnected: public Error
+{
+    public:
+    inputPrevConnected(int l, int c);
+};
+
+
 
 /***********************************************************/
 /********* more complex errors to report *******************/

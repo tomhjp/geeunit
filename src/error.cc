@@ -188,7 +188,19 @@ invInputSym::invInputSym(int l, int c)
     col = c;
 }
 
+inputUnDefd::inputUnDefd(int l, int c)
+{
+    errorMessage = "The input referenced does not exist";
+    line = l; 
+    col = c;
+}
 
+inputPrevConnected::inputPrevConnected(int l, int c)
+{
+    errorMessage = "The input referenced is already connected";
+    line = l; 
+    col = c;
+}
 
 	
 	

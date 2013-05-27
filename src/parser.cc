@@ -291,25 +291,22 @@ bool parser::checkConLine(void)
 	{
 	    if(context[6].symboltype != strsym)
 	    {
-		errorvector.push_back(new expInputSym(context[4].line, context[4].col));
+		errorvector.push_back(new expInputSym(context[6].line, context[6].col));
 		return false; 
 	    }
 
   	    /*  extract the input being referenced from the namestring information */
 	    namestring_t ipstring = context[6].namestring; 
-	    (string)ipstring;
-	    char *firstletter = (char*) ipstring[0]; 
-	    string compstring = "I";
-	    if(firstletter.compare(compstring) != 0)
+	    
+	    if(ipstring.substr(0,0) != "I")
 	    {
 		errorvector.push_back(new invInputSym(context[6].line, context[6].col));
 		return false;
 	    }
 	    
-	    int ipnum; 
-	    ipstring.erase(0,1);	// erases the first character of the string ("I")
-	    
-	    for(int i=0; i<ipstring.length(); i++)
+	    string strnum = ipstring.substr(1,ipstring.end()-ipstring.begin());	// erases the first character of the string ("I")
+	    /* checks that the rest of the input reference characters are digits */
+	    for(int i=0; i<strnum.length(); i++)
 	    {
 		if(!isdigit(ipstring[i]))
 		{
@@ -317,44 +314,64 @@ bool parser::checkConLine(void)
 		    return false;
 		} 
 	    }
-	    ipnum = atoi(ipstring);	// converts the string into an int. 
-	    ipnum = (name_t) ipnum; 
 	    
-	    
-	    
-	    
-	    
-		
-    if(context[1].symboltype != connpuncsym)
-    {
-	errorvector.push_back(new expConnPuncSym(context[1].line, context[1].col));
-	return false;
+	    /* this section gets a link to the input referenced. */
+	    /* returns null if the input is undefined		*/
+	    name_t ipid = atoi(strnum.c_str());  //converts the input number referenced to type name_t;
+	    name_t devid = nmz->cvtname(context[4].namestring); // gets the id for the device
+	    devlink devicelink = netz->finddevice(devid); 
+	    inplink inputlink = netz->findinput(devicelink, ipid); //gets a link to the input referenced 
+
+	    /* checks that the input exists and is unconnected */ 
+	    if(inputlink == NULL)
+	    {
+		errorvector.push_back(new inputUnDefd(context[6].line, context[6].col));
+		return false;
+	    }
+	    else if(inputlink->connect != NULL)
+	    {
+		errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col));
+		return false;
+	    }
+	}
     }
-    if(context[2].symboltype != strsym)
-    {
-	errorvector.push_back(new expDevName(context[0].line, context[0].col));
-	return false;
-    }
+	    
+    /**** Set of rules for non-DTYPE device outputs   */
     else
     {
-	if(nmz->cvtname(context[0].namestring) == blankname)
+	/* expect a '->' sym   */ 
+	if(context[1].symboltype != connpuncsym)
 	{
-	    errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
+	    errorvector.push_back(new expConnPuncSym(context[1].line, context[1].col));
 	    return false;
-	}    
+	}
+	if(context[2].symboltype != strsym)
+	{
+	    errorvector.push_back(new expDevName(context[0].line, context[0].col));
+	    return false;
+	}
+	else
+	{
+	    if(nmz->cvtname(context[0].namestring) == blankname)
+	    {
+		errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
+		return false;
+	    }    
+	}
+	if(context[3].symboltype != dotsym)
+	{
+	    errorvector.push_back(new expDotSym(context[3].line, context[3].col));
+	    return false; 
+	}
+	if(context[4].symboltype != strsym)
+	{
+	    errorvector.push_back(new expInputSym(context[4].line, context[4].col));
+	    return false; 
+	}
+	
+	//and more... 
     }
-    if(context[3].symboltype != dotsym)
-    {
-	errorvector.push_back(new expDotSym(context[3].line, context[3].col));
-	return false; 
-    }
-    if(context[4].symboltype != strsym)
-    {
-	errorvector.push_back(new expInputSym(context[4].line, context[4].col));
-	return false; 
-    }
-    
-    //namestring_t ipstring = context[4].namestring;
+ }   
     
     
 
