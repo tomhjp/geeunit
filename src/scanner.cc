@@ -210,6 +210,8 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("DATA"))	 s = ddatasym;
     else if (!namestring.compare("SET"))	 s = dsetsym;
     else if (!namestring.compare("CLEAR"))	 s = dclearsym; 
+    else if (!namestring.compare("Q"))		 s = qsym;
+    else if (!namestring.compare("QBAR"))	 s = qbarsym; 
     /* If first char is alphabetic then namestring was retrieved with getname and is a name */
     else if (isalpha(firstchar))                 s = strsym;
     else if (!namestring.compare("\0"))          s = eofsym;
