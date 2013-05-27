@@ -16,17 +16,29 @@ END_EVENT_TABLE()
   
 int wxglcanvas_attrib_list[5] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
-MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, names* names_mod,
+MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, names* names_mod,network* network_mod,
 		       const wxPoint& pos, const wxSize& size, long style, const wxString& name):
     wxGLCanvas(parent, id, pos, size, style, name, wxglcanvas_attrib_list)
   // Constructor - initialises private variables
 {
     mmz = monitor_mod;
     nmz = names_mod;
+    netz = network_mod;
     init = false;
     cyclesdisplayed = -1;
     SetScrollbar(wxVERTICAL,0,16,50);
-    /*DEFINE THE DEVICENAMEVECTOR HERE*/
+    
+    /* Find beginning of the list of devices */
+    devlink dlink = netz->devicelist();
+    while (dlink != NULL)
+    {
+        name_t did = dlink->id;
+        namestring_t namestring = nmz->getName(did);
+        cout << "Adding " << namestring << " to deviceNameVector" << endl;
+        wxString devStr(namestring.c_str(), wxConvUTF8);  
+        deviceNameVector.push_back(devStr);
+        dlink = dlink->next;
+    }
 }
 
 void MyGLCanvas::Render(wxString example_text, int cycles)
@@ -88,30 +100,32 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     { 
         unitWidth = traceboxWidth / cyclesdisplayed;
         if (unitWidth > 30)
-            unitWidth = 30;
-        for (int j=0;j<mmz->moncount();j++)
         {
+            unitWidth = 30;
+        }
+        cout << "Matrix size = " << traceMatrix.size() << endl;
+        for (int j=0;j<traceMatrix.size();j++)
+        {   
+            cout << "trace = " << j << endl;
             glColor3f(0.0, 0.0, 1.0);
             glBegin(GL_LINE_STRIP);
             for (i=0; i<cyclesdisplayed; i++) 
-            {
-              if (mmz->getsignaltrace(j, i, s)) 
-              {
-                  if (s==low)
-                  {
-                      y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*j);
-                      x = margin + labelWidth + unitWidth*i;
-                      
-                  }
-                   
-                  if (s==high)
-                  {
-                      y = (traceboxHeight + margin - 2.5*unitHeight*j);
-                      x = margin + labelWidth + unitWidth*i;
-                  }
-                  glVertex2f(x, y); 
-                  glVertex2f(x+unitWidth, y);
-              }
+            {     
+                s = traceMatrix[j][i];
+                if (s==low)
+                {
+                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*j);
+                    x = margin + labelWidth + unitWidth*i;
+                    
+                }
+                 
+                if (s==high)
+                {
+                    y = (traceboxHeight + margin - 2.5*unitHeight*j);
+                    x = margin + labelWidth + unitWidth*i;
+                }
+                glVertex2f(x, y); 
+                glVertex2f(x+unitWidth, y);
             }
             glEnd();
             
@@ -120,14 +134,8 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             glRasterPos2f(margin/2,y);
             
             
-            name_t dev;
-            name_t outp;
-            mmz->getmonname(j,dev,outp);
-            namestring_t namestring = nmz->getName(dev);
-            wxString devStr(namestring.c_str(), wxConvUTF8);
-            
             wxString traceText;
-            traceText = devStr;
+            traceText = monitorNameVector[j];
                       
             for (i = 0; i < traceText.Len() ; i++)
             {        
@@ -145,7 +153,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             
             glColor3f(1.0, 0.0, 0.0);
             glBegin(GL_LINE_STRIP);
-            for (i=0; i<lenTrace; i++) 
+            for (i=0; i<cyclesdisplayed; i++) 
             {
                 if (i%2)
                 {
@@ -169,8 +177,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             glRasterPos2f(margin/2,y);
             
             wxString traceText;
-            traceText = wxT("Hello");
-//            traceText.Printf(wxT("CLK%d"),traceMatrix[j]);
+            traceText = monitorNameVector[j];
                       
             for (i = 0; i < traceText.Len() ; i++)
             {        
@@ -254,7 +261,7 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
   if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text,-1);
 }
 
-void MyGLCanvas::PopulateMatrix()
+void MyGLCanvas::populateMatrix()
 {    
     
     for (int n=0; n < (mmz->moncount()); n++)
@@ -266,6 +273,8 @@ void MyGLCanvas::PopulateMatrix()
         wxString devStr(namestring.c_str(), wxConvUTF8);   
         
         monitorNameVector.push_back(devStr);
+        vector<asignal> emptyVector;
+        traceMatrix.push_back(emptyVector);
         
         for (int i=0;i<cyclesdisplayed;i++)
         {
@@ -277,6 +286,11 @@ void MyGLCanvas::PopulateMatrix()
             }
         }    
     }
+}
+
+void MyGLCanvas::setCyclesDisplayed(int c)
+{
+    cyclesdisplayed = c;
 }
 // MyFrame ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -308,7 +322,7 @@ END_EVENT_TABLE()
 
 
 MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
-		 names *names_mod, devices *devices_mod, monitor *monitor_mod, long style):
+		 names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, long style):
   wxFrame(parent, wxID_ANY, title, pos, size, style)
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
@@ -349,7 +363,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     SetMenuBar(menuBar);
 
   // Define the Trace Canvas
-    canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod);
+    canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
   
   // Define the sizers required  
     wxBoxSizer *frame_sizer = new wxBoxSizer(wxVERTICAL);
@@ -359,11 +373,6 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
 
     wxString traceList[mmz->moncount()];
-    
-    cout << "number of montiors = "<< mmz->moncount() << endl;
-    
-    
-    
     
   // Make the zap/add combobox strings
     for (int j=0;j<mmz->moncount();j++)
@@ -501,8 +510,11 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
   cyclescompleted = 0;
   mmz->resetmonitor ();
   runnetwork(runSpin->GetValue());
-  //cyclesdisplayed = runSpin->GetValue();
+  canvas->setCyclesDisplayed(runSpin->GetValue());
   mmz->displaysignals();
+  
+  canvas->populateMatrix();
+  cout << canvas->traceMatrix.size() << endl;
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
 
@@ -515,15 +527,18 @@ void MyFrame::OnContButton(wxCommandEvent &event)
 void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for Zap PushButton
 {
-    
+
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
     wxString text;
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
     int selection = zapTraceComboBox->GetSelection();
+
     canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
+    canvas->monitorNameVector.erase(canvas->monitorNameVector.begin() + selection);
 
     canvas->Render(text,-1);
+    
     zapTraceComboBox->Delete(selection);
         
 }
@@ -531,17 +546,18 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
 void MyFrame::OnButtonAdd(wxCommandEvent &event)
   // Callback for second pushbutton
 {
-    
+
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
     wxString text;
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
     int selection = zapTraceComboBox->GetSelection();
     canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
-
+    canvas->populateMatrix();
+    
     canvas->Render(text,-1);
     zapTraceComboBox->Delete(selection);
-        
+    
 }
 
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)

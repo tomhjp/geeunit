@@ -34,7 +34,7 @@ class MyFrame: public wxFrame
 {
  public:
   MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size, 
-	  names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, 
+	  names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, network *network_mod = NULL, 
 	  long style = wxDEFAULT_FRAME_STYLE); // constructor
  private:
     MyGLCanvas *canvas;                     // GL drawing area widget to draw traces
@@ -79,13 +79,15 @@ class MyFrame: public wxFrame
 class MyGLCanvas: public wxGLCanvas
 {
     public:
-    MyGLCanvas(wxWindow *parent, wxWindowID id = wxID_ANY, monitor* monitor_mod = NULL, names* names_mod = NULL,
+    MyGLCanvas(wxWindow *parent, wxWindowID id = wxID_ANY, monitor* monitor_mod = NULL, names* names_mod = NULL,network* network_mod = NULL,
   	    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0,
 	    const wxString& name = wxT("MyGLCanvas")); // constructor
+	    
 
     void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
-    
-    typedef vector<vector<int> > IntMatrix;
+    void populateMatrix();
+    void setCyclesDisplayed(int c);
+    typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;
     
     vector<wxString> deviceNameVector;
@@ -96,12 +98,13 @@ class MyGLCanvas: public wxGLCanvas
         int cyclesdisplayed;               // how many simulation cycles have been displayed
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces
         names *nmz;                        // pointer to names class, used to extract signal names
+        network *netz;
         void InitGL();                     // function to initialise GL context
         void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
         void OnScroll(wxScrollWinEvent& event);
         void OnMouse(wxMouseEvent& event); // callback for mouse events inside
-        void PopulateMatrix();
+     
         DECLARE_EVENT_TABLE()
 };
     

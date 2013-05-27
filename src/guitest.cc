@@ -19,19 +19,16 @@ bool MyApp::OnInit()
   name_t did;
   name_t oid = blankname;
 
-  did = nmz->lookup("myclk");
-  //cout << did << endl;
+  did = nmz->lookup("clk_1");
   dmz->makedevice(dkind, did, variant, ok);
-  /*if (ok)
-    cout << "success: Made device" << endl;
-  else
-    cout << "fail: Did not make device" << endl;*/
-  netz->checknetwork(ok);
-  /*if (ok)
-    cout << "Network ok" << endl;
-  else
-    cout << "Network NOT ok" << endl;*/
   mmz->makemonitor(did, oid, ok);
+  
+  did = nmz->lookup("clk_2");
+  dmz->makedevice(dkind, did, 5, ok);
+  mmz->makemonitor(did, oid, ok);
+  
+  did = nmz->lookup("clk_3");
+  dmz->makedevice(dkind, did, 1, ok);
   
   /*if (ok)
     cout << "SUCCESS: Made monitor ok" << endl;
@@ -42,7 +39,7 @@ bool MyApp::OnInit()
   // it some fake ASCII ones instead
   char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
   // Construct the GUI
-  MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1500, 800), nmz, dmz, mmz);
+  MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1500, 800), nmz, dmz, mmz, netz);
   frame->Show(true);
   return(true); // enter the GUI event loop
 }
