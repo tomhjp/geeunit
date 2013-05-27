@@ -149,7 +149,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
 
     // Example of how to use GLUT to draw text on the canvas
     glColor3f(0.0, 0.0, 0.0);
-    glRasterPos2f(margin, 0.15*height);
+    glRasterPos2f(margin, 0.1*height);
     for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
     
     // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
@@ -295,7 +295,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
  
   
-  
+  // DEFINITIONS OF BUTTONS, CONTROLS AND SIZERS
   // *********************************************************************************************
   
     zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
@@ -311,19 +311,19 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     
     runButton = new wxButton(this, RUN_BUTTON, wxT("Run"));
     spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
-    commandLine = new wxTextCtrl(this, MY_TEXTCTRL_ID, wxT(""), wxDefaultPosition, wxSize(200,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
+    commandLine = new wxTextCtrl(this, MY_TEXTCTRL_ID, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
 
   
     wxBoxSizer *zap_sizer = new wxBoxSizer(wxVERTICAL);
     zap_sizer->Add(zapTraceComboBox,0,wxALL,0);
-    zap_sizer->Add(zapTraceButton, 0, wxALL ,0);
+    zap_sizer->Add(zapTraceButton, 0, wxALIGN_CENTRE ,0);
   
     wxBoxSizer *add_sizer = new wxBoxSizer(wxVERTICAL);
     add_sizer->Add(addTraceComboBox,0,wxALL,0);
-    add_sizer->Add(addTraceButton, 0, wxALL ,0);
+    add_sizer->Add(addTraceButton, 0, wxALIGN_CENTRE ,0);
   
     wxBoxSizer *switch_sizer = new wxBoxSizer(wxVERTICAL);
-    switch_sizer->Add(switchComboBox,0,wxTOP|wxBOTTOM,0);
+    switch_sizer->Add(switchComboBox,0,wxEXPAND,0);
     
     wxBoxSizer *switchButton_sizer = new wxBoxSizer(wxHORIZONTAL);
     switchButton_sizer->Add(switchButton1,0,wxALL,0);
@@ -337,22 +337,25 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // *********************************************************************************************
 
   
-  // Nested Sizers for placement of controls
-  frame_sizer->Add(topsizer,0,wxALIGN_CENTRE);
-  frame_sizer->Add(commandLine,1,wxALL,30);
-  topsizer->Add(canvas, 1, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,30);
-  topsizer->Add(sidebar_sizer,0,wxALIGN_CENTRE);
+  // NESTED SIZERS FOR PLACEMENT OF CONTROL LOOPS
+  //**********************************************************************************************
+  frame_sizer->Add(topsizer,5, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,30);                             
+  frame_sizer->Add(commandLine,1, wxEXPAND | wxALL,20);                                             
+  
+  topsizer->Add(canvas,3,wxEXPAND,0);
+  topsizer->Add(sidebar_sizer,2,wxALIGN_CENTRE,0);
+  
   sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE);
   sidebar_sizer->Add(button_sizer,0,wxALIGN_CENTRE);
   combo_sizer->Add(zap_sizer, 0, wxALIGN_CENTER);
   combo_sizer->Add(add_sizer, 0, wxALIGN_CENTRE);
   combo_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
   switch_sizer->Add(switchButton_sizer,0,wxALIGN_CENTRE);
-
+//************************************************************************************************
   
 
-  SetSizeHints(400, 400);
-  SetSizer(topsizer);
+  SetSizeHints(1000, 400);
+  SetSizer(frame_sizer);
 }
 
 void MyFrame::OnExit(wxCommandEvent &event)
@@ -432,8 +435,8 @@ void MyFrame::OnText(wxCommandEvent &event)
   // Callback for the text entry field
 {
   wxString text;
-
   text.Printf(wxT("New text entered %s"), event.GetString().c_str());
+  
   canvas->Render(text,-1);
 }
 
