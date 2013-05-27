@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include "scanner.h"
 #include "parser.h"
 #include "error.h"
@@ -225,7 +226,7 @@ bool parser::checkConLine(void)
 	errorvector.push_back(new expDevName(context[0].line, context[0].col));
 	return false;
     }
-    if(opid == blankname))
+    if(opid == blankname)
     {
 	errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
 	return false;
@@ -261,7 +262,7 @@ bool parser::checkConLine(void)
 	    return false;
 	}    
 	
-	if(context[5] != dotsym)    
+	if(context[5].symboltype != dotsym)    
 	{
 	    errorvector.push_back(new expDotSym(context[5].line, context[5].col));
 	    return false; 
@@ -275,7 +276,7 @@ bool parser::checkConLine(void)
 		errorvector.push_back(new expDtypeInput(context[6].line, context[6].col));
 		return false;
 	    }
-	    if(context[7] != semicolsym)
+	    if(context[7].symboltype != semicolsym)
 	    {
 		errorvector.push_back(new expSemiColSym(context[7].line, context[7].col));
 		return false;
@@ -284,12 +285,45 @@ bool parser::checkConLine(void)
 	    {
 		return true; 
 	    }
+	}    
 	/* Set of checks for connections with DTYPE output device and non-DTYPE input device */ 
 	else
 	{
-	    if context[6] != strsym)
+	    if(context[6].symboltype != strsym)
 	    {
-		errorvector.push_back(new exp
+		errorvector.push_back(new expInputSym(context[4].line, context[4].col));
+		return false; 
+	    }
+
+  	    /*  extract the input being referenced from the namestring information */
+	    namestring_t ipstring = context[6].namestring; 
+	    ipstring = (string)ipstring; 
+	    string compstring = "I";
+	    if(ipstring[0] != compstring)
+	    {
+		errorvector.push_back(new invInputSym(context[6].line, context[6].col));
+		return false;
+	    }
+	    
+	    int ipnum; 
+	    ipstring.erase(0,1);	// erases the first character of the string ("I")
+	    
+	    for(int i=0; i<ipstring.length(); i++)
+	    {
+		if(!isdigit(ipstring[i]))
+		{
+		   errorvector.push_back(new invInputSym(context[6].line, context[6].col));
+		    return false;
+		} 
+	    }
+	    ipnum = atoi(ipstring);	// converts the string into an int. 
+	    ipnum = (name_t) ipnum; 
+	    
+	    
+	    
+	    
+	    
+		
     if(context[1].symboltype != connpuncsym)
     {
 	errorvector.push_back(new expConnPuncSym(context[1].line, context[1].col));
@@ -302,7 +336,7 @@ bool parser::checkConLine(void)
     }
     else
     {
-	if(nmz->cvtname(context[0].namestring == blankname))
+	if(nmz->cvtname(context[0].namestring) == blankname)
 	{
 	    errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
 	    return false;
@@ -318,12 +352,9 @@ bool parser::checkConLine(void)
 	errorvector.push_back(new expInputSym(context[4].line, context[4].col));
 	return false; 
     }
-    namestring ipstring = context[4].namestring;
-    if(ipstring[0] != "I")
-    {
-	errorvector.push_back(new invInputSym(context[4].line, context[4].col));
-	return false; 
-    }
+    
+    //namestring_t ipstring = context[4].namestring;
+    
     
 
 /* Finds the next expected keyword after a keyword  */ 
@@ -351,53 +382,53 @@ void parser::nextKeyWordCheck(symbol_t symbol)
     {
     	if(symbol.symboltype != connsym && noconsymflag == 0)
     	{
-    		errorvector.push_back(new expConSym(symbol.line, symbol.col));
-    		noconsymflag = 1;
-    		return;
+	    errorvector.push_back(new expConSym(symbol.line, symbol.col));
+	    noconsymflag = 1;
+	    return;
     	}                   
-		else if(symbol.symboltype != connsym && noconsymflag == 1)
-			return;
-		else
-		{
-			needskeyflag=0;
-			section=consect;
-			return;
-		}
-	}
-	else if(section==consect)
+	    else if(symbol.symboltype != connsym && noconsymflag == 1)
+		return;
+	    else
+	    {
+		needskeyflag=0;
+		section=consect;
+		return;
+	    }
+    }
+    else if(section==consect)
+    {
+    if(symbol.symboltype != monsym && nomonsymflag == 0)
+    {
+	errorvector.push_back(new expMonSym(symbol.line, symbol.col));
+	nomonsymflag = 1;
+	return;
+    }                   
+	else if(symbol.symboltype != monsym && nomonsymflag == 1)
+	    return;
+	else
 	{
-    	if(symbol.symboltype != monsym && nomonsymflag == 0)
-    	{
-    		errorvector.push_back(new expMonSym(symbol.line, symbol.col));
-    		nomonsymflag = 1;
-    		return;
-    	}                   
-		else if(symbol.symboltype != monsym && nomonsymflag == 1)
-			return;
-		else
-		{
-			needskeyflag=0;
-			section=monsect;
-			return;
-		}
+	    needskeyflag=0;
+	    section=monsect;
+	    return;
 	}
-	else if(section==monsect)
+    }
+    else if(section==monsect)
+    {
+    if(symbol.symboltype != endfsym && noendfsymflag == 0)
+    {
+	errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
+	noendfsymflag = 1;
+	return;
+    }                   
+	else if(symbol.symboltype != endfsym && noendfsymflag == 1)
+	    return;
+	else
 	{
-    	if(symbol.symboltype != endfsym && noendfsymflag == 0)
-    	{
-    		errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
-    		noendfsymflag = 1;
-    		return;
-    	}                   
-		else if(symbol.symboltype != endfsym && noendfsymflag == 1)
-			return;
-		else
-		{
-			needskeyflag=0;
-			section=postendfsect;
-			return;
-		}
+	    needskeyflag=0;
+	    section=postendfsect;
+	    return;
 	}
+    }
 }
 
 	

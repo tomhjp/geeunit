@@ -158,7 +158,7 @@ class invInputSym: public Error
 {
     public:
     invInputSym(int l, int c);
-}
+};
 	
 
 /***********************************************************/
