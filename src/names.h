@@ -43,6 +43,9 @@ public:
 
     void writename (name_t index);
     /* Prints out the given name on the console                            */
+    
+    namestring_t getName(name_t index);
+    /* returns the namestring of a device when passed that device's index  */ 
 
     int namelength (name_t index);
     /* Returns length ie number of characters in given name                */

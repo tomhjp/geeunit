@@ -24,14 +24,9 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     mmz = monitor_mod;
     nmz = names_mod;
     init = false;
-    cyclesdisplayed = maxcycles;
+    cyclesdisplayed = -1;
     SetScrollbar(wxVERTICAL,0,16,50);
-    
-    for (int n=0; n < 10 /*(mmz->moncount())*/; n++)
-    {
-        traceVector.push_back(n);
-    }
-
+    /*DEFINE THE DEVICENAMEVECTOR HERE*/
 }
 
 void MyGLCanvas::Render(wxString example_text, int cycles)
@@ -119,6 +114,25 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
               }
             }
             glEnd();
+            
+            y = (traceboxHeight-1 - 2.5*unitHeight*j);
+            glColor3f(0.0, 0.0, 0.0);
+            glRasterPos2f(margin/2,y);
+            
+            
+            name_t dev;
+            name_t outp;
+            mmz->getmonname(j,dev,outp);
+            namestring_t namestring = nmz->getName(dev);
+            wxString devStr(namestring.c_str(), wxConvUTF8);
+            
+            wxString traceText;
+            traceText = devStr;
+                      
+            for (i = 0; i < traceText.Len() ; i++)
+            {        
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
+            }  
          }
        
     }
@@ -126,7 +140,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // If there are no montiors then draw an artificial trace.
     else  
     {   
-        for (int j=0;j<traceVector.size();j++)
+        for (int j=0;j<traceMatrix.size();j++)
         {
             
             glColor3f(1.0, 0.0, 0.0);
@@ -155,7 +169,8 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             glRasterPos2f(margin/2,y);
             
             wxString traceText;
-            traceText.Printf(wxT("CLK%d"),traceVector[j]);
+            traceText = wxT("Hello");
+//            traceText.Printf(wxT("CLK%d"),traceMatrix[j]);
                       
             for (i = 0; i < traceText.Len() ; i++)
             {        
@@ -239,6 +254,30 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
   if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text,-1);
 }
 
+void MyGLCanvas::PopulateMatrix()
+{    
+    
+    for (int n=0; n < (mmz->moncount()); n++)
+    {   
+        
+        name_t dev, outp;
+        mmz->getmonname(n,dev,outp);
+        namestring_t namestring = nmz->getName(dev);
+        wxString devStr(namestring.c_str(), wxConvUTF8);   
+        
+        monitorNameVector.push_back(devStr);
+        
+        for (int i=0;i<cyclesdisplayed;i++)
+        {
+            asignal s;
+            bool ok = mmz->getsignaltrace(n, i, s);
+            if (ok)
+            {
+                traceMatrix[n].push_back(s);
+            }
+        }    
+    }
+}
 // MyFrame ///////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -318,17 +357,25 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     wxBoxSizer *sidebar_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    
 
-  // Make the Add/Zap combo-box strings
-    wxString traceList[canvas->traceVector.size()];
-    for (int i=0;i<canvas->traceVector.size();i++)
-    {
-        wxString text;
-        text.Printf(wxT("Trace %d"),i+1);
-        traceList[i] = text;
-    }
+    wxString traceList[mmz->moncount()];
     
+    cout << "number of montiors = "<< mmz->moncount() << endl;
+    
+    
+    
+    
+  // Make the zap/add combobox strings
+    for (int j=0;j<mmz->moncount();j++)
+    {
+        name_t dev;
+        name_t outp;
+        mmz->getmonname(j,dev,outp);
+        namestring_t namestring = nmz->getName(dev);
+        wxString devStr(namestring.c_str(), wxConvUTF8);   
+        traceList[j] = devStr;
+    }
+
   // Make the switch combo-box strings
     wxString switchList[numSwitches];
     for (int i=0;i<numSwitches;i++)
@@ -339,20 +386,23 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     }  
 
 
+
+
  
   
   // DEFINITIONS OF BUTTONS, CONTROLS AND SIZERS
   // *********************************************************************************************************************************
   
   //Define Zap Controls
-    zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
+    zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,mmz->moncount(),traceList);
     zapTraceButton = new wxButton(this, ZAP_TRACE_BUTTON, wxT("ZAP"));
     
   // Define Add Controls
-    addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to Add"),wxDefaultPosition, wxDefaultSize,canvas->traceVector.size(),traceList);
+
+    addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to Add"),wxDefaultPosition, wxDefaultSize,mmz->moncount(),traceList);
     addTraceButton = new wxButton(this, ADD_TRACE_BUTTON, wxT("ADD"));
     
-  // Define Switch Controls  
+  // Define Switch Controls
     switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch "), wxDefaultPosition, wxDefaultSize, numSwitches, switchList); 
     switchButton1 = new wxButton(this, SWITCH_BUTTON_1, wxT("SWITCH TO 1"));
     switchButton2 = new wxButton(this, SWITCH_BUTTON_2, wxT("SWITCH TO 0"));
@@ -451,6 +501,7 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
   cyclescompleted = 0;
   mmz->resetmonitor ();
   runnetwork(runSpin->GetValue());
+  //cyclesdisplayed = runSpin->GetValue();
   mmz->displaysignals();
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
@@ -458,20 +509,7 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 // Callback for the continue button
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
-    int ncycles;
-    
-    if (cyclescompleted > 0) 
-    {
-        if ((ncycles + cyclescompleted) > maxcycles)
-        {
-            ncycles = maxcycles - cyclescompleted;
-        }
-        
-        cout << "Continuing for " << ncycles << " cycles" << endl;
-        runnetwork (ncycles);
-    } 
-    else
-        cout << "Error: nothing to continue!" << endl;
+    //cyclesdisplayed += contSpin->GetValue();
 }
 
 void MyFrame::OnButtonZap(wxCommandEvent &event)
@@ -483,7 +521,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
     int selection = zapTraceComboBox->GetSelection();
-    canvas->traceVector.erase(canvas->traceVector.begin() + selection);
+    canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
 
     canvas->Render(text,-1);
     zapTraceComboBox->Delete(selection);
@@ -499,7 +537,7 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
     int selection = zapTraceComboBox->GetSelection();
-    canvas->traceVector.erase(canvas->traceVector.begin() + selection);
+    canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
 
     canvas->Render(text,-1);
     zapTraceComboBox->Delete(selection);
@@ -572,4 +610,5 @@ void MyFrame::OnSelect(wxCommandEvent &event)
 {
     wxString trace = event.GetString();
 }
+
 

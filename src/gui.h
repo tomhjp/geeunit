@@ -72,6 +72,7 @@ class MyFrame: public wxFrame
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
     void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box. 
+
     DECLARE_EVENT_TABLE()
 };
     
@@ -79,12 +80,16 @@ class MyGLCanvas: public wxGLCanvas
 {
     public:
     MyGLCanvas(wxWindow *parent, wxWindowID id = wxID_ANY, monitor* monitor_mod = NULL, names* names_mod = NULL,
-   	     const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0,
-	     const wxString& name = wxT("MyGLCanvas")); // constructor
+  	    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0,
+	    const wxString& name = wxT("MyGLCanvas")); // constructor
 
     void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
     
-    vector<int> traceVector;
+    typedef vector<vector<int> > IntMatrix;
+    IntMatrix traceMatrix;
+    
+    vector<wxString> deviceNameVector;
+    vector<wxString> monitorNameVector;
         
     private:
         bool init;                         // has the GL context been initialised?
@@ -95,7 +100,8 @@ class MyGLCanvas: public wxGLCanvas
         void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
         void OnScroll(wxScrollWinEvent& event);
-        void OnMouse(wxMouseEvent& event); // callback for mouse events inside 
+        void OnMouse(wxMouseEvent& event); // callback for mouse events inside
+        void PopulateMatrix();
         DECLARE_EVENT_TABLE()
 };
     

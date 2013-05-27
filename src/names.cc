@@ -94,6 +94,11 @@ void names::writename (name_t index)
         cout << table[index].namestring;
 }
 
+namestring_t names::getName(name_t index)
+{
+    return table[index].namestring;
+}
+
 int names::namelength (name_t index)
 {
     if (indexOk(index))
