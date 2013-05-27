@@ -14,9 +14,11 @@
 #include <vector>
 
 enum { 
-  MY_SPINCNTRL_ID = wxID_HIGHEST + 1,
-  MY_TEXTCTRL_ID,
+  RUN_SPINCTRL = wxID_HIGHEST + 1,
+  CONT_SPINCTRL,
+  COMMAND_LINE,
   RUN_BUTTON,
+  CONT_BUTTON,
   ZAP_TRACE_BUTTON,
   ADD_TRACE_BUTTON,
   SWITCH_BUTTON_1,
@@ -41,23 +43,27 @@ class MyFrame: public wxFrame
     devices *dmz;                           // pointer to devices class
     monitor *mmz;                           // pointer to monitor class
     
-    wxSpinCtrl *spin;                       // control widget to select the number of cycles
-    wxComboBox *zapTraceComboBox;           // pointer to combobox object
-    wxButton   *zapTraceButton;
-    wxComboBox *addTraceComboBox;
-    wxButton   *addTraceButton;
-    wxComboBox *switchComboBox;             // pointer to combobox object
-    wxButton   *switchButton1;
-    wxButton   *switchButton2;
-    wxButton   *runButton;
-    wxStaticText *staticText;
-    wxTextCtrl *commandLine;
+    wxSpinCtrl   *runSpin;
+    wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
+    wxComboBox   *zapTraceComboBox;           // pointer to combobox object
+    wxButton     *zapTraceButton;
+    wxComboBox   *addTraceComboBox;
+    wxButton     *addTraceButton;
+    wxComboBox   *switchComboBox;             // pointer to combobox object
+    wxButton     *switchButton1;
+    wxButton     *switchButton2;
+    wxButton     *runButton;
+    wxButton     *contButton;
+    wxStaticText *runStaticText;
+    wxStaticText *contStaticText;
+    wxTextCtrl   *commandLine;
     
     int cyclescompleted;                    // how many simulation cycles have been completed
     void runnetwork(int ncycles);           // function to run the logic network
     void OnExit(wxCommandEvent& event);     // callback for exit menu item
     void OnAbout(wxCommandEvent& event);    // callback for about menu item
     void OnRunButton(wxCommandEvent& event);   // callback for push button
+    void OnContButton(wxCommandEvent& event);
     void OnButtonZap(wxCommandEvent& event);
     void OnButtonAdd(wxCommandEvent& event);
     void OnButtonSwitch1(wxCommandEvent& event);

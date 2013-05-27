@@ -246,15 +246,23 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-  EVT_BUTTON(RUN_BUTTON, MyFrame::OnRunButton)
+
+  EVT_BUTTON(RUN_BUTTON,  MyFrame::OnRunButton)
+  EVT_BUTTON(CONT_BUTTON, MyFrame::OnContButton)
+
   EVT_BUTTON(ZAP_TRACE_BUTTON, MyFrame::OnButtonZap)
   EVT_BUTTON(ADD_TRACE_BUTTON, MyFrame::OnButtonAdd)
+
   EVT_BUTTON(SWITCH_BUTTON_1, MyFrame::OnButtonSwitch1)
   EVT_BUTTON(SWITCH_BUTTON_2, MyFrame::OnButtonSwitch2)
+
   EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
-  EVT_SPINCTRL(MY_SPINCNTRL_ID, MyFrame::OnSpin)
-  EVT_TEXT_ENTER(MY_TEXTCTRL_ID, MyFrame::OnText)
+  
+  EVT_SPINCTRL(RUN_SPINCTRL,  MyFrame::OnSpin)
+  EVT_SPINCTRL(CONT_SPINCTRL, MyFrame::OnSpin)
+
+  EVT_TEXT_ENTER(COMMAND_LINE, MyFrame::OnText)
 END_EVENT_TABLE()
 
 
@@ -351,10 +359,13 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     
   // Define Other buttons  
     runButton = new wxButton(this, RUN_BUTTON, wxT("Run"));
-    spin = new wxSpinCtrl(this, MY_SPINCNTRL_ID, wxString(wxT("10")));
-    commandLine = new wxTextCtrl(this, MY_TEXTCTRL_ID, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
+    contButton = new wxButton(this, RUN_BUTTON, wxT("Continue"));
+    runSpin = new wxSpinCtrl(this, RUN_SPINCTRL, wxString(wxT("10")));
+    contSpin = new wxSpinCtrl(this, CONT_SPINCTRL, wxString(wxT("10")));
+    commandLine = new wxTextCtrl(this, COMMAND_LINE, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
     commandLine->WriteText(wxT("#"));
-    staticText = new wxStaticText(this, wxID_ANY, wxT("Cycles"));
+    runStaticText = new wxStaticText(this, wxID_ANY, wxT("Cycles"));
+    contStaticText = new wxStaticText(this, wxID_ANY, wxT("Cycles"));
     
   // Place Zap Controls
     wxBoxSizer *zap_sizer = new wxBoxSizer(wxVERTICAL);
@@ -376,10 +387,16 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     switchButton_sizer->Add(switchButton2,0,0,0);
     
   // Place Buttons  
-    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    button_sizer->Add(runButton, 0, wxTOP, 30);
-    button_sizer->Add(spin, 0, wxEXPAND | wxTOP, 30);
-    button_sizer->Add(staticText,0,wxALIGN_CENTRE|wxTOP,30);
+    wxBoxSizer *run_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    run_button_sizer->Add(runButton, 0, wxTOP, 30);
+    run_button_sizer->Add(runSpin, 0, wxEXPAND | wxTOP, 30);
+    run_button_sizer->Add(runStaticText,0,wxALIGN_CENTRE|wxTOP,30);
+    
+  // Place Buttons  
+    wxBoxSizer *cont_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    cont_button_sizer->Add(contButton, 0, wxTOP, 30);
+    cont_button_sizer->Add(contSpin, 0, wxEXPAND | wxTOP, 30);
+    cont_button_sizer->Add(contStaticText,0,wxALIGN_CENTRE|wxTOP,30);
 
   // *********************************************************************************************************************************
 
@@ -396,9 +413,12 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   
   sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE);
   sidebar_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
-  sidebar_sizer->Add(button_sizer,0,wxALIGN_CENTRE);
+  sidebar_sizer->Add(run_button_sizer,0,wxALIGN_CENTRE);
+  sidebar_sizer->Add(cont_button_sizer,0,wxALIGN_CENTRE);
+  
   combo_sizer->Add(zap_sizer, 0, wxALIGN_CENTER);
   combo_sizer->Add(add_sizer, 0, wxALIGN_CENTRE);
+  
   switch_sizer->Add(switchButton_sizer,0,wxALIGN_CENTRE);
 //************************************************************************************************************************************
   
@@ -422,16 +442,36 @@ void MyFrame::OnAbout(wxCommandEvent &event)
     wxString text = wxT("Example");
 }
 
-void MyFrame::OnRunButton(wxCommandEvent &event)
-  // Callback for the push button
+
+// Callback for the run button
+void MyFrame::OnRunButton(wxCommandEvent &event) 
 {
   int n, ncycles;
 
   cyclescompleted = 0;
   mmz->resetmonitor ();
-  runnetwork(spin->GetValue());
+  runnetwork(runSpin->GetValue());
   mmz->displaysignals();
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
+}
+
+// Callback for the continue button
+void MyFrame::OnContButton(wxCommandEvent &event)
+{
+    int ncycles;
+    
+    if (cyclescompleted > 0) 
+    {
+        if ((ncycles + cyclescompleted) > maxcycles)
+        {
+            ncycles = maxcycles - cyclescompleted;
+        }
+        
+        cout << "Continuing for " << ncycles << " cycles" << endl;
+        runnetwork (ncycles);
+    } 
+    else
+        cout << "Error: nothing to continue!" << endl;
 }
 
 void MyFrame::OnButtonZap(wxCommandEvent &event)
