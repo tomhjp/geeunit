@@ -297,9 +297,10 @@ bool parser::checkConLine(void)
 
   	    /*  extract the input being referenced from the namestring information */
 	    namestring_t ipstring = context[6].namestring; 
-	    ipstring = (string)ipstring; 
+	    (string)ipstring;
+	    char *firstletter = (char*) ipstring[0]; 
 	    string compstring = "I";
-	    if(ipstring[0] != compstring)
+	    if(firstletter.compare(compstring) != 0)
 	    {
 		errorvector.push_back(new invInputSym(context[6].line, context[6].col));
 		return false;
