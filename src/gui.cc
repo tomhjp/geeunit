@@ -24,12 +24,12 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     mmz = monitor_mod;
     nmz = names_mod;
     init = false;
-    cyclesdisplayed = -1;
+    cyclesdisplayed = maxcycles;
     SetScrollbar(wxVERTICAL,0,16,50);
     
-    for (int i=0;i<10;i++)
+    for (int n=0; n < 10 /*(mmz->moncount())*/; n++)
     {
-        traceVector.push_back(i);
+        traceVector.push_back(n);
     }
 
 }
@@ -72,6 +72,18 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         InitGL();
         init = true;
     }
+    cout << "Cycles displayed: " << cyclesdisplayed << endl << \
+            "Monitor count: " << mmz->moncount() << endl;
+    //getmonname(
+    bool ok;
+    for (int i=0; i<maxcycles; i++)
+    {
+        ok = mmz->getsignaltrace(0,i,s);
+        if (ok)
+            cout << s << endl;
+        else
+            cout << "Not ok" << endl;
+    }
     glClear(GL_COLOR_BUFFER_BIT);
     if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0))
     { // draw the first monitor signal, get trace from monitor class
@@ -79,14 +91,14 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         glBegin(GL_LINE_STRIP);
         for (i=0; i<cyclesdisplayed; i++) 
         {
-          if (mmz->getsignaltrace(0, i, s)) 
-          {
+          //if (mmz->getsignaltrace(0, i, s)) 
+          //{
               if (s==low) y = 100.0;
               if (s==high) y = 130.0;
               
               glVertex2f(20*i+10.0, y); 
               glVertex2f(20*i+30.0, y);
-          }
+          //}
         }
         glEnd();
     }
