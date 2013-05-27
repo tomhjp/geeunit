@@ -537,28 +537,50 @@ void MyFrame::OnContButton(wxCommandEvent &event)
 void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for Zap PushButton
 {
-
+    
+    
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
+    int selection = zapTraceComboBox->GetSelection();
+    
+    
+    bool found = false;
+    for (int i=0; i<canvas->monitorNameVector.size(); i++)
+    {
+        if (selectionStr == canvas->monitorNameVector[i])
+        {
+            found = true;
+            break;
+        }
+    }
+    
+    if (!found)
+    {
+        cout << "Error" << endl;
+        return;
+    }
+        
+    
     string devNamestring = string(selectionStr.mb_str());
     cout << "devNameString = " << devNamestring << endl;
     wxString text;
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
-    int selection = zapTraceComboBox->GetSelection();
-
     canvas->monitorNameVector.erase(canvas->monitorNameVector.begin() + selection);
+    cout << "removed monitor from monitorNameVector" << endl;
+    
+    zapTraceComboBox->Delete(selection);
+    cout << "deleted from combo box" << endl;
+    
+    /* Get monintor name and remove it from the list of monitors in mmz */
     name_t did, outp;
     mmz->getmonname(selection, did, outp);
     bool ok;
     mmz->remmonitor(did, outp, ok);
     if (!ok)
         cout << "Something went wrong with removing a monitor" << endl;
-    canvas->Render(text,-1);
-    
-    zapTraceComboBox->Delete(selection);
-    
 
-        
+    canvas->populateTraceMatrix();
+    canvas->Render(text,-1);
 }
 
 void MyFrame::OnButtonAdd(wxCommandEvent &event)
@@ -639,6 +661,17 @@ void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
   about.ShowModal();
   return;
 }
+
+/*
+void MyFrame::errorBox(wxString errorBox)
+{
+  wxString message;
+  message.Printf(wxT("Trace Selected: %s \nSwitch Selected: %s"),traceStr.c_str(),switchStr.c_str());
+  wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
+  about.ShowModal();
+  return;
+}
+*/
 
 void MyFrame::OnSelect(wxCommandEvent &event)
 {
