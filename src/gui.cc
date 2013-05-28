@@ -70,8 +70,11 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   
 
     
-    if (cycles >= 0) cyclesdisplayed = cycles;
-
+    if (cycles >= 0) 
+        {
+        cyclesdisplayed = cycles;
+        }
+    
     SetCurrent();
   
     if (!init) 
@@ -80,13 +83,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         init = true;
     }
 
-    bool ok;
-    for (int i=0; i<maxcycles; i++)
-    {
-        ok = mmz->getsignaltrace(0,i,s);
-        
 
-    }
     glClear(GL_COLOR_BUFFER_BIT);
     
     //If there are monitors then draw the first monitor signal, get trace from monitor class
@@ -123,8 +120,10 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glVertex2f(x+unitWidth, y);
             }
             glEnd();
-            
-            y = (traceboxHeight-1 - 2.5*unitHeight*t);
+        }
+        for (int j=0; j<monitorNameVector.size(); j++)
+        {    
+            y = (traceboxHeight-1 - 2.5*unitHeight*j);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
             
@@ -137,7 +136,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             {        
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
             }  
-         }
+        }
        
     }
     
@@ -261,15 +260,27 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
 
 void MyGLCanvas::populateTraceMatrix()
 {    
-    if (traceMatrix.size() >0)
-    {
-        traceMatrix.clear();   
-    }
     for (int n=0; n < (mmz->moncount()); n++)
     {   
         vector<asignal> emptyVector;
         traceMatrix.push_back(emptyVector);
 
+        for (int i=0;i<cyclesdisplayed;i++)
+        {
+            asignal s;
+            bool ok = mmz->getsignaltrace(n, i, s);
+            if (ok)
+            {
+                traceMatrix[n].push_back(s);
+            }
+        }    
+    }
+}
+
+void MyGLCanvas::appendToTraceMatrix()
+{    
+    for (int n=0; n < (mmz->moncount()); n++)
+    {   
         for (int i=0;i<cyclesdisplayed;i++)
         {
             asignal s;
@@ -302,10 +313,10 @@ void MyGLCanvas::setCyclesDisplayed(int c)
 {
     cyclesdisplayed = c;
 }
-// MyFrame ///////////////////////////////////////////////////////////////////////////////////////
 
 
-
+// MyFrame *******************************************************************************************************************************
+//         *******************************************************************************************************************************
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
@@ -329,17 +340,13 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 END_EVENT_TABLE()
 
 
-
-
 MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
 		 names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, long style):
   wxFrame(parent, wxID_ANY, title, pos, size, style)
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
 {
-    int numTraces = 10;
     SetIcon(wxIcon(wx_icon));
-    
     nmz = names_mod;
     dmz = devices_mod;
     mmz = monitor_mod;
@@ -436,7 +443,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     
   // Define Other buttons  
     runButton = new wxButton(this, RUN_BUTTON, wxT("Run"));
-    contButton = new wxButton(this, RUN_BUTTON, wxT("Continue"));
+    contButton = new wxButton(this, CONT_BUTTON, wxT("Continue"));
     runSpin = new wxSpinCtrl(this, RUN_SPINCTRL, wxString(wxT("10")));
     contSpin = new wxSpinCtrl(this, CONT_SPINCTRL, wxString(wxT("10")));
     commandLine = new wxTextCtrl(this, COMMAND_LINE, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
@@ -502,7 +509,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     SetSizeHints(1000, 400);
     SetSizer(frame_sizer);
     
-
+//    canvas->Render(wxT("INITIALISING WINDOW"),10);
 }
 
 void MyFrame::populateSwitchNameVector()
@@ -544,22 +551,33 @@ void MyFrame::OnAbout(wxCommandEvent &event)
 // Callback for the run button
 void MyFrame::OnRunButton(wxCommandEvent &event) 
 {
-  int n, ncycles;
-
-  cyclescompleted = 0;
-  mmz->resetmonitor ();
-  runnetwork(runSpin->GetValue());
-  //canvas->setCyclesDisplayed(runSpin->GetValue());
-  //mmz->displaysignals();
-  
-  canvas->populateTraceMatrix();
-  canvas->Render(wxT("Run button pressed"), cyclescompleted);
+  // Call the run function to run the network for the number of cycles currently in the
+    RunFunction();
 }
 
 // Callback for the continue button
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
-    //cyclesdisplayed += contSpin->GetValue();
+    int totalcycles = cyclescompleted;
+    
+    cout << "cyclescompleted = " << cyclescompleted << endl;
+    cout << "totalcycles = " << totalcycles << endl;
+    
+  // Reset the monitor and run network
+    mmz->resetmonitor ();
+    runnetwork(contSpin->GetValue());
+    
+    cout << "cyclescompleted = " << cyclescompleted << endl;
+    cout << "totalcycles = " << totalcycles << endl;
+    
+    totalcycles += cyclescompleted;
+    
+    cout << "cyclescompleted = " << cyclescompleted << endl;
+    cout << "totalcycles = " << totalcycles << endl;
+    
+  // Populate the traceMatrix and render the canvas
+    canvas->appendToTraceMatrix();
+    canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
 
 void MyFrame::OnButtonZap(wxCommandEvent &event)
@@ -637,17 +655,27 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
   // Add chosen monitor to monitorNameVector, append monitor to zap button. 
         canvas->monitorNameVector.push_back(selectionStr);
         zapTraceComboBox->Append(selectionStr);
-        
- // Update the traceMatrix
- 
-    
-    
+          
   // Create message string for the canvas
     wxString text;
     text.Printf(wxT("%s added"),selectionStr.c_str());
     
-    canvas->Render(text,-1);
-    canvas->populateTraceMatrix();
+//    canvas->Render(text,-1);
+//    canvas->populateTraceMatrix();
+
+  // Run the network for a few values
+  RunFunction(); 
+
+  // Warn the user that I'll run for 10 cycles
+  wxString message;
+  message.Printf(wxT("Your new monitor has been added\nTo prevent errors the network was run for a few cycles and the trace has been updated"));
+  wxMessageDialog about(this,message,wxT("Add Response"), wxICON_INFORMATION | wxOK);
+  about.ShowModal();
+  return;
+  cout << "about to runFunction()" << endl;
+ 
+
+    
 }
 
 void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
@@ -745,4 +773,21 @@ void MyFrame::OnSelect(wxCommandEvent &event)
     wxString trace = event.GetString();
 }
 
-
+void MyFrame::RunFunction()
+{
+  // Run the network for 10 cycles to avoid problems
+    int n, ncycles;
+    cyclescompleted = 0;
+  // Clear the traceMatrix 
+    if (canvas->traceMatrix.size() >0)
+    {
+        canvas->traceMatrix.clear();   
+    }
+  // Reset the monitor and run network
+    mmz->resetmonitor ();
+    runnetwork(runSpin->GetValue());
+    
+  // Populate the traceMatrix and render the canvas
+    canvas->populateTraceMatrix();
+    canvas->Render(wxT("Run button pressed"), cyclescompleted);
+}
