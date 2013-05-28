@@ -33,55 +33,56 @@ class MyGLCanvas;
 class MyFrame: public wxFrame
 {
  public:
-  MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size, 
+    MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size, 
 	  names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, network *network_mod = NULL, 
 	  long style = wxDEFAULT_FRAME_STYLE); // constructor
- private:
-    MyGLCanvas *canvas;                     // GL drawing area widget to draw traces
+    private:
+        MyGLCanvas *canvas;                     // GL drawing area widget to draw traces
 
-    names *nmz;                             // pointer to names class
-    devices *dmz;                           // pointer to devices class
-    monitor *mmz;                           // pointer to monitor class
-    network *netz;
-    
-    wxSpinCtrl   *runSpin;
-    wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
-    wxComboBox   *zapTraceComboBox;           // pointer to combobox object
-    wxButton     *zapTraceButton;
-    wxComboBox   *addTraceComboBox;
-    wxButton     *addTraceButton;
-    wxComboBox   *switchComboBox;             // pointer to combobox object
-    wxButton     *switchButton0;
-    wxButton     *switchButton1;
-    wxButton     *runButton;
-    wxButton     *contButton;
-    wxStaticText *runStaticText;
-    wxStaticText *contStaticText;
-    wxTextCtrl   *commandLine;
-    
-    vector<wxString> switchNameVector;
-    
-    int cyclescompleted;                    // how many simulation cycles have been completed
-    void runnetwork(int ncycles);           // function to run the logic network
-    void OnExit(wxCommandEvent& event);     // callback for exit menu item
-    void OnAbout(wxCommandEvent& event);    // callback for about menu item
-    void OnRunButton(wxCommandEvent& event);   // callback for push button
-    void OnContButton(wxCommandEvent& event);
-    void OnButtonZap(wxCommandEvent& event);
-    void OnButtonAdd(wxCommandEvent& event);
-    void OnButtonSwitch0(wxCommandEvent& event);
-    void OnButtonSwitch1(wxCommandEvent& event);
-    void OnSelect(wxCommandEvent& event);
-    void OnSpin(wxSpinEvent& event);        // callback for spin control
-    void OnText(wxCommandEvent& event);     // callback for text entry field
-    void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box.
-    void errorBox(wxString errorBox);
-    void RunFunction();
+        names *nmz;                             // pointer to names class
+        devices *dmz;                           // pointer to devices class
+        monitor *mmz;                           // pointer to monitor class
+        network *netz;
+        
+        wxSpinCtrl   *runSpin;
+        wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
+        wxComboBox   *zapTraceComboBox;           // pointer to combobox object
+        wxButton     *zapTraceButton;
+        wxComboBox   *addTraceComboBox;
+        wxButton     *addTraceButton;
+        wxComboBox   *switchComboBox;             // pointer to combobox object
+        wxButton     *switchButton0;
+        wxButton     *switchButton1;
+        wxButton     *runButton;
+        wxButton     *contButton;
+        wxStaticText *runStaticText;
+        wxStaticText *contStaticText;
+        wxTextCtrl   *commandLine;
+        
+        vector<wxString> switchNameVector;
+        
+        int cyclescompleted;                    // how many simulation cycles have been completed
+        void runnetwork(int ncycles);           // function to run the logic network
+        void OnExit(wxCommandEvent& event);     // callback for exit menu item
+        void OnAbout(wxCommandEvent& event);    // callback for about menu item
+        void OnRunButton(wxCommandEvent& event);   // callback for push button
+        void OnContButton(wxCommandEvent& event);
+        void OnButtonZap(wxCommandEvent& event);
+        void OnButtonAdd(wxCommandEvent& event);
+        void OnButtonSwitch0(wxCommandEvent& event);
+        void OnButtonSwitch1(wxCommandEvent& event);
+        void OnSelect(wxCommandEvent& event);
+        void OnSpin(wxSpinEvent& event);        // callback for spin control
+        void OnText(wxCommandEvent& event);     // callback for text entry field
+        void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box.
+        void errorBox(wxString errorBox);
+        void RunFunction();
+        
 
-    void populateSwitchNameVector();
-    name_t getIdFromWxString(wxString inStr);
+        void populateSwitchNameVector();
+        name_t getIdFromWxString(wxString inStr);
 
-    DECLARE_EVENT_TABLE()
+        DECLARE_EVENT_TABLE()
 };
     
 class MyGLCanvas: public wxGLCanvas
@@ -97,6 +98,7 @@ class MyGLCanvas: public wxGLCanvas
     void appendToTraceMatrix();
     void populateMonitorNameVector();
     void setCyclesDisplayed(int c);
+    void setCyclesCompleted(int c);
     typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;
     
@@ -106,6 +108,7 @@ class MyGLCanvas: public wxGLCanvas
     private:
         bool init;                         // has the GL context been initialised?
         int cyclesdisplayed;               // how many simulation cycles have been displayed
+        int cyclescompleted;
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces
         names *nmz;                        // pointer to names class, used to extract signal names
         network *netz;

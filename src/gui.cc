@@ -25,7 +25,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     nmz = names_mod;
     netz = network_mod;
     init = false;
-    cyclesdisplayed = 10;
+    cyclesdisplayed = -1;
     SetScrollbar(wxVERTICAL,0,4,14);
     canvasPosition = 0;
     
@@ -69,7 +69,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   
 
     
-    if (cycles >= 0) 
+    if (cycles > 0) 
         cyclesdisplayed = cycles;
     
     SetCurrent();
@@ -84,14 +84,14 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     glClear(GL_COLOR_BUFFER_BIT);
     
     //If there are monitors then draw the first monitor signal, get trace from monitor class
-    if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0))
+    if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
     {
         unitWidth = traceboxWidth / cyclesdisplayed;
         if (unitWidth > 30)
         {
             unitWidth = 30;
         }
-        
+
         for (t=0; t<traceMatrix.size(); t++)
         {   
   
@@ -265,7 +265,7 @@ void MyGLCanvas::populateTraceMatrix()
         vector<asignal> emptyVector;
         traceMatrix.push_back(emptyVector);
         
-        for (int i=0;i<cyclesdisplayed;i++)
+        for (int i=0;i<cyclescompleted;i++)
         {
             asignal s;
             bool ok = mmz->getsignaltrace(n, i, s);
@@ -286,7 +286,7 @@ void MyGLCanvas::appendToTraceMatrix()
 {    
     for (int n=0; n < (mmz->moncount()); n++)
     {   
-        for (int i=0;i<cyclesdisplayed;i++)
+        for (int i=0;i<cyclescompleted;i++)
         {
             asignal s;
             bool ok = mmz->getsignaltrace(n, i, s);
@@ -322,6 +322,10 @@ void MyGLCanvas::setCyclesDisplayed(int c)
     cyclesdisplayed = c;
 }
 
+void MyGLCanvas::setCyclesCompleted(int c)
+{
+    cyclescompleted = c;
+}
 
 // MyFrame *******************************************************************************************************************************
 //         *******************************************************************************************************************************
@@ -367,7 +371,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     }
     
     wxMenuBar *menuBar = new wxMenuBar;
-    
+
     wxMenu *fileMenu = new wxMenu;
     wxMenu *editMenu = new wxMenu;
     wxMenu *viewMenu = new wxMenu;
@@ -393,6 +397,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     runnetwork(10);
     canvas->populateMonitorNameVector();
     populateSwitchNameVector();
+    canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
     
     int numDevices = canvas->deviceNameVector.size();
@@ -565,20 +570,19 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 }
 
 // Callback for the continue button
+//****************************************************************************************************************************************
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
-    int totalcycles = cyclescompleted;
-  
   // Reset the monitor and run network
     mmz->resetmonitor ();
     runnetwork(contSpin->GetValue());
-    
-    totalcycles += cyclescompleted;
-    canvas->setCyclesDisplayed(totalcycles);
+
   // Populate the traceMatrix and render the canvas
+    canvas->setCyclesCompleted(cyclescompleted);
     canvas->appendToTraceMatrix();
-    canvas->Render(wxT("Run button pressed"), totalcycles);
+    canvas->Render(wxT("Run button pressed"),cyclescompleted);
 }
+//****************************************************************************************************************************************
 
 void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for Zap PushButton
@@ -641,6 +645,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     }
     
   // Populate the new traceMatrix and Render the canvas to remove the desired trace
+    canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
     canvas->Render(text,-1);
     
@@ -772,7 +777,6 @@ void MyFrame::runnetwork(int ncycles)
   {
     cyclescompleted = 0;
   }
-  cout << "NETWORK RAN " << cyclescompleted << " CYCLES COMPLETED" << endl;
 }
 
 void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
@@ -805,15 +809,6 @@ void MyFrame::RunFunction()
     int  ncycles;
     cyclescompleted = 0;
     ncycles = runSpin->GetValue();
-    cout << ncycles << endl;
-    
-  // Check the value entered
-  if (ncycles>100)
-  {
-      ncycles = 100;
-      errorBox(wxT("The require number of cycles is greater than the maximum (100).\nThe network has been run for 100 cycles"));
-  }
-  // Run the network for 10 cycles to avoid problems
     
     
   // Clear the traceMatrix 
@@ -823,10 +818,13 @@ void MyFrame::RunFunction()
     }
     
   // Reset the monitor and run network
-    mmz->resetmonitor ();
+    mmz->resetmonitor();
     runnetwork(ncycles);
-    canvas->setCyclesDisplayed(cyclescompleted);
+
+    
   // Populate the traceMatrix and render the canvas
+    canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
     canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
+
