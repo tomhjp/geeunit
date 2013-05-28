@@ -51,29 +51,33 @@ void parser::postEndFCheck(symbol_t symbol)
 /* functions                                                                        */
 void parser::mainLineBuild(symbol_t symbol)
 {
-    /* an END symbol has been found which does not immediately proceed a semicolon  */
-    if(symbol.symboltype == endsym && context.size()!= 1)
+    context.push_back(symbol);
+    
+    if(symbol.symboltype == endsym)
     { 
-        errorvector.push_back(new unExpEndSym(symbol.line, symbol.col));
-	needskeyflag = 1;
-        return;
+	/* an END symbol has been found */
+	if(context.size() != 1)
+	{
+	    /* The END symbol is not on a new line */     
+	    errorvector.push_back(new unExpEndSym(symbol.line, symbol.col));
+	    needskeyflag = 1;
+	    return;
+	}
+	else
+	{
+	    /* The END symbol has been found in it's expected position - move on the section */
+	    needskeyflag = 1;
+	    emptyContextVector();
+	    return;
+	}    
     }
-    /* The END symbol has been found in it's expected position - move on the section */
-    else if(symbol.symboltype == endsym && context.size() == 1)
-    {
-	cout << "Found END correctly" <<endl;
-        needskeyflag = 1;
-	emptyContextVector();
-        return;
-    }    
+    
     else if(symbol.symboltype != semicolsym)
     {
-	    context.push_back(symbol);
 	    return;
     }
     else 
     {
-	cout <<section << endl;
 	bool done;
 	if(section == devsect)
 	{
@@ -255,7 +259,7 @@ bool parser::makeDevLine(void)
     devtype = context[2].symboltype;  
     id = nmz->lookup(context[0].namestring);
     
-    if(devtype == (andsym || nandsym || orsym || norsym || switchsym || clksym))
+    if((devtype == andsym) || (devtype == nandsym) || (devtype == orsym) || (devtype == norsym) || (devtype == switchsym) || (devtype == clksym))
     {
 	/* The makedevice() method must be passed a parameter in the variant field */ 
 	variant = context[4].num;
@@ -285,6 +289,11 @@ bool parser::checkDevLine(void)
     Switch switchdev; 
     
     cout << "check DEVICES line" << endl; 
+
+    for(int i=0; i<context.size(); i++)
+	cout << context[i].namestring;
+    cout << endl; 
+	
     /* First sybol in the line must be a devicename which is currently undefined. */ 
     if(context[0].symboltype == strsym)
     {
@@ -310,7 +319,7 @@ bool parser::checkDevLine(void)
     }
     /* Third symbol must be a devicetype. The syntax branches depending on which devictype is called */
     /* These devices take a single number as their parameter */  
-    if(context[2].symboltype == (clksym || switchsym || andsym || nandsym || orsym || norsym))
+    if((context[2].symboltype == clksym) || (context[2].symboltype == switchsym) || (context[2].symboltype == andsym) || (context[2].symboltype == nandsym) || (context[2].symboltype == orsym) || (context[2].symboltype == norsym))
     {
 	    if(context[3].symboltype != opsym)
 	    {
@@ -334,7 +343,7 @@ bool parser::checkDevLine(void)
 				    return false; 
 			    }	
 		    }
-		    else if(context[2].symboltype == (andsym || nandsym || orsym || norsym))
+		    else if((context[2].symboltype == andsym) || (context[2].symboltype == nandsym) || (context[2].symboltype == orsym) || (context[2].symboltype == norsym))
 		    {
 			    if(!gate.paramInValidRange(context[4].num))
 			    {
@@ -363,7 +372,7 @@ bool parser::checkDevLine(void)
 	    }
     }
     /* These are devicetypes which take no parameters  */ 
-    else if(context[2].symboltype == (dtypesym || xorsym))
+    else if((context[2].symboltype == dtypesym) || (context[2].symboltype == xorsym))
     {
 	    if(context[3].symboltype != semicolsym)
 	    {
@@ -372,7 +381,7 @@ bool parser::checkDevLine(void)
 	    }
     }
     /* the third symbol is not a devicetype */ 
-    else if(context[2].symboltype != (switchsym || andsym || nandsym || orsym || norsym || dtypesym || xorsym || clksym))
+    else if((context[2].symboltype != switchsym) || (context[2].symboltype != andsym) || (context[2].symboltype != nandsym) || (context[2].symboltype != orsym) || (context[2].symboltype != norsym) || (context[2].symboltype != dtypesym) || (context[2].symboltype != xorsym) || (context[2].symboltype != clksym))
     {
 	    errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
 	    return false; 
@@ -390,6 +399,10 @@ bool parser::checkConLine(void)
 {
     cout << "check CONNECTIONS line" << endl; 
 
+    for(int i=0; i<context.size(); i++)
+	cout << context[i].namestring;
+    cout << endl; 
+    
     if(!isStrSym(context[0]))
     {
 	errorvector.push_back(new expDevName(context[0].line, context[0].col));
@@ -588,6 +601,10 @@ bool parser::checkConLine(void)
 bool parser::checkMonLine(void)
 {
     cout << "Check MONITORS line" <<endl; 
+    
+    for(int i=0; i<context.size(); i++)
+	cout << context[i].namestring;
+    cout << endl; 
     if(!isStrSym(context[0]))
     {
 	errorvector.push_back(new expDevName(context[0].line, context[0].col));
@@ -647,7 +664,6 @@ bool parser::checkMonLine(void)
 void parser::emptyContextVector(void)
 {
     context.erase(context.begin(), context.end());
-    cout << "Context size is " << context.size() <<endl;
     return;
 }
 
@@ -686,7 +702,7 @@ bool parser::isSemiColSym(symbol_t symbol)
 bool parser::isDtypeInput(symbol_t symbol)
 {
     bool retval = false; 
-    if(symbol.symboltype == (ddatasym || clksym || dsetsym || dclearsym))
+    if((symbol.symboltype == ddatasym) || (symbol.symboltype == clksym) || (symbol.symboltype == dsetsym) || (symbol.symboltype == dclearsym))
 	retval = true; 
     return retval; 
 }
@@ -694,18 +710,22 @@ bool parser::isDtypeInput(symbol_t symbol)
 bool parser::isDtypeOutput(symbol_t symbol)
 {
     bool retval = false; 
-    if(symbol.symboltype == (qsym || qbarsym))
+    if((symbol.symboltype == qsym) || (symbol.symboltype == qbarsym))
 	retval = true; 
     return retval; 
 }
 
 bool parser::devNameDefined(symbol_t symbol)
 {
-    bool retval = false; 
-    name_t namedefd;
+    bool retval = true; 
+    name_t namedefd; 
     namedefd = nmz->cvtname(symbol.namestring); 
-    if(namedefd != blankname)
-	retval = true; 
+    cout << "namedefd = " << namedefd << endl; 
+    if(namedefd == blankname)
+    {
+	cout << "mooo" <<endl; 
+	retval = false; 
+    }
     return retval;
 }
 
@@ -843,7 +863,8 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 /* read in symbols from the scanner, and calls the relevant parsing functions */ 
 void parser::readin (symbol_t symbol)
 {   
-    //if(skipflag == 1) skipToBreak(symbol);
+    //if(skipflag == 1) skipToBreak(symbol);  // not needed as we are parsing a line at a time. 
+    /* an error in a line breaks, and the next symbol read in is the start of a new line  */
     if(needskeyflag == 1) nextKeyWordCheck(symbol); 
     else if(section == prestartfsect) preStartFCheck(symbol); 
     else if((section == devsect) || (section == consect )|| (section == monsect)) mainLineBuild(symbol); 
