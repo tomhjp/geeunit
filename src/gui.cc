@@ -267,7 +267,7 @@ void MyGLCanvas::populateTraceMatrix()
     {   
         vector<asignal> emptyVector;
         traceMatrix.push_back(emptyVector);
-
+        cout << endl;
         for (int i=0;i<cyclesdisplayed;i++)
         {
             asignal s;
@@ -276,7 +276,12 @@ void MyGLCanvas::populateTraceMatrix()
             {
                 traceMatrix[n].push_back(s);
             }
-        }    
+            else
+            {
+                cout << "Error populating Matrix" << endl;
+            }
+        }
+        cout << endl;    
     }
 }
 
@@ -291,6 +296,10 @@ void MyGLCanvas::appendToTraceMatrix()
             if (ok)
             {
                 traceMatrix[n].push_back(s);
+            }
+            else
+            {
+                cout << "Error populating Matrix" << endl;
             }
         }    
     }
@@ -791,18 +800,30 @@ void MyFrame::OnSelect(wxCommandEvent &event)
 
 void MyFrame::RunFunction()
 {
-  // Run the network for 10 cycles to avoid problems
-    int n, ncycles;
+    int  ncycles;
     cyclescompleted = 0;
+    ncycles = runSpin->GetValue();
+    cout << ncycles << endl;
+    
+  // Check the value entered
+  if (ncycles>100)
+  {
+      ncycles = 100;
+      errorBox(wxT("The require number of cycles is greater than the maximum (100).\nThe network has been run for 100 cycles"));
+  }
+  // Run the network for 10 cycles to avoid problems
+    
+    
   // Clear the traceMatrix 
     if (canvas->traceMatrix.size() >0)
-    {
+    {        
         canvas->traceMatrix.clear();   
     }
+    
   // Reset the monitor and run network
     mmz->resetmonitor ();
-    runnetwork(runSpin->GetValue());
-    
+    runnetwork(ncycles);
+    canvas->setCyclesDisplayed(cyclescompleted);
   // Populate the traceMatrix and render the canvas
     canvas->populateTraceMatrix();
     canvas->Render(wxT("Run button pressed"), cyclescompleted);
