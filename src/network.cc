@@ -35,6 +35,20 @@ devlink network::finddevice (name_t id)
 }
 
 
+devicekind network::netzdevkind(name_t did)
+{
+    devlink d = devs;
+    bool found = false;
+    while ((d != NULL) && (! found))
+    {
+        found = (d->id == did);
+        if (! found)
+            d = d->next;
+    }
+    return d->kind;
+}
+
+
 /***********************************************************************
  *
  * Returns link to input of device pointed to by dev with specified    
@@ -172,21 +186,27 @@ void network::makeconnection (name_t idev, name_t inp, name_t odev, name_t outp,
  */
 void network::checknetwork (bool& ok)
 {
-  devlink d;
-  inplink i;
-  ok = true;
-  for (d = devs; d != NULL; d = d->next) 
-    for (i = d->ilist; i != NULL; i = i->next)
-      if (i->connect == NULL) {
-	cout << "Unconnected Input : ";
-	nmz->writename (d->id);
-	if (i->id != blankname) {
-	  cout << ".";
-	  nmz->writename (i->id);
-	}
-	cout << endl;
-	ok = false;
-      }
+    devlink d;
+    inplink i;
+    ok = true;
+    for (d = devs; d != NULL; d = d->next)
+    {
+        for (i = d->ilist; i != NULL; i = i->next)
+        {
+            if (i->connect == NULL)
+            {
+                cout << "Unconnected Input : ";
+                nmz->writename (d->id);
+                if (i->id != blankname)
+                {
+                    cout << ".";
+                    nmz->writename (i->id);
+                }
+                cout << endl;
+                ok = false;
+            }
+        }
+    }
 }
 
 

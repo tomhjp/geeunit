@@ -11,22 +11,25 @@ using namespace std;
  */
 void monitor::makemonitor (name_t dev, name_t outp, bool& ok)
 {
-  devlink d;
-  outplink o;
-  ok = (mtab.used < maxmonitors);
-  if (ok) {
-    d = netz->finddevice (dev);
-    ok = (d != NULL);
-    if (ok) {
-      o = netz->findoutput (d, outp);
-      ok = (o != NULL);
-      if (ok) {
-	mtab.sigs[mtab.used].devid = dev;
-	mtab.sigs[mtab.used].op = o;
-	(mtab.used)++;
-      }
+    devlink d;
+    outplink o;
+    ok = (mtab.used < maxmonitors);
+    if (ok)
+    {
+        d = netz->finddevice (dev);
+        ok = (d != NULL);
+        if (ok)
+        {
+            o = netz->findoutput (d, outp);
+            ok = (o != NULL);
+            if (ok)
+            {
+                mtab.sigs[mtab.used].devid = dev;
+                mtab.sigs[mtab.used].op = o;
+                (mtab.used)++;
+            }
+        }
     }
-  }
 }
 
 

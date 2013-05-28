@@ -42,6 +42,7 @@ class MyFrame: public wxFrame
     names *nmz;                             // pointer to names class
     devices *dmz;                           // pointer to devices class
     monitor *mmz;                           // pointer to monitor class
+    network *netz;
     
     wxSpinCtrl   *runSpin;
     wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
@@ -58,6 +59,8 @@ class MyFrame: public wxFrame
     wxStaticText *contStaticText;
     wxTextCtrl   *commandLine;
     
+    vector<wxString> switchNameVector;
+    
     int cyclescompleted;                    // how many simulation cycles have been completed
     void runnetwork(int ncycles);           // function to run the logic network
     void OnExit(wxCommandEvent& event);     // callback for exit menu item
@@ -72,6 +75,9 @@ class MyFrame: public wxFrame
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
     void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box. 
+
+    void populateSwitchNameVector();
+    name_t getIdFromWxString(wxString inStr);
 
     DECLARE_EVENT_TABLE()
 };

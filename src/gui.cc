@@ -96,6 +96,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         {
             unitWidth = 30;
         }
+
         for (int j=0;j<traceMatrix.size();j++)
         {   
             glColor3f(0.0, 0.0, 1.0);
@@ -122,10 +123,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glVertex2f(x+unitWidth, y);
             }
             glEnd();
-        }
-        
-        for (int j=0; j<monitorNameVector.size(); j++)
-        {
+            
             y = (traceboxHeight-1 - 2.5*unitHeight*j);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
@@ -168,7 +166,10 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glVertex2f(x + unitWidth, y);                          
             }
             glEnd();
-            
+        }
+        
+        for (int j=0; j<monitorNameVector.size(); j++)
+        {
             y = (traceboxHeight-1 - 2.5*unitHeight*j);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
@@ -180,8 +181,6 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             {        
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
             }  
-                
-            
         }
     
     }
@@ -260,7 +259,6 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
 
 void MyGLCanvas::populateTraceMatrix()
 {    
-
     if (traceMatrix.size() >0)
     {
         traceMatrix.clear();   
@@ -280,7 +278,6 @@ void MyGLCanvas::populateTraceMatrix()
             }
         }    
     }
-
 }
 
 void MyGLCanvas::populateMonitorNameVector()
@@ -288,6 +285,7 @@ void MyGLCanvas::populateMonitorNameVector()
     monitorNameVector.clear();
     for (int n=0; n < (mmz->moncount()); n++)
     {   
+        cout << "monitor count = " << n << endl;
         name_t dev, outp;
         mmz->getmonname(n,dev,outp);
         namestring_t namestring = nmz->getName(dev);
@@ -338,12 +336,12 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // using sizers
 {
     int numTraces = 10;
-    int numSwitches = 3;
     SetIcon(wxIcon(wx_icon));
     
     nmz = names_mod;
     dmz = devices_mod;
     mmz = monitor_mod;
+    netz = network_mod;
   
     if (nmz == NULL || dmz == NULL || mmz == NULL) 
     {
@@ -372,46 +370,47 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     
     SetMenuBar(menuBar);
 
-  // Define the Trace Canvas
+    // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
-  // Initialse the network by running for 10 cycles.
-    int initialCycles = 10;
-    runnetwork(initialCycles);
+    runnetwork(10);
     canvas->populateMonitorNameVector();
+    populateSwitchNameVector();
     canvas->populateTraceMatrix();
+    
+    int numDevices = canvas->deviceNameVector.size();
+    int numMonitors = canvas->monitorNameVector.size();
+    int numSwitches = switchNameVector.size();
  
     
-  // Define the sizers required  
+    // Define the sizers required  
     wxBoxSizer *frame_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sidebar_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-  // Initialise combo-box strings
-    wxString zapTraceList[canvas->monitorNameVector.size()];
-    wxString addTraceList[canvas->deviceNameVector.size()];
+    // Initialise combo-box strings
+    wxString zapTraceList[numDevices];
+    wxString addTraceList[numDevices];
+    wxString switchList[numSwitches];
     
 
-  // Make the zap combobox strings
-    for (int j=0; j<canvas->monitorNameVector.size(); j++)
+    // Make the zap combobox strings
+    for (int i=0; i<numMonitors; i++)
     {
-        zapTraceList[j] = canvas->monitorNameVector[j];
+        zapTraceList[i] = canvas->monitorNameVector[i];
     }
 
-  // Make the add combobox strings
-    for (int j=0;j<canvas->deviceNameVector.size();j++)
+    // Make the add combobox strings
+    for (int i=0; i<numDevices; i++)
     {
-        addTraceList[j] = canvas->deviceNameVector[j];
+        addTraceList[i] = canvas->deviceNameVector[i];
     }
 
-  // Make the switch combo-box strings
-    wxString switchList[numSwitches];
-    for (int i=0;i<numSwitches;i++)
+    // Make the switch combo-box strings
+    for (int i=0; i<numSwitches; i++)
     {
-        wxString text;
-        text.Printf(wxT("Switch %d"),i+1);
-        switchList[i] = text;
-    }  
+        switchList[i] = switchNameVector[i];
+    }
 
 
 
@@ -504,6 +503,29 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
 }
 
+void MyFrame::populateSwitchNameVector()
+{
+    switchNameVector.clear();
+    for (int i=0; i<(canvas->deviceNameVector.size()); i++)
+    {
+        // Convert wxString in the vector to namestring_t (std::string)
+        name_t did = getIdFromWxString(canvas->deviceNameVector[i]);
+        devicekind dkind = netz->netzdevkind(did);
+        if (dkind == aswitch)
+        {
+            switchNameVector.push_back(canvas->deviceNameVector[i]);
+        }
+    }
+}
+
+
+name_t MyFrame::getIdFromWxString(wxString inStr)
+{
+    namestring_t devStr = string(inStr.mb_str());
+    return nmz->cvtname(devStr);
+}
+
+
 void MyFrame::OnExit(wxCommandEvent &event)
   // Callback for the exit menu item
 {
@@ -525,11 +547,10 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
   cyclescompleted = 0;
   mmz->resetmonitor ();
   runnetwork(runSpin->GetValue());
-  canvas->setCyclesDisplayed(runSpin->GetValue());
-  mmz->displaysignals();
+  //canvas->setCyclesDisplayed(runSpin->GetValue());
+  //mmz->displaysignals();
   
   canvas->populateTraceMatrix();
-  cout << canvas->traceMatrix.size() << endl;
   canvas->Render(wxT("Run button pressed"), cyclescompleted);
 }
 
@@ -625,13 +646,23 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     
     canvas->Render(text,-1);
     canvas->populateTraceMatrix();
-
-   
 }
 
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
   // Callback for second pushbutton
 {
+    name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
+    // Following for debugging
+    //namestring_t devStr = string(switchComboBox->GetStringSelection().mb_str());
+    //name_t sid = nmz->cvtname(devStr);
+    asignal s = low;
+    bool ok;
+    
+    dmz->setswitch(sid, s, ok);
+    if (!ok)
+        cout << "Error setting switch to low" << endl;
+    else
+        cout << "Set switch to 1" << endl;
 }
 
 void MyFrame::OnButtonSwitch2(wxCommandEvent &event)
