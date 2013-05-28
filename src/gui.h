@@ -21,8 +21,8 @@ enum {
   CONT_BUTTON,
   ZAP_TRACE_BUTTON,
   ADD_TRACE_BUTTON,
+  SWITCH_BUTTON_0,
   SWITCH_BUTTON_1,
-  SWITCH_BUTTON_2,
   ZAP_TRACE_COMBO_BOX,
   ADD_TRACE_COMBO_BOX,
   SWITCH_COMBO_BOX
@@ -51,8 +51,8 @@ class MyFrame: public wxFrame
     wxComboBox   *addTraceComboBox;
     wxButton     *addTraceButton;
     wxComboBox   *switchComboBox;             // pointer to combobox object
+    wxButton     *switchButton0;
     wxButton     *switchButton1;
-    wxButton     *switchButton2;
     wxButton     *runButton;
     wxButton     *contButton;
     wxStaticText *runStaticText;
@@ -69,8 +69,8 @@ class MyFrame: public wxFrame
     void OnContButton(wxCommandEvent& event);
     void OnButtonZap(wxCommandEvent& event);
     void OnButtonAdd(wxCommandEvent& event);
+    void OnButtonSwitch0(wxCommandEvent& event);
     void OnButtonSwitch1(wxCommandEvent& event);
-    void OnButtonSwitch2(wxCommandEvent& event);
     void OnSelect(wxCommandEvent& event);
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
