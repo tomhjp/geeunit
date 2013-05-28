@@ -36,14 +36,13 @@ name_t names::lookup (namestring_t str)
 
 name_t names::cvtname (namestring_t str)
 {
-
     name_t index;
-
     for (index=0; index<table.size(); index++)
     {
 
         if (table[index].namestring == str)
         {
+	    cout << "Found it" << endl; 
             break;
         }
     }
