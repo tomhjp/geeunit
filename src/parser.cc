@@ -3,12 +3,31 @@
 #include "scanner.h"
 #include "parser.h"
 #include "error.h"
+#include "warning.h"
 #include "names.h"
 #include "network.h"
+#include "device.h"
 
 using namespace std;
 
 /* The parser for the circuit definition files */
+
+void parser::skipToBreak(symbol_t symbol)
+{
+	if(symbol.symboltype == semicolsym)
+	{
+	    skipflag = 0; 
+	    return;
+	}
+	else if(symbol.symboltype == endsym)
+	{
+	    needskeyflag == 1;
+	    skipflag = 0;
+	    return;
+	}
+	else 
+	    return; 
+}
 
 void parser::preStartFCheck(symbol_t symbol)
 {
@@ -21,101 +40,120 @@ void parser::preStartFCheck(symbol_t symbol)
     return;
 }
 
+void parser::postEndFCheck(symbol_t symbol)
+{
+    errorvector.push_back(new foundSymAfterEndf(symbol.line, symbol.col));
+    return;
+}
+
 /* Reads in symbols and builds up a line in the DEVICES, MONITORS and CONNECTIONS   */
 /* sections of the input file.  Calls the appropriate syntax and semantic check     */
 /* functions                                                                        */
 void parser::mainLineBuild(symbol_t symbol)
 {
-    if(symbol.symboltype == endsym && context.size()!= 0)
+    /* an END symbol has been found which does not immediately proceed a semicolon  */
+    if(symbol.symboltype == endsym && context.size()!= 1)
     { 
         errorvector.push_back(new unExpEndSym(symbol.line, symbol.col));
+	needskeyflag = 1;
         return;
     }
     /* The END symbol has been found in it's expected position - move on the section */
-    else if(symbol.symboltype == endsym && context.size() == 0)
+    else if(symbol.symboltype == endsym && context.size() == 1)
     {
+	cout << "Found END correctly" <<endl;
         needskeyflag = 1;
+	emptyContextVector();
         return;
     }    
-	else if(symbol.symboltype != semicolsym)
+    else if(symbol.symboltype != semicolsym)
+    {
+	    context.push_back(symbol);
+	    return;
+    }
+    else 
+    {
+	cout <<section << endl;
+	bool done;
+	if(section == devsect)
 	{
-		context.push_back(symbol);
+	    bool pass = checkDevLine();
+	    if(pass && errorvector.size()==0)
+	    {
+		//make the device (look in devices class) 
+		done = makeDevLine();        
+		if(!done)
+		{
+		    errorvector.push_back(new lineBuildFailed(context[0].line, 0));
+		    emptyContextVector();
+		    return;
+		}
 		return;
+	    }
+	    else 
+	    {
+		skipflag = 1;
+		emptyContextVector();
+		return;
+	    } 
 	}
-	else 
+	else if(section == consect)
 	{
-	    bool done;
-	    if(section == devsect)
+	    bool pass = checkConLine();
+	    if(pass && errorvector.size()==0)
 	    {
-		    bool pass = checkDevLine();
-		    if(pass && errorvector.size()==0)
-		    {
-		        //make the device (look in devices class) 
-		        done = makeDevLine();        
-		        if(!done)
-			{
-			    errorvector.push_back(new lineBuildFailed(context[0].line, 0));
-			    return;
-			}
-			return;
-	        }
-	        else 
-	        {
-	            skipflag = 1;
-	            return;
-	        } 
-	    }
-	    else if(section == consect)
-	    {
-	        bool pass = checkConLine();
-	        if(pass && errorvector.size()==0)
-	        {
-	            // make the connection
-	            done = makeConLine();
-		    if(!done)
-		    {
-			errorvector.push_back(new lineBuildFailed(context[0].line, 0));
-			return;
-		    }
-		    return; 
-	        }
-	        else if(!pass)
-	        {
-	            skipflag = 1;
-	            return;
-	        }
-		else 
+		// make the connection
+		done = makeConLine();
+		if(!done)
 		{
+		    errorvector.push_back(new lineBuildFailed(context[0].line, 0));
+		    emptyContextVector();
 		    return;
 		}
+		emptyContextVector();
+		return; 
 	    }
-	    else if(section == monsect)
+	    else if(!pass)
 	    {
-	        bool pass = checkMonLine();
-	        if(pass && errorvector.size() == 0)
-	        {
-	            // make the monitor
-	            done = makeMonLine();
-		    if(!done)
-		    {
-			errorvector.push_back(new lineBuildFailed(context[0].line, 0));
-			return;
-		    }
-	            return;
-	        }
-	        else if(!pass)
-	        {
-	            skipflag = 1;
-	            return;
-	        }
-		else
+		/* The line has failed to build correctly */
+		//skipflag = 1;
+		emptyContextVector();
+		return;
+	    }
+	    else 
+	    {
+		emptyContextVector();
+		return;
+	    }
+	}
+	else if(section == monsect)
+	{
+	    bool pass = checkMonLine();
+	    if(pass && errorvector.size() == 0)
+	    {
+		// make the monitor
+		done = makeMonLine();
+		if(!done)
 		{
+		    errorvector.push_back(new lineBuildFailed(context[0].line, 0));
+		    emptyContextVector();
 		    return;
 		}
-	    }    
-	
-	
-	}	
+		return;
+	    }
+	    else if(!pass)
+	    {
+		//skipflag = 1;
+		emptyContextVector();
+		return;
+	    }
+	    else
+	    {
+		emptyContextVector();
+		return;
+	    }
+	}    
+    }	
 }
 
 bool parser::makeMonLine(void)
@@ -245,7 +283,8 @@ bool parser::checkDevLine(void)
     Xor xorgate; 	
     Gate gate; 
     Switch switchdev; 
-	
+    
+    cout << "check DEVICES line" << endl; 
     /* First sybol in the line must be a devicename which is currently undefined. */ 
     if(context[0].symboltype == strsym)
     {
@@ -349,6 +388,8 @@ bool parser::checkDevLine(void)
 /* Checks the syntax and semantics of a line in the CONNECTIONS section */
 bool parser::checkConLine(void)
 {
+    cout << "check CONNECTIONS line" << endl; 
+
     if(!isStrSym(context[0]))
     {
 	errorvector.push_back(new expDevName(context[0].line, context[0].col));
@@ -546,6 +587,7 @@ bool parser::checkConLine(void)
 /* Returns true if the line is syntactically and semantically correct 	*/ 
 bool parser::checkMonLine(void)
 {
+    cout << "Check MONITORS line" <<endl; 
     if(!isStrSym(context[0]))
     {
 	errorvector.push_back(new expDevName(context[0].line, context[0].col));
@@ -600,7 +642,15 @@ bool parser::checkMonLine(void)
     return true; 
 	    
 }
-   
+
+/* Empties the context vector ready for reuse 				*/
+void parser::emptyContextVector(void)
+{
+    context.erase(context.begin(), context.end());
+    cout << "Context size is " << context.size() <<endl;
+    return;
+}
+
 bool parser::isStrSym(symbol_t symbol)
 {
     bool retval = false;
@@ -738,14 +788,14 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 	    noconsymflag = 1;
 	    return;
     	}                   
-	    else if(symbol.symboltype != connsym && noconsymflag == 1)
-		return;
-	    else
-	    {
-		needskeyflag=0;
-		section=consect;
-		return;
-	    }
+	else if(symbol.symboltype != connsym && noconsymflag == 1)
+	    return;
+	else
+	{
+	    needskeyflag=0;
+	    section=consect;
+	    return;
+	}
     }
     else if(section==consect)
     {
@@ -768,15 +818,16 @@ void parser::nextKeyWordCheck(symbol_t symbol)
     {
     if(symbol.symboltype != endfsym && noendfsymflag == 0)
     {
-	errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
-	noendfsymflag = 1;
-	return;
+		errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
+		noendfsymflag = 1;
+		return;
     }                   
 	else if(symbol.symboltype != endfsym && noendfsymflag == 1)
 	    return;
 	else
 	{
 	    needskeyflag=0;
+	    filenotcompleteflag = 0;		//	file has been terminated correctly 
 	    section=postendfsect;
 	    return;
 	}
@@ -792,15 +843,18 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 /* read in symbols from the scanner, and calls the relevant parsing functions */ 
 void parser::readin (symbol_t symbol)
 {   
-    if(skipflag == 1) skipToBreak();
-    else if(needskeyflag == 1) nextKeyWordCheck(symbol);
+    //if(skipflag == 1) skipToBreak(symbol);
+    if(needskeyflag == 1) nextKeyWordCheck(symbol); 
     else if(section == prestartfsect) preStartFCheck(symbol); 
-    else if(section == (devsect || consect || monsect)) mainLineBuild(symbol); 
+    else if((section == devsect) || (section == consect )|| (section == monsect)) mainLineBuild(symbol); 
     else if(section == postendfsect) postEndFCheck(symbol);
-    else cout << "Erm, something's gone wrong" << endl; //PANIC.    
-    
-    /* when the funciton returns, delete the context vector. */
-    context.erase(context.begin(), context.end());    
+    else 
+    {
+	/* USED FOR BUG FIXING */
+	cout << "Erm, something's gone wrong" << endl; 	//PANIC. 
+	cout << "Section = " << section <<endl; 
+    }
+       
 }
 
 vector<Error*> parser::getErrorVector(void)
@@ -827,5 +881,9 @@ parser::parser (network* network_mod, devices* devices_mod,
     needskeyflag = 0;
     skipflag = 0;
     nodevsymflag = 0;
+    noconsymflag = 0;
+    nomonsymflag = 0;
+    noendfsymflag = 0;
+    filenotcompleteflag = 1;
 }
 

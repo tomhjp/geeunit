@@ -4,6 +4,7 @@
 #include <string>
 #include "typedefs.h"
 #include "names.h"
+#include "network.h"
 
 
 using namespace std; 
@@ -11,11 +12,11 @@ using namespace std;
 class Error 
 {
   protected:  
-	int line;
-	int col; 
-	string errorMessage; 
+    int line;
+    int col; 
+    string errorMessage; 
   public: 
-	void printErrMsg(void); 
+    void printErrMsg(void); 
     Error(void);
 }; 
 
@@ -178,17 +179,23 @@ class lineBuildFailed: public Error
     lineBuildFailed(int l, int c);
 };
 
+class foundSymAfterEndf: public Error
+{
+	public:
+	foundSymAfterEndf(int l, int c);
+};
+
 /***********************************************************/
 /********* more complex errors to report *******************/
 /***********************************************************/
 
 class inputPrevConnected: public Error
 {
-	int initconline;	
-	void getInitCon(void);
-	network* netz;
-	devlink devicelink;
-	name_t ipid; 
+    int initconline;	
+    int getInitCon(void);
+    network* netz;
+    devlink devicelink;
+    name_t ipid; 
     public:
     inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
     void printErrMsg(void);
@@ -196,14 +203,14 @@ class inputPrevConnected: public Error
 
 class nameAlreadyDefd : public Error
 {
-	int initdefline;
-	int initdefcol;
-	namestring_t devname; 
-	void getInitDef(void);
-	names* nmz; 
-	public:
-	nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod);
-	void printErrMsg(void);
+    int initdefline;
+    int initdefcol;
+    namestring_t devname; 
+    void getInitDef(void);
+    names* nmz; 
+    public:
+    nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod);
+    void printErrMsg(void);
 };	
 	
 #endif

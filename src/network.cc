@@ -76,7 +76,7 @@ outplink network::findoutput (devlink dev, name_t id)
   return o;
 }
 
-int getLineDefd(devlink dev, name_t id)
+int network::getLineDefd(devlink dev, name_t id)
 {
     int linenum;
     inplink i; 

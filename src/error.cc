@@ -208,6 +208,13 @@ lineBuildFailed::lineBuildFailed(int l, int c)
     line = l;
     col = c;
 }
+
+foundSymAfterEndf::foundSymAfterEndf(int l, int c)
+{
+	errorMessage = "Symbol found after ENDFILE";
+	line = l; 
+	col = c;
+}
 	
 	
 /*****************************************************************************************/
@@ -215,7 +222,7 @@ lineBuildFailed::lineBuildFailed(int l, int c)
 /*****************************************************************************************/
 /*****************  eg. if a device name is already defined, needs line, col *************/ 
 
-inputPrevConnected::inputPrevConnected(int l, int c, devlink dev, name_t id, network* network_mod)
+inputPrevConnected::inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod)
 {
 	line = l; 
     col = c;
