@@ -74,7 +74,8 @@ class MyFrame: public wxFrame
     void OnSelect(wxCommandEvent& event);
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
-    void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box. 
+    void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box.
+    void RunFunction();
 
     void populateSwitchNameVector();
     name_t getIdFromWxString(wxString inStr);
@@ -92,6 +93,7 @@ class MyGLCanvas: public wxGLCanvas
 
     void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
     void populateTraceMatrix();
+    void appendToTraceMatrix();
     void populateMonitorNameVector();
     void setCyclesDisplayed(int c);
     typedef vector<vector<asignal> > IntMatrix;
