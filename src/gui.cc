@@ -26,7 +26,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     netz = network_mod;
     init = false;
     cyclesdisplayed = 10;
-    SetScrollbar(wxVERTICAL,0,16,50);
+    SetScrollbar(wxVERTICAL,0,4,14);
     canvasPosition = 0;
     
     /* Populate deviceNameVector with the wxString names of all devices in the network */
@@ -71,9 +71,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
 
     
     if (cycles >= 0) 
-        {
         cyclesdisplayed = cycles;
-        }
     
     SetCurrent();
   
@@ -88,7 +86,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     
     //If there are monitors then draw the first monitor signal, get trace from monitor class
     if ((cyclesdisplayed >= 0) && (mmz->moncount() > 0))
-    { 
+    {
         unitWidth = traceboxWidth / cyclesdisplayed;
         if (unitWidth > 30)
         {
@@ -114,13 +112,14 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                     y = (traceboxHeight + margin - 2.5*unitHeight*t);
                     x = margin + labelWidth + unitWidth*c;
                 }
-                if (y < canvasPosition)
-                    y = canvasPosition;
+                //if (y > (height-canvasPosition))
+                //    y = height - canvasPosition;
                 glVertex2f(x, y); 
                 glVertex2f(x+unitWidth, y);
             }
             glEnd();
         }
+        // Write out labels for the traces
         for (int j=0; j<monitorNameVector.size(); j++)
         {    
             y = (traceboxHeight-1 - 2.5*unitHeight*j);
@@ -131,7 +130,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             wxString traceText;
             traceText = monitorNameVector[j];
 
-            // Write out the labels for each trace
+            // Write out label for a trace
             for (i = 0; i < traceText.Len() ; i++)
             {        
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
@@ -229,8 +228,8 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event) 
 {
     cout <<"position=" << event.GetPosition() << endl;
-    canvasPosition = event.GetPosition();
-    Render(wxT(""),-1);
+    canvasPosition = event.GetPosition()*10;
+    Render(wxT("Scrolling"),-1);
 }
 
 
