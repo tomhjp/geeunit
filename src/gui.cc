@@ -96,7 +96,6 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         {
             unitWidth = 30;
         }
-
         for (int j=0;j<traceMatrix.size();j++)
         {   
             glColor3f(0.0, 0.0, 1.0);
@@ -123,7 +122,10 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glVertex2f(x+unitWidth, y);
             }
             glEnd();
-            
+        }
+        
+        for (int j=0; j<monitorNameVector.size(); j++)
+        {
             y = (traceboxHeight-1 - 2.5*unitHeight*j);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
@@ -258,6 +260,7 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
 
 void MyGLCanvas::populateTraceMatrix()
 {    
+
     if (traceMatrix.size() >0)
     {
         traceMatrix.clear();   
@@ -277,6 +280,7 @@ void MyGLCanvas::populateTraceMatrix()
             }
         }    
     }
+
 }
 
 void MyGLCanvas::populateMonitorNameVector()
@@ -284,7 +288,6 @@ void MyGLCanvas::populateMonitorNameVector()
     monitorNameVector.clear();
     for (int n=0; n < (mmz->moncount()); n++)
     {   
-        cout << "monitor count = " << n << endl;
         name_t dev, outp;
         mmz->getmonname(n,dev,outp);
         namestring_t namestring = nmz->getName(dev);
@@ -371,7 +374,9 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
-    runnetwork(10);
+  // Initialse the network by running for 10 cycles.
+    int initialCycles = 10;
+    runnetwork(initialCycles);
     canvas->populateMonitorNameVector();
     canvas->populateTraceMatrix();
  
@@ -538,11 +543,11 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for Zap PushButton
 {
     
-    
+ // Take values from zap combobox
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
     int selection = zapTraceComboBox->GetSelection();
     
-    
+ // Error checking
     bool found = false;
     for (int i=0; i<canvas->monitorNameVector.size(); i++)
     {
@@ -559,26 +564,26 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
         return;
     }
         
-    
+ // Find namestring of device   
     string devNamestring = string(selectionStr.mb_str());
     cout << "devNameString = " << devNamestring << endl;
     wxString text;
     text.Printf(wxT("%s removed"),selectionStr.c_str());
     
     canvas->monitorNameVector.erase(canvas->monitorNameVector.begin() + selection);
-    cout << "removed monitor from monitorNameVector" << endl;
-    
     zapTraceComboBox->Delete(selection);
-    cout << "deleted from combo box" << endl;
+
     
-    /* Get monintor name and remove it from the list of monitors in mmz */
+    // Get monintor name and remove it from the list of monitors in mmz
     name_t did, outp;
     mmz->getmonname(selection, did, outp);
     bool ok;
     mmz->remmonitor(did, outp, ok);
     if (!ok)
+    {
         cout << "Something went wrong with removing a monitor" << endl;
-
+    }
+    
     canvas->populateTraceMatrix();
     canvas->Render(text,-1);
 }
@@ -586,18 +591,42 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
 void MyFrame::OnButtonAdd(wxCommandEvent &event)
   // Callback for second pushbutton
 {
+  // Get string selected and index of selection
+    wxString selectionStr = addTraceComboBox->GetStringSelection();
+    int selection = addTraceComboBox->GetSelection();
 
-    wxString selectionStr = zapTraceComboBox->GetStringSelection();
-    wxString text;
-    text.Printf(wxT("%s removed"),selectionStr.c_str());
+  // Convert chosen string into a nameString
+    string deviceString = string(selectionStr.mb_str());
+    namestring_t namestring = (namestring_t) deviceString;
     
-    int selection = zapTraceComboBox->GetSelection();
-    canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
-    //canvas->populateMatrix();
+  // Add chosen monitor to list of monitors in mmz
+    name_t did, outp;
+    did = nmz->cvtname(namestring);
+    outp = blankname;
+    
+    bool ok;
+    mmz->makemonitor(did, outp, ok);
+    if (!ok)
+    {
+        cout << "Something went wrong with adding a monitor" << endl;
+    }
+    
+  // Add chosen monitor to monitorNameVector, append monitor to zap button. 
+        canvas->monitorNameVector.push_back(selectionStr);
+        zapTraceComboBox->Append(selectionStr);
+        
+ // Update the traceMatrix
+ 
+    
+    
+  // Create message string for the canvas
+    wxString text;
+    text.Printf(wxT("%s added"),selectionStr.c_str());
     
     canvas->Render(text,-1);
-    zapTraceComboBox->Delete(selection);
-    /*ADD ENTRY TO MONITOR VECTOR*/
+    canvas->populateTraceMatrix();
+
+   
 }
 
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
