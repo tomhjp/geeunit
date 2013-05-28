@@ -325,8 +325,8 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_BUTTON(ZAP_TRACE_BUTTON, MyFrame::OnButtonZap)
   EVT_BUTTON(ADD_TRACE_BUTTON, MyFrame::OnButtonAdd)
 
+  EVT_BUTTON(SWITCH_BUTTON_0, MyFrame::OnButtonSwitch0)
   EVT_BUTTON(SWITCH_BUTTON_1, MyFrame::OnButtonSwitch1)
-  EVT_BUTTON(SWITCH_BUTTON_2, MyFrame::OnButtonSwitch2)
 
   EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
   EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
@@ -436,8 +436,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     
   // Define Switch Controls
     switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch "), wxDefaultPosition, wxDefaultSize, numSwitches, switchList); 
-    switchButton1 = new wxButton(this, SWITCH_BUTTON_1, wxT("SWITCH TO 1"));
-    switchButton2 = new wxButton(this, SWITCH_BUTTON_2, wxT("SWITCH TO 0"));
+    switchButton0 = new wxButton(this, SWITCH_BUTTON_0, wxT("Set to 0"));
+    switchButton1 = new wxButton(this, SWITCH_BUTTON_1, wxT("Set to 1"));
     
   // Define Other buttons  
     runButton = new wxButton(this, RUN_BUTTON, wxT("Run"));
@@ -465,8 +465,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   // Place switch buttons  
     wxBoxSizer *switchButton_sizer = new wxBoxSizer(wxHORIZONTAL);
+    switchButton_sizer->Add(switchButton0,0,0,0);
     switchButton_sizer->Add(switchButton1,0,0,0);
-    switchButton_sizer->Add(switchButton2,0,0,0);
     
   // Place Buttons  
     wxBoxSizer *run_button_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -676,7 +676,7 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     
 }
 
-void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
+void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
   // Callback for second pushbutton
 {
     name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
@@ -688,14 +688,19 @@ void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
     
     dmz->setswitch(sid, s, ok);
     if (!ok)
-        cout << "Error setting switch to low" << endl;
-    else
-        cout << "Set switch to 1" << endl;
+        cout << "Error setting switch to 0" << endl;
 }
 
-void MyFrame::OnButtonSwitch2(wxCommandEvent &event)
+void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
   // Callback for second pushbutton
 {
+    name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
+    asignal s = high;
+    bool ok;
+    
+    dmz->setswitch(sid, s, ok);
+    if (!ok)
+        cout << "Error setting switch to 1" << endl;
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
