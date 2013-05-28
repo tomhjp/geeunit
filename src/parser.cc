@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "error.h"
 #include "names.h"
+#include "network.h"
 
 using namespace std;
 
@@ -43,14 +44,20 @@ void parser::mainLineBuild(symbol_t symbol)
 	}
 	else 
 	{
+	    bool done;
 	    if(section == devsect)
 	    {
 		    bool pass = checkDevLine();
 		    if(pass && errorvector.size()==0)
 		    {
 		        //make the device (look in devices class) 
-		        makeDevLine();        
-		        return;
+		        done = makeDevLine();        
+		        if(!done)
+			{
+			    errorvector.push_back(new lineBuildFailed(context[0].line, 0));
+			    return;
+			}
+			return;
 	        }
 	        else 
 	        {
@@ -64,8 +71,13 @@ void parser::mainLineBuild(symbol_t symbol)
 	        if(pass && errorvector.size()==0)
 	        {
 	            // make the connection
-	            makeConLine();
-	            return; 
+	            done = makeConLine();
+		    if(!done)
+		    {
+			errorvector.push_back(new lineBuildFailed(context[0].line, 0));
+			return;
+		    }
+		    return; 
 	        }
 	        else if(!pass)
 	        {
@@ -83,7 +95,12 @@ void parser::mainLineBuild(symbol_t symbol)
 	        if(pass && errorvector.size() == 0)
 	        {
 	            // make the monitor
-	            makeMonLine();
+	            done = makeMonLine();
+		    if(!done)
+		    {
+			errorvector.push_back(new lineBuildFailed(context[0].line, 0));
+			return;
+		    }
 	            return;
 	        }
 	        else if(!pass)
@@ -99,6 +116,121 @@ void parser::mainLineBuild(symbol_t symbol)
 	
 	
 	}	
+}
+
+bool parser::makeMonLine(void)
+{
+    bool ok;
+    name_t dev, outp;
+    devicekind devkind;
+    dev = nmz->lookup(context[0].namestring);
+    devkind = dmz->devkind(dev);
+    if(devkind != dtype)
+    {
+	/* The monitor is not monitoring a dtype output */ 
+	outp = 0;  // other device types have only one output 
+    }
+    else
+    {
+	/* The monitor is monitoring a dtype output 	*/
+	if(context[2].symboltype = qsym) outp = qpin;
+	else if(context[2].symboltype = qbarsym) outp = qbarpin;
+    }
+    mmz->makemonitor(dev, outp, ok);
+    return ok;
+}
+/* Carries out the connection construction after a line has been successfully parsed	*/
+/* if the errorvector is empty								*/
+bool parser::makeConLine(void)
+{
+    bool ok; 
+    name_t idev, inp, odev, outp; 
+    devicekind ipdevkind, opdevkind;
+    odev = nmz->lookup(context[0].namestring);
+    opdevkind = dmz->devkind(odev);
+    if(opdevkind != dtype)
+    {
+	/* The output device is not a dtype */ 
+	idev = nmz->lookup(context[2].namestring);
+	ipdevkind = dmz->devkind(idev);
+	devlink devicelink = netz->finddevice(idev);
+	outp = 0;  			// These devices only have one output. 
+	if(ipdevkind != dtype)
+	{
+	    /* The input device is not a dtype */ 
+	    inplink inputlink = netz->findinput(devicelink, idev);
+	    inp = inputlink->id; 
+	}
+	else
+	{
+	    /* The input device is a dtype */
+	    if(context[4].symboltype == ddatasym) inp = datapin; 
+	    else if(context[4].symboltype == clksym) inp = clkpin; 
+	    else if(context[4].symboltype == dclearsym) inp = clrpin;
+	    else if(context[4].symboltype == dsetsym) inp = setpin;
+	}
+    }
+    else
+    {
+	/* The output device is a dtype */
+	/* Q input is stored first, then the qbar input.  From examination of the makedtype function  */
+	if(context[2].symboltype == qsym)
+	    outp = 0;
+	else
+	    outp = 1; 
+	idev = nmz->lookup(context[4].namestring);
+	ipdevkind = dmz->devkind(idev);
+	devlink devicelink = netz->finddevice(idev);
+	if(ipdevkind != dtype)
+	{
+	    /* The input device is not a dtype */ 
+	    inplink inputlink = netz->findinput(devicelink, idev);
+	    inp = inputlink->id; 
+	}
+	else
+	{
+	    /* The input device is a dtype */
+	    if(context[6].symboltype == ddatasym) inp = datapin; 
+	    else if(context[6].symboltype == clksym) inp = clkpin; 
+	    else if(context[6].symboltype == dclearsym) inp = clrpin;
+	    else if(context[6].symboltype == dsetsym) inp = setpin;
+	}
+     }
+     
+     netz->makeconnection(idev, inp, odev, outp, ok);
+     return ok; 
+}
+
+/* Carries out the device construction after a line has been successfully parsed 	*/
+/* if the errorvector is empty. 							*/
+bool parser::makeDevLine(void) 
+{
+    bool ok;  //used to check the makedevice method completes successfully 
+    devicekind dkind; 
+    symboltype_t devtype; 
+    name_t id;
+    int variant;
+    
+    devtype = context[2].symboltype;  
+    id = nmz->lookup(context[0].namestring);
+    
+    if(devtype == (andsym || nandsym || orsym || norsym || switchsym || clksym))
+    {
+	/* The makedevice() method must be passed a parameter in the variant field */ 
+	variant = context[4].num;
+    }
+	
+    if(devtype == andsym) dkind = andgate;
+    else if(devtype == nandsym) dkind = nandgate;
+    else if(devtype == orsym) dkind = orgate;
+    else if(devtype == norsym) dkind = norgate;
+    else if(devtype == switchsym) dkind = aswitch; 
+    else if(devtype == clksym) dkind = aclock;
+    else if(devtype == dtypesym) dkind = dtype;
+    else if(devtype == xorsym) dkind = xorgate;
+    
+    dmz->makedevice(dkind, id, variant, ok);
+    return ok; 
 }
 
 /* Checks the syntax and semantics of lines in the DEVICES section 	*/ 

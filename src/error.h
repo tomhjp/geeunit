@@ -178,7 +178,11 @@ class inputPrevConnected: public Error
     inputPrevConnected(int l, int c);
 };
 
-
+class lineBuildFailed: public Error
+{
+    public:
+    lineBuildFailed(int l, int c);
+};
 
 /***********************************************************/
 /********* more complex errors to report *******************/

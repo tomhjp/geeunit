@@ -209,6 +209,12 @@ inputPrevConnected::inputPrevConnected(int l, int c)
     col = c;
 }
 
+lineBuildFailed::lineBuildFailed(int l, int c)
+{
+    errorMessage = "Parser error occurred.  This line parsed correctly, but failed to build";
+    line = l;
+    col = c;
+}
 	
 	
 /*****************************************************************************************/

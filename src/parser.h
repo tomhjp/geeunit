@@ -52,9 +52,9 @@ class parser {
     bool checkMonLine(void);
     void postEndFCheck(symbol_t symbol);
     void endSection(void);
-    void makeDevLine(void);                 // carry out the operations defined by the line in the definition file
-    void makeConLine(void);                 // once the line has been parsed and if total number of errors is zero 
-    void makeMonLine(void);
+    bool makeDevLine(void);                 // carry out the operations defined by the line in the definition file
+    bool makeConLine(void);                 // once the line has been parsed and if total number of errors is zero 
+    bool makeMonLine(void);
     
     bool isStrSym(symbol_t symbol);
     bool isConnPuncSym(symbol_t symbol);
