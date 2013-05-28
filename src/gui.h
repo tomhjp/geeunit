@@ -99,6 +99,8 @@ class MyGLCanvas: public wxGLCanvas
     void populateMonitorNameVector();
     void setCyclesDisplayed(int c);
     void setCyclesCompleted(int c);
+    void setCanvasScrollBar();
+
     typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;
     
@@ -109,6 +111,7 @@ class MyGLCanvas: public wxGLCanvas
         bool init;                         // has the GL context been initialised?
         int cyclesdisplayed;               // how many simulation cycles have been displayed
         int cyclescompleted;
+        int unitHeight;
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces
         names *nmz;                        // pointer to names class, used to extract signal names
         network *netz;

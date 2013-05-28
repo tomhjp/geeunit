@@ -26,8 +26,8 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     netz = network_mod;
     init = false;
     cyclesdisplayed = -1;
-    SetScrollbar(wxVERTICAL,0,4,20);
     canvasPosition = 0;
+    unitHeight = 20;
     
     /* Populate deviceNameVector with the wxString names of all devices in the network */
     devlink dlink = netz->devicelist();     // Find beginning of the list of devices
@@ -47,7 +47,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // When the simulator is run, the number of cycles is passed as a parameter and the first monitor
   // trace is displayed.
 {
-    cout <<"Render cycles 1 = " << cycles << endl;
+    //cout <<"Render cycles 1 = " << cycles << endl;
     float y;
     unsigned int i,j,c,t;
     asignal s;
@@ -56,14 +56,15 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   
     int lenTrace = 20;
     int margin = 20;
-    int unitWidth, unitHeight;
+    int unitWidth;
     int x;
     int labelWidth = 30;
     GetClientSize(&width,&height);
+    //cout << "Width: " << width << endl;
+    //cout << "Height: " << height << endl;
 
     traceboxWidth = width - 2*margin - labelWidth;
     traceboxHeight = height - 2*margin;            
-    unitHeight = 20;
     int num = 1;
 
 
@@ -82,7 +83,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     glClear(GL_COLOR_BUFFER_BIT);
     
     //If there are monitors then draw the first monitor signal, get trace from monitor class
-    cout <<"Render cycles 2 = " << cyclesdisplayed << endl;
+    //cout <<"Render cycles 2 = " << cyclesdisplayed << endl;
     if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
     {
         unitWidth = traceboxWidth / cyclesdisplayed;
@@ -103,13 +104,13 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 s = traceMatrix[t][c];
                 if (s==low)
                 {
-                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition);
+                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
                     x = margin + labelWidth + unitWidth*c;
                 }
 
                 if (s==high)
                 {
-                    y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition);
+                    y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
                     x = margin + labelWidth + unitWidth*c;
                 }
                 /*if (y > (height-canvasPosition))
@@ -132,7 +133,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         // Write out labels for the traces
         for (int j=0; j<monitorNameVector.size(); j++)
         {    
-            y = (traceboxHeight-1 - 2.5*unitHeight*j + canvasPosition);
+            y = (traceboxHeight-1 - 2.5*unitHeight*j + canvasPosition*5);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
             
@@ -224,6 +225,14 @@ void MyGLCanvas::InitGL()
   glLoadIdentity();
 }
 
+void MyGLCanvas::setCanvasScrollBar()
+{
+    int scrollHeight = unitHeight/5;
+    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
+    //cout << "scrollHeight = " << scrollHeight << ", numPositions = " << numPositions << endl;
+    SetScrollbar(wxVERTICAL,0,10,10+numPositions);
+}
+
 void MyGLCanvas::OnPaint(wxPaintEvent& event)
   // Callback function for when the canvas is exposed
 {
@@ -238,8 +247,8 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
 
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event) 
 {
-    cout <<"position=" << event.GetPosition() << endl;
-    canvasPosition = event.GetPosition()*10;
+    canvasPosition = event.GetPosition();
+    //cout << "Canvas position is " << canvasPosition << endl;
     Render(wxT("Scrolling"),-1);
 }
 
@@ -249,6 +258,8 @@ void MyGLCanvas::OnSize(wxSizeEvent& event)
 {
   wxGLCanvas::OnSize(event); // required on some platforms
   init = false;
+  setCanvasScrollBar();
+  canvasPosition = 0;
   Refresh(); // required by some buggy nvidia graphics drivers,
   Update();  // harmless on other platforms!
 }
@@ -410,6 +421,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     populateSwitchNameVector();
     canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
+    
+    canvas->setCanvasScrollBar();
     
     int numDevices = canvas->deviceNameVector.size();
     int numMonitors = canvas->monitorNameVector.size();
@@ -667,6 +680,8 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     zapTraceComboBox->SetValue(wxT("Choose trace to zap!"));
     cout <<"zap cycles 2 = " << cyclescompleted << endl;
 
+  // Resize the scroll bar
+    canvas->setCanvasScrollBar();
 }
 
 void MyFrame::OnButtonAdd(wxCommandEvent &event)
@@ -718,6 +733,9 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     
   // Reset the text in the ComboBox
     addTraceComboBox->SetValue(wxT("Choose trace to add"));
+    
+  // Resize the scroll bar
+    canvas->setCanvasScrollBar();
 }
 
 void MyFrame::OnButtonSwitch0(wxCommandEvent &event)

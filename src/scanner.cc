@@ -316,11 +316,13 @@ void scanner_t::restoreScannerState(streampos pos, char chstart, unsigned int li
 /***********************************************************/
 /************** Public methods of scanner_t ****************/
 /***********************************************************/
-scanner_t::scanner_t(const char *defname)
+scanner_t::scanner_t(string defname)
 {
-    replaceTabsWithSpaces(defname);
+    const char *file = defname.c_str();
 
-    inf.open(defname);
+    replaceTabsWithSpaces(file);
+
+    inf.open(file);
     if (!inf)
     {
         cout << "Error: cannot open file " << defname << "for reading" << endl;

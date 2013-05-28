@@ -62,7 +62,7 @@ private:
     void restoreScannerState(streampos pos, char chstart, unsigned int linestart, unsigned int colstart, bool eofilestart);
 
 public:
-    scanner_t(const char *defname);
+    scanner_t(string defname);
       /* Constructor for the scanner class
        * Arg1: pointer to the definition file */
 

@@ -125,7 +125,7 @@ void userint::rdstring (namestring_t &n)
  * Read a name from the input text string.
  *
  */
-void userint::rdname (name& n)
+void userint::rdname (name_t& n)
 {
   namestring_t ns;
   rdstring (ns);
@@ -144,7 +144,7 @@ void userint::rdname (name& n)
  * Read a qualified name from the input text string.
  *
  */
-void userint::rdqualname (name& prefix, name& suffix)
+void userint::rdqualname (name_t& prefix, name_t& suffix)
 {
   rdname (prefix);
   if (cmdok) {
@@ -166,7 +166,7 @@ void userint::rdqualname (name& prefix, name& suffix)
  */
 void userint::setswcmd (void)
 {
-  name swid;
+  name_t swid;
   int level;
   rdname (swid);
   if (cmdok) {
@@ -258,7 +258,7 @@ void userint::continuecmd (void)
  */
 void userint::setmoncmd (void)
 {
-  name dev, outp;
+  name_t dev, outp;
   rdqualname (dev, outp);
   mmz->makemonitor (dev, outp, cmdok);
   if (cmdok)
@@ -276,7 +276,7 @@ void userint::setmoncmd (void)
  */
 void userint::zapmoncmd (void)
 {
-  name dev, outp;
+  name_t dev, outp;
   rdqualname (dev, outp);
   if (cmdok) {
     mmz->remmonitor (dev, outp, cmdok);
