@@ -26,7 +26,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     netz = network_mod;
     init = false;
     cyclesdisplayed = -1;
-    SetScrollbar(wxVERTICAL,0,4,14);
+    SetScrollbar(wxVERTICAL,0,4,20);
     canvasPosition = 0;
     
     /* Populate deviceNameVector with the wxString names of all devices in the network */
@@ -66,10 +66,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     unitHeight = 20;
     int num = 1;
 
-   
-  
 
-    
     if (cycles > 0) 
         cyclesdisplayed = cycles;
     
@@ -202,7 +199,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     // Example of how to use GLUT to draw text on the canvas
     glColor3f(0.0, 0.0, 0.0);
     glRasterPos2f(margin, 0.1*height);
-    for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
+    //for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
     
 
     // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front

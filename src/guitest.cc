@@ -42,6 +42,35 @@ bool MyApp::OnInit()
   did = nmz->lookup("switch3");
   dmz->makedevice(dkind, did, 0, ok);
   
+  dkind = aclock;
+  did = nmz->lookup("clk_4");
+  dmz->makedevice(dkind, did, 3, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_5");
+  dmz->makedevice(dkind, did, 4, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_6");
+  dmz->makedevice(dkind, did, 5, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_7");
+  dmz->makedevice(dkind, did, 6, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_8");
+  dmz->makedevice(dkind, did, 7, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_9");
+  dmz->makedevice(dkind, did, 3, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_10");
+  dmz->makedevice(dkind, did, 2, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_11");
+  dmz->makedevice(dkind, did, 1, ok);
+  mmz->makemonitor(did, oid, ok);
+  did = nmz->lookup("clk_12");
+  dmz->makedevice(dkind, did, 4, ok);
+  mmz->makemonitor(did, oid, ok);
+  
   /*if (ok)
     cout << "SUCCESS: Made monitor ok" << endl;
   else
