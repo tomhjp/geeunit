@@ -171,12 +171,6 @@ class inputUnDefd: public Error
     public:
     inputUnDefd(int l, int c);
 };
-	
-class inputPrevConnected: public Error
-{
-    public:
-    inputPrevConnected(int l, int c);
-};
 
 class lineBuildFailed: public Error
 {
@@ -187,6 +181,18 @@ class lineBuildFailed: public Error
 /***********************************************************/
 /********* more complex errors to report *******************/
 /***********************************************************/
+
+class inputPrevConnected: public Error
+{
+	int initconline;	
+	void getInitCon(void);
+	network* netz;
+	devlink devicelink;
+	name_t ipid; 
+    public:
+    inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
+    void printErrMsg(void);
+};
 
 class nameAlreadyDefd : public Error
 {

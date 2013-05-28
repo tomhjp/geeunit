@@ -10,6 +10,7 @@
 #include "monitor.h"
 #include "error.h"
 #include "device.h"
+#include "warning.h"
 
 using namespace std;
 
@@ -41,6 +42,7 @@ class parser {
     
     /* Vector of pointers to errors. returned to main after the whole file has been parsed */
     vector<Error*> errorvector;
+    vector<Warning*> warningvector;
     
     /************* Private Functions ****************************************/ 	
     void mainLineBuild(symbol_t symbol);    // performs line building and calls line checking functions for DEV, CON, MON sections
@@ -76,6 +78,10 @@ class parser {
     /* Populated with pointers to Error objects BY THE PARSER */
     /* called after hte whole file has been parsed             */  
     vector<Error*> getErrorVector(void); 
+    
+    /* Populated with pointers to Warning objects by the parser */ 
+    /* called after the whole file has been parsed 				*/ 
+    vector<Warning*> getWarningVector(void);
     
     /* the constructor takes pointers to various other classes as parameters */
     parser (network* network_mod, devices* devices_mod,

@@ -18,6 +18,7 @@ typedef outputrec* outplink;
 struct inputrec {
   name_t    id;
   outplink  connect;
+  int lineDefd;
   inputrec* next;
 };
 typedef inputrec* inplink;
@@ -66,7 +67,7 @@ class network {
     /* Adds an output to the device pointed to by 'dev' with the specified */
     /* name.                                                               */
 
-  void makeconnection (name_t idev, name_t inp, name_t odev, name_t outp, bool& ok);
+  void makeconnection (name_t idev, name_t inp, name_t odev, name_t outp, int line, bool& ok);
     /* Makes a connection between the 'inp' input of device 'idev' and the */
     /* 'outp' output of device 'odev'. 'ok' is set true if operation       */
     /* succeeds.                                                           */
@@ -74,6 +75,11 @@ class network {
   void checknetwork (bool& ok);
     /* Checks that all inputs are connected to an output.                  */
  
+    
+  int getLineDefd(devlink dev, name_t id);
+    /* Returns the line at which the input connection was defined. 	   */
+    /* used for error reporting 					   */
+    
   network (names* names_mod);
   /* Called on system initialisation.                                      */
 

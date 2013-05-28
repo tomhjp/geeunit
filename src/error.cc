@@ -71,7 +71,7 @@ noSemiCol::noSemiCol(int l, int c)
 
 expDevName::expDevName(int l, int c)
 {
-	errorMessage = "Expected a device name. Device names must begin with an alphabetic character";
+	errorMessage = "Expected a device name. Device names must begin with an alphabetic character, and may not be keywords.";
 	line = l;
 	col = c;
 }
@@ -202,13 +202,6 @@ inputUnDefd::inputUnDefd(int l, int c)
     col = c;
 }
 
-inputPrevConnected::inputPrevConnected(int l, int c)
-{
-    errorMessage = "The input referenced is already connected";
-    line = l; 
-    col = c;
-}
-
 lineBuildFailed::lineBuildFailed(int l, int c)
 {
     errorMessage = "Parser error occurred.  This line parsed correctly, but failed to build";
@@ -222,7 +215,25 @@ lineBuildFailed::lineBuildFailed(int l, int c)
 /*****************************************************************************************/
 /*****************  eg. if a device name is already defined, needs line, col *************/ 
 
+inputPrevConnected::inputPrevConnected(int l, int c, devlink dev, name_t id, network* network_mod)
+{
+	line = l; 
+    col = c;
+    netz = network_mod;
+    devicelink = dev; 
+    ipid = id;
+	initconline = getInitCon();
+    errorMessage = "The input referenced has already been connected, at line ";
+}
 
+int inputPrevConnected::getInitCon(void)
+{
+	int l;
+	l = netz->getLineDefd(devicelink, ipid);
+	return l;
+}
+	
+	
 nameAlreadyDefd::nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod)
 {
 	errorMessage = ": This device name has already been defined, at ";

@@ -76,6 +76,14 @@ outplink network::findoutput (devlink dev, name_t id)
   return o;
 }
 
+int getLineDefd(devlink dev, name_t id)
+{
+    int linenum;
+    inplink i; 
+    i = findinput(dev, id); 
+    linenum = i->lineDefd;
+    return linenum;
+} 
 
 /***********************************************************************
  *
@@ -147,7 +155,7 @@ void network::addoutput (devlink dev, name_t oid)
  * succeeds.                                                           
  *
  */
-void network::makeconnection (name_t idev, name_t inp, name_t odev, name_t outp, bool& ok)
+void network::makeconnection (name_t idev, name_t inp, name_t odev, name_t outp, int line, bool& ok)
 {
   devlink din, dout;
   outplink o;
@@ -161,6 +169,7 @@ void network::makeconnection (name_t idev, name_t inp, name_t odev, name_t outp,
     ok = ((o != NULL) && (i != NULL));
     if (ok)
       i->connect = o;
+      i->lineDefd = line;
   }
 }
 
