@@ -267,7 +267,7 @@ void MyGLCanvas::populateTraceMatrix()
     {   
         vector<asignal> emptyVector;
         traceMatrix.push_back(emptyVector);
-        cout << endl;
+        
         for (int i=0;i<cyclesdisplayed;i++)
         {
             asignal s;
@@ -281,7 +281,7 @@ void MyGLCanvas::populateTraceMatrix()
                 cout << "Error populating Matrix" << endl;
             }
         }
-        cout << endl;    
+    
     }
 }
 
@@ -299,7 +299,7 @@ void MyGLCanvas::appendToTraceMatrix()
             }
             else
             {
-                cout << "Error populating Matrix" << endl;
+                cout << "Error appending Matrix" << endl;
             }
         }    
     }
@@ -392,6 +392,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
     // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
+    cyclescompleted = 0;
     runnetwork(10);
     canvas->populateMonitorNameVector();
     populateSwitchNameVector();
@@ -574,12 +575,12 @@ void MyFrame::OnContButton(wxCommandEvent &event)
   // Reset the monitor and run network
     mmz->resetmonitor ();
     runnetwork(contSpin->GetValue());
-
+    
     totalcycles += cyclescompleted;
-
+    canvas->setCyclesDisplayed(totalcycles);
   // Populate the traceMatrix and render the canvas
     canvas->appendToTraceMatrix();
-    canvas->Render(wxT("Run button pressed"), cyclescompleted);
+    canvas->Render(wxT("Run button pressed"), totalcycles);
 }
 
 void MyFrame::OnButtonZap(wxCommandEvent &event)
@@ -611,7 +612,6 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     
     if (!found)
     {
-           
         {
             errorBox(wxT("Sorry we couldn't find the monitor you tried to zap"));
             return;
@@ -767,10 +767,15 @@ void MyFrame::runnetwork(int ncycles)
         cout << "Error: network is oscillating" << endl;
     }
     
-  if (ok) 
+  if (ok)
+  { 
     cyclescompleted = cyclescompleted + ncycles;
+  }
   else 
+  {
     cyclescompleted = 0;
+  }
+  cout << "NETWORK RAN " << cyclescompleted << " CYCLES COMPLETED" << endl;
 }
 
 void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
