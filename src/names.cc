@@ -42,7 +42,6 @@ name_t names::cvtname (namestring_t str)
 
         if (table[index].namestring == str)
         {
-	    cout << "Found it" << endl; 
             break;
         }
     }

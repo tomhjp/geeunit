@@ -47,6 +47,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // When the simulator is run, the number of cycles is passed as a parameter and the first monitor
   // trace is displayed.
 {
+    cout <<"Render cycles 1 = " << cycles << endl;
     float y;
     unsigned int i,j,c,t;
     asignal s;
@@ -84,6 +85,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     glClear(GL_COLOR_BUFFER_BIT);
     
     //If there are monitors then draw the first monitor signal, get trace from monitor class
+    cout <<"Render cycles 2 = " << cyclesdisplayed << endl;
     if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
     {
         unitWidth = traceboxWidth / cyclesdisplayed;
@@ -147,7 +149,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
             }  
         }
-       
+    cout <<"Render cycles 3 = " << cyclesdisplayed << endl;
     }
     
   /*// If there are no montiors then draw an artificial trace.
@@ -303,6 +305,7 @@ void MyGLCanvas::appendToTraceMatrix()
             bool ok = mmz->getsignaltrace(n, i, s);
             if (ok)
             {
+
                 traceMatrix[n].push_back(s);
             }
             else
@@ -584,22 +587,26 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 //****************************************************************************************************************************************
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
+    cout <<"continue cycles = " << cyclescompleted << endl;
+    int newcycles = 0;
+    
   // Reset the monitor and run network
     mmz->resetmonitor ();
     runnetwork(contSpin->GetValue());
-
+    newcycles = contSpin->GetValue();
+    
   // Populate the traceMatrix and render the canvas
-    canvas->setCyclesCompleted(cyclescompleted);
+    canvas->setCyclesCompleted(newcycles);
     canvas->appendToTraceMatrix();
     canvas->Render(wxT("Run button pressed"),cyclescompleted);
+    cout <<"continue cycles 2 = " << cyclescompleted << endl;
 }
 //****************************************************************************************************************************************
 
 void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Callback for Zap PushButton
 {
-  
-
+    cout <<"zap cycles = " << cyclescompleted << endl;
  // Take values from zap combobox
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
     int selection = zapTraceComboBox->GetSelection();
@@ -632,7 +639,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     }
     
   // Now that we've confirmed that the selection is valid, clear the traceMatrix 
-  canvas->traceMatrix.clear();
+    canvas->traceMatrix.clear();
 
   // Find namestring of device   
     string devNamestring = string(selectionStr.mb_str());
@@ -656,12 +663,12 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     }
     
   // Populate the new traceMatrix and Render the canvas to remove the desired trace
-    canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
     canvas->Render(text,-1);
     
   // Reset the text in the ComboBox
     zapTraceComboBox->SetValue(wxT("Choose trace to zap!"));
+    cout <<"zap cycles 2 = " << cyclescompleted << endl;
 
 }
 
