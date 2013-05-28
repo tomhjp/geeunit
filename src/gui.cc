@@ -26,7 +26,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     netz = network_mod;
     init = false;
     cyclesdisplayed = 10;
-    SetScrollbar(wxVERTICAL,0,4,14);
+    SetScrollbar(wxVERTICAL,0,16,50);
     canvasPosition = 0;
     
     /* Populate deviceNameVector with the wxString names of all devices in the network */
@@ -97,22 +97,33 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   
             glColor3f(0.0, 0.0, 1.0);
             glBegin(GL_LINE_STRIP);
+            
+            bool skipLow = false, skipHigh = false;
             for (c=0; c<cyclesdisplayed; c++) 
             {   
                 s = traceMatrix[t][c];
                 if (s==low)
                 {
-                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t);
+                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition);
                     x = margin + labelWidth + unitWidth*c;
                 }
 
                 if (s==high)
                 {
-                    y = (traceboxHeight + margin - 2.5*unitHeight*t);
+                    y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition);
                     x = margin + labelWidth + unitWidth*c;
                 }
-                //if (y > (height-canvasPosition))
-                //    y = height - canvasPosition;
+                /*if (y > (height-canvasPosition))
+                {
+                    y = height - canvasPosition;
+                    skipHigh = true;
+                    glEnd();
+                }
+                else
+                {
+                    skipHigh = false;
+                    glBegin(GL_LINE_STRIP);
+                }*/
                 glVertex2f(x, y); 
                 glVertex2f(x+unitWidth, y);
             }
@@ -122,7 +133,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         // Write out labels for the traces
         for (int j=0; j<monitorNameVector.size(); j++)
         {    
-            y = (traceboxHeight-1 - 2.5*unitHeight*j);
+            y = (traceboxHeight-1 - 2.5*unitHeight*j + canvasPosition);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
             
