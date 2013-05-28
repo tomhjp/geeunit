@@ -7,6 +7,8 @@ SRC = logsim.cc names.cc scanner.cc network.cc parser.cc monitor.cc devices.cc u
 
 L_OBJECTS = logsim.o names.o scanner.o network.o parser.o monitor.o devices.o userint.o gui.o
 
+G_OBJECTS = guitest.o names.o network.o monitor.o devices.o gui.o
+
 PT_OBJECTS = names.o network.o monitor.o devices.o parser.o error.o warning.o parsertest.o device.o scanner.o
 
 NT_OBJECTS = namestest.o names.o
@@ -25,8 +27,8 @@ all:    logsim guitest
 logsim:	$(L_OBJECTS)
 	$(CXX) -o logsim $(L_OBJECTS) `wx-config --libs --gl_libs` $(OPENGL_LIBS)
 
-guitest: $(PT_OBJECTS)
-	$(CXX) -o guitest $(PT_OBJECTS) `wx-config --libs --gl_libs` $(OPENGL_LIBS)
+guitest: $(G_OBJECTS)
+	$(CXX) -o guitest $(G_OBJECTS) `wx-config --libs --gl_libs` $(OPENGL_LIBS)
 	
 parsertest: $(PT_OBJECTS)
 	$(CXX) -o parsertest $(PT_OBJECTS) `wx-config --libs --gl_libs` 
