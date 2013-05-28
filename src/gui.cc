@@ -586,6 +586,12 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
     int selection = zapTraceComboBox->GetSelection();
     
+    if (selectionStr.IsEmpty())
+    {
+        errorBox(wxT("You need to select a device to monitor!"));
+        return;
+    }  
+    
  // Error checking
     bool found = false;
     for (int i=0; i<canvas->monitorNameVector.size(); i++)
@@ -599,7 +605,11 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     
     if (!found)
     {
-        cout << "Error" << endl;
+           
+        {
+            errorBox(wxT("Sorry we couldn't find the monitor you tried to zap"));
+            return;
+        }  
         return;
     }
         
@@ -633,10 +643,19 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
   // Get string selected and index of selection
     wxString selectionStr = addTraceComboBox->GetStringSelection();
     int selection = addTraceComboBox->GetSelection();
+    
+    if (selectionStr.IsEmpty())
+    {
+        errorBox(wxT("You need to select a device to monitor"));
+        return;
+    }   
+        
 
   // Convert chosen string into a nameString
     string deviceString = string(selectionStr.mb_str());
     namestring_t namestring = (namestring_t) deviceString;
+    
+    cout << deviceString << endl;
     
   // Add chosen monitor to list of monitors in mmz
     name_t did, outp;
@@ -666,10 +685,11 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
 
   // Warn the user that I'll run for 10 cycles
   wxString message;
-  message.Printf(wxT("Your new monitor has been added\nTo prevent errors the network was run for a few cycles and the trace has been updated"));
+  message.Printf(wxT("Your new monitor has been added!!\nTo prevent errors the network was run for a few cycles and the trace has been updated"));
   wxMessageDialog about(this,message,wxT("Add Response"), wxICON_INFORMATION | wxOK);
   about.ShowModal();
   return;
+  
   cout << "about to runFunction()" << endl;
  
 
@@ -755,16 +775,16 @@ void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
   return;
 }
 
-/*
+
 void MyFrame::errorBox(wxString errorBox)
 {
   wxString message;
-  message.Printf(wxT("Trace Selected: %s \nSwitch Selected: %s"),traceStr.c_str(),switchStr.c_str());
+  message.Printf(wxT("%s"),errorBox.c_str());
   wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
   about.ShowModal();
   return;
 }
-*/
+
 
 void MyFrame::OnSelect(wxCommandEvent &event)
 {

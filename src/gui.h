@@ -75,6 +75,7 @@ class MyFrame: public wxFrame
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
     void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box.
+    void errorBox(wxString errorBox);
     void RunFunction();
 
     void populateSwitchNameVector();
