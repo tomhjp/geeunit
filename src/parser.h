@@ -70,8 +70,8 @@ class parser {
     bool isDtypeInput(symbol_t symbol);
     bool isDtypeOutput(symbol_t symbol);
     bool devNameDefined(symbol_t symbol);
-    bool gateInputDefined(symbol_t symbol);
-    bool gateInputUnconnected(symbol_t symbol);
+    bool gateInputDefined(symbol_t symbol, name_t devid);
+    bool gateInputUnconnected(symbol_t symbol, name_t devid);
     bool dtypeInputUnconnected(symbol_t symbol);
     
   public:
