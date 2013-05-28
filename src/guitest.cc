@@ -30,6 +30,18 @@ bool MyApp::OnInit()
   did = nmz->lookup("clk_3");
   dmz->makedevice(dkind, did, 3, ok);
   
+  dkind = aswitch;
+  did = nmz->lookup("switch1");
+  dmz->makedevice(dkind, did, 0, ok);
+  mmz->makemonitor(did, oid, ok);
+  
+  did = nmz->lookup("switch2");
+  dmz->makedevice(dkind, did, 1, ok);
+  mmz->makemonitor(did, oid, ok);
+  
+  did = nmz->lookup("switch3");
+  dmz->makedevice(dkind, did, 0, ok);
+  
   /*if (ok)
     cout << "SUCCESS: Made monitor ok" << endl;
   else

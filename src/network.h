@@ -46,6 +46,9 @@ class network {
   devlink finddevice (name_t id);
    /* Returns link to device with specified name. Returns NULL if not       */
    /* found.                                                               */
+   
+   devicekind netzdevkind(name_t did);
+   /* Returns the devicekind for a particular device id of type name_t      */
  
   inplink findinput (devlink dev, name_t id);
     /* Returns link to input of device pointed to by dev with specified    */

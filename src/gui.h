@@ -21,8 +21,8 @@ enum {
   CONT_BUTTON,
   ZAP_TRACE_BUTTON,
   ADD_TRACE_BUTTON,
+  SWITCH_BUTTON_0,
   SWITCH_BUTTON_1,
-  SWITCH_BUTTON_2,
   ZAP_TRACE_COMBO_BOX,
   ADD_TRACE_COMBO_BOX,
   SWITCH_COMBO_BOX
@@ -42,6 +42,7 @@ class MyFrame: public wxFrame
     names *nmz;                             // pointer to names class
     devices *dmz;                           // pointer to devices class
     monitor *mmz;                           // pointer to monitor class
+    network *netz;
     
     wxSpinCtrl   *runSpin;
     wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
@@ -50,13 +51,15 @@ class MyFrame: public wxFrame
     wxComboBox   *addTraceComboBox;
     wxButton     *addTraceButton;
     wxComboBox   *switchComboBox;             // pointer to combobox object
+    wxButton     *switchButton0;
     wxButton     *switchButton1;
-    wxButton     *switchButton2;
     wxButton     *runButton;
     wxButton     *contButton;
     wxStaticText *runStaticText;
     wxStaticText *contStaticText;
     wxTextCtrl   *commandLine;
+    
+    vector<wxString> switchNameVector;
     
     int cyclescompleted;                    // how many simulation cycles have been completed
     void runnetwork(int ncycles);           // function to run the logic network
@@ -66,12 +69,16 @@ class MyFrame: public wxFrame
     void OnContButton(wxCommandEvent& event);
     void OnButtonZap(wxCommandEvent& event);
     void OnButtonAdd(wxCommandEvent& event);
+    void OnButtonSwitch0(wxCommandEvent& event);
     void OnButtonSwitch1(wxCommandEvent& event);
-    void OnButtonSwitch2(wxCommandEvent& event);
     void OnSelect(wxCommandEvent& event);
     void OnSpin(wxSpinEvent& event);        // callback for spin control
     void OnText(wxCommandEvent& event);     // callback for text entry field
-    void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box. 
+    void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box.
+    void RunFunction();
+
+    void populateSwitchNameVector();
+    name_t getIdFromWxString(wxString inStr);
 
     DECLARE_EVENT_TABLE()
 };
@@ -86,6 +93,7 @@ class MyGLCanvas: public wxGLCanvas
 
     void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
     void populateTraceMatrix();
+    void appendToTraceMatrix();
     void populateMonitorNameVector();
     void setCyclesDisplayed(int c);
     typedef vector<vector<asignal> > IntMatrix;
@@ -100,6 +108,9 @@ class MyGLCanvas: public wxGLCanvas
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces
         names *nmz;                        // pointer to names class, used to extract signal names
         network *netz;
+
+        unsigned int canvasPosition;
+
         void InitGL();                     // function to initialise GL context
         void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
