@@ -36,6 +36,9 @@ class parser {
     int nomonsymflag; 
     int noendfsymflag;
     
+    name_t      clkpin, datapin, setpin;
+    name_t      clrpin, qpin, qbarpin;     /* Input and Output Pin names for dtype devices */
+    
     /* Vector of pointers to errors. returned to main after the whole file has been parsed */
     vector<Error*> errorvector;
     
@@ -52,6 +55,17 @@ class parser {
     void makeDevLine(void);                 // carry out the operations defined by the line in the definition file
     void makeConLine(void);                 // once the line has been parsed and if total number of errors is zero 
     void makeMonLine(void);
+    
+    bool isStrSym(symbol_t symbol);
+    bool isConnPuncSym(symbol_t symbol);
+    bool isDotSym(symbol_t symbol);
+    bool isSemiColSym(symbol_t symbol);
+    bool isDtypeInput(symbol_t symbol);
+    bool isDtypeOutput(symbol_t symbol);
+    bool devNameDefined(symbol_t symbol);
+    bool gateInputDefined(symbol_t symbol);
+    bool gateInputUnconnected(symbol_t symbol);
+    bool dtypeInputUnconnected(symbol_t symbol);
     
   public:
     /* Reads the definition of the logic system and builds the             */

@@ -148,6 +148,12 @@ class expDtypeInput: public Error
     expDtypeInput(int l, int c);
 };
 
+class expDtypeOutput: public Error
+{
+    public:
+    expDtypeOutput(int l, int c);
+};
+
 class expInputSym: public Error
 {
     public:

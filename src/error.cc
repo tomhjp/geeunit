@@ -71,7 +71,7 @@ noSemiCol::noSemiCol(int l, int c)
 
 expDevName::expDevName(int l, int c)
 {
-	errorMessage = "Expected a device name";
+	errorMessage = "Expected a device name. Device names must begin with an alphabetic character";
 	line = l;
 	col = c;
 }
@@ -170,6 +170,13 @@ expDotSym::expDotSym(int l, int c)
 expDtypeInput::expDtypeInput(int l, int c)
 {
     errorMessage = "Expected a dytpe input. Valid inputs are 'DATA', 'CLK', 'CLEAR', and 'SET'";
+    line = l; 
+    col = c;
+}
+
+expDtypeOutput::expDtypeOutput(int l, int c)
+{
+    errorMessage = "Expected a dtypeoutput. Valid outputs are 'Q' and 'QBAR'";
     line = l; 
     col = c;
 }
