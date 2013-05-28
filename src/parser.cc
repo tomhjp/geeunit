@@ -101,8 +101,8 @@ void parser::mainLineBuild(symbol_t symbol)
 	}	
 }
 
-/* Checks the syntax and semantics of lines in the DEVICES section */ 
-/* returns true if the line is syntactically and semantically correct */ 
+/* Checks the syntax and semantics of lines in the DEVICES section 	*/ 
+/* returns true if the line is syntactically and semantically correct 	*/ 
 bool parser::checkDevLine(void)
 {
     Dtype dtypedev;	// used to check validity of parameters passed from input file
@@ -211,7 +211,7 @@ bool parser::checkDevLine(void)
     
 }
  
-/* Checks the syntax and semantics of a line in the CONNECTIONS section  */
+/* Checks the syntax and semantics of a line in the CONNECTIONS section */
 bool parser::checkConLine(void)
 {
     if(!isStrSym(context[0]))
@@ -398,7 +398,66 @@ bool parser::checkConLine(void)
     /* Method only reaches here if every relevant check above has passed  */
     return true; 
 }
+
+/* Checks the syntax and semantics of a line in the MONITORS section 	*/
+/* Returns true if the line is syntactically and semantically correct 	*/ 
+bool parser::checkMonLine(void)
+{
+    if(!isStrSym(context[0]))
+    {
+	errorvector.push_back(new expDevName(context[0].line, context[0].col));
+	return false;
+    }
+    if(!devNameDefined(context[0]))
+    {
+	errorvector.push_back(new devNameUndef(context[0].line, context[0].col));
+	return false;
+    }
+    /* The following depend on the device type being monitored, as	*/
+    /* dtype devices have multiple outputs				*/
+    devicekind opdevkind; 
+    name_t opid;
+    opid = nmz->cvtname(context[0].namestring);
+    opdevkind = dmz->devkind(opid);
+    if(opdevkind !=dtype)
+    {
+	/* Monitoring a non-dtype device output  */
+	if(!isSemiColSym(context[1]))
+	{
+	    errorvector.push_back(new expSemiColSym(context[1].line, context[1].col));
+	    return false;
+	}
+    }
+    else
+    {
+	/* Monitoring a dtype device output 	*/ 
+	if(!isDotSym(context[1]))
+	{
+	    errorvector.push_back(new expDotSym(context[1].line, context[1].col));
+	    return false;
+	}
+	if(!isStrSym(context[2]))
+	{
+	    errorvector.push_back(new expDtypeOutput(context[2].line, context[2].col));
+	    return false;
+	}
+	if(!isDtypeOutput(context[2]))
+	{
+	    errorvector.push_back(new expDtypeOutput(context[2].line, context[2].col));
+	    return false;
+	}
+	if(!isSemiColSym(context[3]))
+	{
+	    errorvector.push_back(new expSemiColSym(context[3].line, context[3].col));
+	    return false;
+	}
+    }
     
+    /* Method reaches here only if the line is syntactically and semantically correct  */ 
+    return true; 
+	    
+}
+   
 bool parser::isStrSym(symbol_t symbol)
 {
     bool retval = false;
@@ -506,8 +565,9 @@ bool parser::dtypeInputUnconnected(symbol_t symbol)
     return retval;
 }
 
-/* Finds the next expected keyword after a keyword  */ 
+/* Finds the next expected keyword after a keyword  		*/ 
 /* only called if the needskeyflag = 1 				*/ 
+/* used to check that the next symbol after END or STARTFILE is correct  */ 
 void parser::nextKeyWordCheck(symbol_t symbol)
 {
     if(section==prestartfsect)
