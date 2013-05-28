@@ -4,7 +4,7 @@
 #include <GL/glut.h>
 #include <string>
 
-// #define USE_GUI
+//#define USE_GUI
 
 IMPLEMENT_APP(MyApp)
   
@@ -34,7 +34,7 @@ bool MyApp::OnInit()
         pmz->readin(symbol);
     }
 
-    if (0) { // check the logic file parsed correctly, will be check that errorvector is empty
+    if (1) { // check the logic file parsed correctly, will be check that errorvector is empty
 #ifdef USE_GUI
     // glutInit cannot cope with Unicode command line arguments, so we pass
     // it some fake ASCII ones instead

@@ -42,7 +42,8 @@ void parser::preStartFCheck(symbol_t symbol)
 
 void parser::postEndFCheck(symbol_t symbol)
 {
-    errorvector.push_back(new foundSymAfterEndf(symbol.line, symbol.col));
+    if(symbol.symboltype != eofsym)
+	errorvector.push_back(new foundSymAfterEndf(symbol.line, symbol.col));
     return;
 }
 
@@ -61,6 +62,7 @@ void parser::mainLineBuild(symbol_t symbol)
 	    /* The END symbol is not on a new line */     
 	    errorvector.push_back(new unExpEndSym(symbol.line, symbol.col));
 	    needskeyflag = 1;
+	    emptyContextVector();
 	    return;
 	}
 	else
@@ -145,6 +147,7 @@ void parser::mainLineBuild(symbol_t symbol)
 		    emptyContextVector();
 		    return;
 		}
+		emptyContextVector();
 		return;
 	    }
 	    else if(!pass)
@@ -172,7 +175,7 @@ bool parser::makeMonLine(void)
     if(devkind != dtype)
     {
 	/* The monitor is not monitoring a dtype output */ 
-	outp = 0;  // other device types have only one output 
+	outp = blankname;  // other device types have only one output 
     }
     else
     {
@@ -206,7 +209,7 @@ bool parser::makeConLine(void)
 	ipdevkind = dmz->devkind(idev);
 	devlink devicelink = netz->finddevice(idev);
 
-	outp = 0;  			// These devices only have one output. 
+	outp = blankname;  			// These devices only have one output. 
 	if(ipdevkind != dtype)
 	{
 	    /* The input device is not a dtype 	*/ 
@@ -215,7 +218,9 @@ bool parser::makeConLine(void)
 	    name_t ipid = nmz->cvtname(ipstring);
 	    inplink inputlink = netz->findinput(devicelink, ipid);
 	    cout << "the inputlink returned is " <<inputlink << endl;
+	    cout << "the ipid returned is " <<ipid <<endl; 
 	    inp = inputlink->id; 
+	    cout << "inputlink->id " << inputlink->id <<endl;
 	}
 	else
 	{
@@ -889,7 +894,7 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 	else
 	{
 	    needskeyflag=0;
-	    filenotcompleteflag = 0;		//	file has been terminated correctly 
+	    filenotcompleteflag = 0;		//file has been terminated correctly with ENDFILE
 	    section=postendfsect;
 	    return;
 	}
