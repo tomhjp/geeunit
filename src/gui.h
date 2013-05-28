@@ -106,6 +106,9 @@ class MyGLCanvas: public wxGLCanvas
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces
         names *nmz;                        // pointer to names class, used to extract signal names
         network *netz;
+
+        unsigned int canvasPosition;
+
         void InitGL();                     // function to initialise GL context
         void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed

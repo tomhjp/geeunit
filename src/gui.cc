@@ -27,6 +27,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     init = false;
     cyclesdisplayed = 10;
     SetScrollbar(wxVERTICAL,0,16,50);
+    canvasPosition = 0;
     
     /* Populate deviceNameVector with the wxString names of all devices in the network */
     devlink dlink = netz->devicelist();     // Find beginning of the list of devices
@@ -48,7 +49,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // trace is displayed.
 {
     float y;
-    unsigned int i,j;
+    unsigned int i,j,c,t;
     asignal s;
     int width, height,traceboxWidth,traceboxHeight;
     int numTraces = 10;
@@ -59,7 +60,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     int x;
     int labelWidth = 30;
     GetClientSize(&width,&height);
-            
+
     traceboxWidth = width - 2*margin - labelWidth;
     traceboxHeight = height - 2*margin;            
     unitHeight = 20;
@@ -97,41 +98,41 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             unitWidth = 30;
         }
 
-        for (int j=0;j<traceMatrix.size();j++)
+        for (t=0; t<traceMatrix.size(); t++)
         {   
             glColor3f(0.0, 0.0, 1.0);
             glBegin(GL_LINE_STRIP);
-            for (i=0; i<cyclesdisplayed; i++) 
+            for (c=0; c<cyclesdisplayed; c++) 
             {   
             
-                s = traceMatrix[j][i];
+                s = traceMatrix[t][c];
                 if (s==low)
                 {
-
-                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*j);
-                    x = margin + labelWidth + unitWidth*i;
-                    
+                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t);
+                    x = margin + labelWidth + unitWidth*c;
                 }
 
                 if (s==high)
                 {
-
-                    y = (traceboxHeight + margin - 2.5*unitHeight*j);
-                    x = margin + labelWidth + unitWidth*i;
+                    y = (traceboxHeight + margin - 2.5*unitHeight*t);
+                    x = margin + labelWidth + unitWidth*c;
                 }
+                if (y < canvasPosition)
+                    y = canvasPosition;
                 glVertex2f(x, y); 
                 glVertex2f(x+unitWidth, y);
             }
             glEnd();
             
-            y = (traceboxHeight-1 - 2.5*unitHeight*j);
+            y = (traceboxHeight-1 - 2.5*unitHeight*t);
             glColor3f(0.0, 0.0, 0.0);
             glRasterPos2f(margin/2,y);
             
             
             wxString traceText;
             traceText = monitorNameVector[j];
-                      
+
+            // Write out the labels for each trace
             for (i = 0; i < traceText.Len() ; i++)
             {        
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
@@ -228,8 +229,9 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
 
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event) 
 {
-  cout <<"position=" << event.GetPosition() << endl;
-
+    cout <<"position=" << event.GetPosition() << endl;
+    canvasPosition = event.GetPosition();
+    Render(wxT(""),-1);
 }
 
 
