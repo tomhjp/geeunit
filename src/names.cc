@@ -37,14 +37,18 @@ name_t names::lookup (namestring_t str)
 name_t names::cvtname (namestring_t str)
 {
     name_t index;
+    namestruct_t entry;
+    cout << "namestring passed to names is " << str << endl; 
     for (index=0; index<table.size(); index++)
-    {
-
-        if (table[index].namestring == str)
+    {	
+	entry = table[index];
+	//cout << entry.namestring << endl; 
+        if (entry.namestring == str)
         {
             break;
         }
     }
+    //cout << "table size" << index << endl; 
     if (index == table.size())
     {
         /* str doesn't yet exist  */

@@ -17,7 +17,8 @@ void Error::printErrMsg(void)
 
 Error::Error()
 {
-	return;
+    cout << "Error registered" << endl; 
+    return;
 }
 
 /******************************************************************************/
