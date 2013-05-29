@@ -7,6 +7,8 @@
 #include "monitor.h"
 #include "network.h"
 #include "parser.h"
+#include "error.h"
+#include "warning.h"
 
 class MyApp: public wxApp
 {

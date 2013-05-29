@@ -20,7 +20,8 @@ typedef enum {validPunc, invalidPunc, slash, star} punc_t;
 class scanner_t
 {
 private:
-    ifstream inf;           // input file
+    ifstream inf;           // input file object
+    const char *file;       // input file string
     char ch;                // current character
     bool eofile;            // true when end of file is reached
     unsigned int line, col; // current line and column numbers
@@ -72,6 +73,9 @@ public:
     void nextSymbol(symbol_t &symbol);
       /* Return the next symbol in the definition file in a struct */
 
+    void closeDefinitionFile(void);
+
+    void printError(int line, int col, string errorStr);
 };
 
 #endif  /* scanner_h */
