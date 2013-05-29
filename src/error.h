@@ -12,11 +12,13 @@ using namespace std;
 class Error 
 {
   protected:  
+    bool hasPos;
     int line;
     int col; 
     string errorMessage; 
   public: 
     void printErrMsg(void); 
+    void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     Error(void);
 }; 
 
@@ -191,6 +193,13 @@ class foundSymAfterEndf: public Error
 	foundSymAfterEndf(int l, int c);
 };
 
+class unconnectInp: public Error
+{
+    public:
+    unconnectInp();
+};
+
+
 /***********************************************************/
 /********* more complex errors to report *******************/
 /***********************************************************/
@@ -199,11 +208,15 @@ class inputPrevConnected: public Error
 {
     int initconline;	
     int getInitCon(void);
+    void makeLongErrMsg(void);    
     network* netz;
     devlink devicelink;
     name_t ipid; 
+    string longErrMsg;
     public:
     inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
+    void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
+
     void printErrMsg(void);
 };
 
@@ -211,11 +224,14 @@ class nameAlreadyDefd : public Error
 {
     int initdefline;
     int initdefcol;
-    namestring_t devname; 
     void getInitDef(void);
+    void makeLongErrMsg(void);
+	namestring_t devname; 
     names* nmz; 
+    string longErrMsg;
     public:
     nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod);
+    void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     void printErrMsg(void);
 };	
 	

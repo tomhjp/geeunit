@@ -17,6 +17,7 @@ class Warning
 	string warningMessage; 
   public: 
 	void printWarnMsg(void); 
+	void getWarningDetails(int &l, int &c, string &warnmsg);
 	Warning(void);
 }; 
 

@@ -2,6 +2,7 @@
 #include "names.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using namespace std; 
 
@@ -15,9 +16,20 @@ void Error::printErrMsg(void)
    cout << "Error: " << line << ", " << col << ": " <<errorMessage <<endl;
 } 
 
+/* used by the scanner to get the error details.  */ 
+void Error::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
+{
+	l = line; 
+	c = col; 
+    hasPosition = hasPos; 
+	errmsg = "Error: " + errorMessage;
+	return;
+}
+
 Error::Error()
 {
     cout << "Error registered" << endl; 
+    hasPos = true;
     return;
 }
 
@@ -30,42 +42,42 @@ Error::Error()
 
 noStrtFile::noStrtFile(int l, int c) 
 {
-    errorMessage = "Expected 'STARTFILE' keyword";
+    errorMessage = "Expected 'STARTFILE' keyword (keywords must be upper case)";
     line = l;
     col = c;
 }
 
 expDeviSym::expDeviSym(int l, int c)
 {
-    errorMessage = "Expected 'DEVICES' keyword"; 
+    errorMessage = "Expected 'DEVICES' keyword (keywords must be upper case)"; 
     line = l;
     col = c;
 }
 
 expMonSym::expMonSym(int l, int c)
 {
-	errorMessage = "Expected 'MONITORS' keyword";
+	errorMessage = "Expected 'MONITORS' keyword (keywords must be upper case)";
 	line = l;
 	col = c;
 }
 
 expConSym::expConSym(int l, int c)
 {
-	errorMessage = "Expected 'CONNECTIONS' keyword"; 
+	errorMessage = "Expected 'CONNECTIONS' keyword (keywords must be upper case)"; 
 	line = l;
 	col = c; 
 }
 
 expEndFSym::expEndFSym(int l, int c)
 {
-	errorMessage = "Expected 'ENDFILE' keyword"; 
+	errorMessage = "Expected 'ENDFILE' keyword (keywords must be upper case)"; 
 	line = l;
 	col = c;
 }
 
 noSemiCol::noSemiCol(int l, int c)
 {
-	errorMessage = "No semicolon before 'END' keyword";
+	errorMessage = "No semicolon before 'END' keyword (keywords must be upper case)";
 	line=l;
 	col = c;
 }
@@ -223,7 +235,14 @@ foundSymAfterEndf::foundSymAfterEndf(int l, int c)
 	line = l; 
 	col = c;
 }
-	
+
+unconnectInp::unconnectInp()
+{
+    errorMessage = "Unconnected input(s) detected (listed above)";
+    hasPos = false;
+   /* line = l;
+    col = c; */
+}	
 	
 /*****************************************************************************************/
 /**************** Methods for classes requiring prior information ************************/
@@ -248,6 +267,26 @@ int inputPrevConnected::getInitCon(void)
 	return l;
 }
 	
+void inputPrevConnected::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
+{
+	l = line;
+	c = col; 
+    hasPosition = hasPos; 
+	makeLongErrMsg();
+	errmsg = longErrMsg;
+	return;
+}
+
+void inputPrevConnected::makeLongErrMsg(void)
+{
+	string firstLine;
+	int a = initconline;
+	stringstream ss;
+	ss << a;
+	firstLine = ss.str();
+	longErrMsg = errorMessage + firstLine; 
+	return;
+}
 	
 nameAlreadyDefd::nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod)
 {
@@ -270,5 +309,28 @@ void nameAlreadyDefd::getInitDef(void)
 	initdefcol = nmz->getCol(devname);
 }
 
+void nameAlreadyDefd::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
+{
+	l = line;
+	c = col; 
+    hasPosition = hasPos;
+	makeLongErrMsg();
+	errmsg = longErrMsg;
+	return;
+}
 
+void nameAlreadyDefd::makeLongErrMsg(void)
+{
+	string firstLine, firstCol;
+	int a = initdefline;
+	stringstream ss;
+	ss << a;
+	firstLine = ss.str();
+	a = initdefcol;
+	ss << a;
+	firstCol = ss.str();
+	longErrMsg = "Error: " + errorMessage + firstLine + ", " + firstCol; 
+	return;
+}
+	
 

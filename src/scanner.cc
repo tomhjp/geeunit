@@ -317,16 +317,16 @@ void scanner_t::restoreScannerState(streampos pos, char chstart, unsigned int li
 /***********************************************************/
 /************** Public methods of scanner_t ****************/
 /***********************************************************/
-scanner_t::scanner_t(string defname)
+scanner_t::scanner_t(string deffile)
 {
-    const char *file = defname.c_str();
+    file = deffile.c_str();
 
     replaceTabsWithSpaces(file);
 
     inf.open(file);
     if (!inf)
     {
-        cout << "Error: cannot open file " << defname << "for reading" << endl;
+        cout << "Error: cannot open file " << file << "for reading" << endl;
         exit(1);
     }
 
@@ -415,4 +415,40 @@ void scanner_t::nextSymbol(symbol_t &symbol)
         symbol.symboltype = eofsym;
         return;
     }
+}
+
+void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
+{
+    // clear the eofbit so that we can successfully seek the beginning of the file again
+    inf.clear();
+    inf.seekg(inf.beg);
+    
+    if (hasPosition)
+    {
+        if (col > 80)
+        {
+            cout << "Bad col value " << col << ". No meaningful line in a definition file should have this many columns" << endl;
+            return;
+        }
+        string lineStr;
+        for (int l=0; l<line; l++)
+        {
+            lineStr = "";
+            if (!getline(inf, lineStr))
+            {
+                cout << "Bad line value, " << line << ". Seems to be outside the line range of the file" << endl;
+                return;
+            }
+            if (l+1 == line)      // reached the line on which an error is being reported
+            {
+                cout << lineStr << endl;
+                for (int i=0; i<col-1; i++)
+                    cout << " ";
+                cout << "^" << endl;
+                cout << errorStr << endl;
+            }
+        }
+    }
+    else
+        cout << errorStr << endl;
 }

@@ -78,7 +78,6 @@ class network {
   void checknetwork (bool& ok);
     /* Checks that all inputs are connected to an output.                  */
  
-    
   int getLineDefd(devlink dev, name_t id);
     /* Returns the line at which the input connection was defined. 	   */
     /* used for error reporting 					   */
