@@ -76,7 +76,7 @@ void parser::mainLineBuild(symbol_t symbol)
                 if(!allInsCon)
                 {
                     // check all inputs to find those which are not connected 
-                    cout << "found unconnected inputs" <<endl; 
+                    //cout << "found unconnected inputs" <<endl; 
                     errorvector.push_back(new unconnectInp());
                 }
             }
@@ -167,7 +167,7 @@ void parser::mainLineBuild(symbol_t symbol)
 
 bool parser::makeMonLine(void)
 {
-    cout << " ****** Make MONITOR ****** " <<endl; 
+    //cout << " ****** Make MONITOR ****** " <<endl; 
     bool ok;
     name_t dev, outp, opid;
     devicekind opdevkind;
@@ -200,7 +200,7 @@ bool parser::makeMonLine(void)
 /* if the errorvector is empty                              */
 bool parser::makeConLine(void)
 {
-    cout << " ***************** make connection  *********************** " << endl; 
+    //cout << " ***************** make connection  *********************** " << endl; 
     bool ok; 
     int line; 
     name_t idev, inp, odev, outp, ipid; 
@@ -212,7 +212,7 @@ bool parser::makeConLine(void)
     odev = nmz->lookup(context[0].namestring);
     opdevlink = netz->finddevice(odev);
     opdevkind = opdevlink->kind;
-    cout << "the opdevkind found from netz is " <<opdevkind <<endl; 
+   // cout << "the opdevkind found from netz is " <<opdevkind <<endl; 
     if(opdevkind != dtype)
     {
     /* The output device is not a dtype */ 
@@ -284,7 +284,7 @@ bool parser::makeConLine(void)
     }
     }
  
-    cout << "input devid is " << idev << " input pin id is " << inp << " output devid is " << odev << " output pin is " << outp <<endl; 
+    //cout << "input devid is " << idev << " input pin id is " << inp << " output devid is " << odev << " output pin is " << outp <<endl; 
      netz->makeconnection(idev, inp, odev, outp, line, ok);
      return ok; 
 }
@@ -293,7 +293,7 @@ bool parser::makeConLine(void)
 /* if the errorvector is empty.                             */
 bool parser::makeDevLine(void) 
 {
-    cout << "*****Make DEVICE******" << endl; 
+    //cout << "*****Make DEVICE******" << endl; 
     bool ok;  //used to check the makedevice method completes successfully 
     devicekind dkind; 
     symboltype_t devtype; 
@@ -302,7 +302,7 @@ bool parser::makeDevLine(void)
     
     devtype = context[2].symboltype;  
     id = nmz->lookup(context[0].namestring);
-    cout << "created devicename in names " << context[0].namestring << " at entry " <<id << endl; 
+    //cout << "created devicename in names " << context[0].namestring << " at entry " <<id << endl; 
     
     if((devtype == andsym) || (devtype == nandsym) || (devtype == orsym) || (devtype == norsym) || (devtype == switchsym) || (devtype == clksym))
     {
@@ -320,7 +320,7 @@ bool parser::makeDevLine(void)
     else if(devtype == dtypesym) dkind = dtype;
     else if(devtype == xorsym) dkind = xorgate;
     
-    cout << "makedevice called with dkind = " << dkind << endl;
+    //cout << "makedevice called with dkind = " << dkind << endl;
     dmz->makedevice(dkind, id, variant, ok);
     return ok; 
 }
@@ -335,7 +335,7 @@ bool parser::checkDevLine(void)
     Gate gate; 
     Switch switchdev; 
     
-    cout << "*******************************check DEVICES line****************************" << endl; 
+    //cout << "*******************************check DEVICES line****************************" << endl; 
 
     for(int i=0; i<context.size(); i++)
     {cout << context[i].namestring;}
@@ -436,7 +436,7 @@ bool parser::checkDevLine(void)
         return false; 
     }
     /* THE LINE HAS PASSED ALL SEMANTIC AND SYNTACTIC CHEKCS AND MUST NOW BE BUILT */ 
-    cout << "The line has passed DEV checks" <<endl; 
+    //cout << "The line has passed DEV checks" <<endl; 
     return true;
     
 }
@@ -444,7 +444,7 @@ bool parser::checkDevLine(void)
 /* Checks the syntax and semantics of a line in the CONNECTIONS section */
 bool parser::checkConLine(void)
 {
-    cout << "**************************check CONNECTIONS line**********************" << endl; 
+    //cout << "**************************check CONNECTIONS line**********************" << endl; 
 
     /* prints outthe current line for debugging */ 
     for(int i=0; i<context.size(); i++)
@@ -467,10 +467,10 @@ bool parser::checkConLine(void)
     devlink opdevlink, ipdevlink; 
     
     opid = nmz->cvtname(context[0].namestring);
-    cout << "finding the dkind of device with id " << opid << " and name " << context[0].namestring << endl;
+    //cout << "finding the dkind of device with id " << opid << " and name " << context[0].namestring << endl;
     opdevlink = netz->finddevice(opid);
     opdevkind = opdevlink->kind;
-    cout << "the opdevkind found from netz is " <<opdevkind <<endl; 
+    //cout << "the opdevkind found from netz is " <<opdevkind <<endl; 
     if(opdevkind == baddevice)
     {
     errorvector.push_back(new badDevType(context[0].line, context[0].col));
@@ -542,7 +542,7 @@ bool parser::checkConLine(void)
     {
         /* input device is a dtype device   */ 
         /* ie. non-dtype -> dtype       */
-        cout << "hereeeejjjjjjee" <<endl; 
+        //cout << "hereeeejjjjjjee" <<endl; 
         if(!isDtypeInput(context[4]))
         {
         errorvector.push_back(new expDtypeInput(context[4].line, context[4].col));
@@ -565,7 +565,7 @@ bool parser::checkConLine(void)
     }
     else
     {
-    cout << "tytytytytytytyt" <<endl; 
+    //cout << "tytytytytytytyt" <<endl; 
 
     /* output devicetype is a dtype device      */
     if(!isDotSym(context[1]))
@@ -604,7 +604,7 @@ bool parser::checkConLine(void)
     ipdevkind = ipdevlink->kind;
     if(ipdevkind != dtype)
     {
-    cout << "kokokokokokokoko" <<endl; 
+    //cout << "kokokokokokokoko" <<endl; 
 
         /* Input device is not a dtype  */ 
         /* ie. dtype -> nondtype        */
@@ -656,7 +656,7 @@ bool parser::checkConLine(void)
     }
     
     /* Method only reaches here if every relevant check above has passed  */
-    cout << "passed con check" <<endl; 
+    //cout << "passed con check" <<endl; 
     return true; 
 }
 
@@ -664,7 +664,7 @@ bool parser::checkConLine(void)
 /* Returns true if the line is syntactically and semantically correct   */ 
 bool parser::checkMonLine(void)
 {
-    cout << "**************************************Check MONITORS line**********************************" <<endl; 
+    //cout << "**************************************Check MONITORS line**********************************" <<endl; 
     
     for(int i=0; i<context.size(); i++)
     cout << context[i].namestring;
@@ -789,10 +789,10 @@ bool parser::devNameDefined(symbol_t symbol)
     bool retval = true; 
     name_t namedefd; 
     namedefd = nmz->cvtname(symbol.namestring); 
-    cout << "namedefd = " << namedefd << endl; 
+    //cout << "namedefd = " << namedefd << endl; 
     if(namedefd == blankname)
     {
-    cout << "mooo" <<endl; 
+    //cout << "mooo" <<endl; 
     retval = false; 
     }
     return retval;
@@ -800,7 +800,7 @@ bool parser::devNameDefined(symbol_t symbol)
 
 bool parser::gateInputDefined(symbol_t symbol, name_t devid)
 {
-    cout << "****checking input is defined ****" << endl; 
+    //cout << "****checking input is defined ****" << endl; 
     bool retval = false;
     /* this section gets a link to the input referenced. */
     /* returns null if the input is undefined       */
@@ -809,14 +809,14 @@ bool parser::gateInputDefined(symbol_t symbol, name_t devid)
     //name_t ipid = atoi(strnum.c_str());  //converts the input number referenced to type name_t;
     namestring_t ipstring = symbol.namestring;
     name_t ipid = nmz->cvtname(ipstring);
-    cout << "the converted ipid is " << ipid << endl; 
+    //cout << "the converted ipid is " << ipid << endl; 
     devlink devicelink = netz->finddevice(devid); 
     inplink inputlink = netz->findinput(devicelink, ipid); //gets a link to the input referenced 
     /* checks that the input exists. returns NULL if the input is not found */ 
     if(inputlink != NULL)
     retval = true; 
     
-    cout << "retval = " <<retval << endl;
+    //cout << "retval = " <<retval << endl;
     return retval; 
 }    
 
@@ -835,7 +835,7 @@ bool parser::gateInputUnconnected(symbol_t symbol, name_t devid)
     if(inputlink->connect == NULL)
     retval = true; 
     
-    cout << "retval = " <<retval << endl;
+    //cout << "retval = " <<retval << endl;
     return retval;
 }
  
@@ -850,7 +850,7 @@ bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
     else if(dtypeinput.symboltype == dclksym) ipid = nmz->cvtname("CLK");
     else if(dtypeinput.symboltype == dclearsym) ipid = nmz->cvtname("CLEAR");
     else if(dtypeinput.symboltype == dsetsym) ipid = nmz->cvtname("SET");  
-    cout << "  the devid found is " <<devid << " the devlink used is " << devicelink << " and the ipid is " <<ipid <<endl;
+    //cout << "  the devid found is " <<devid << " the devlink used is " << devicelink << " and the ipid is " <<ipid <<endl;
     inplink inputlink = netz->findinput(devicelink, ipid);
     if(inputlink->connect == NULL)
     retval = true; 
@@ -951,8 +951,8 @@ void parser::readin (symbol_t symbol)
     else 
     {
     /* USED FOR BUG FIXING */
-    cout << "Erm, something's gone wrong" << endl;  //PANIC. 
-    cout << "Section = " << section <<endl; 
+    //cout << "Erm, something's gone wrong" << endl;  //PANIC. 
+    //cout << "Section = " << section <<endl; 
     }
        
 }

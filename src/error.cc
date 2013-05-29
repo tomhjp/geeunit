@@ -42,42 +42,42 @@ Error::Error()
 
 noStrtFile::noStrtFile(int l, int c) 
 {
-    errorMessage = "Expected 'STARTFILE' keyword";
+    errorMessage = "Expected 'STARTFILE' keyword (keywords must be upper case)";
     line = l;
     col = c;
 }
 
 expDeviSym::expDeviSym(int l, int c)
 {
-    errorMessage = "Expected 'DEVICES' keyword"; 
+    errorMessage = "Expected 'DEVICES' keyword (keywords must be upper case)"; 
     line = l;
     col = c;
 }
 
 expMonSym::expMonSym(int l, int c)
 {
-	errorMessage = "Expected 'MONITORS' keyword";
+	errorMessage = "Expected 'MONITORS' keyword (keywords must be upper case)";
 	line = l;
 	col = c;
 }
 
 expConSym::expConSym(int l, int c)
 {
-	errorMessage = "Expected 'CONNECTIONS' keyword"; 
+	errorMessage = "Expected 'CONNECTIONS' keyword (keywords must be upper case)"; 
 	line = l;
 	col = c; 
 }
 
 expEndFSym::expEndFSym(int l, int c)
 {
-	errorMessage = "Expected 'ENDFILE' keyword"; 
+	errorMessage = "Expected 'ENDFILE' keyword (keywords must be upper case)"; 
 	line = l;
 	col = c;
 }
 
 noSemiCol::noSemiCol(int l, int c)
 {
-	errorMessage = "No semicolon before 'END' keyword";
+	errorMessage = "No semicolon before 'END' keyword (keywords must be upper case)";
 	line=l;
 	col = c;
 }

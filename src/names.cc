@@ -38,7 +38,7 @@ name_t names::cvtname (namestring_t str)
 {
     name_t index;
     namestruct_t entry;
-    cout << "namestring passed to names is " << str << endl; 
+    //cout << "namestring passed to names is " << str << endl; 
     for (index=0; index<table.size(); index++)
     {	
 	entry = table[index];
