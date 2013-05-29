@@ -77,6 +77,8 @@ class MyFrame: public wxFrame
         void aboutfunction(wxString traceStr, wxString switchStr);       // callback for creating about box.
         void errorBox(wxString errorBox);
         void RunFunction();
+        bool isdtype(name_t did);
+        void checkMonitorName(wxString monitorName, wxString& deviceName, wxString& outputName, bool& isDtype);
         
 
         void populateSwitchNameVector();
@@ -106,6 +108,8 @@ class MyGLCanvas: public wxGLCanvas
     
     vector<wxString> deviceNameVector;
     vector<wxString> monitorNameVector;
+    
+    int numDtypes;
         
     private:
         bool init;                         // has the GL context been initialised?
