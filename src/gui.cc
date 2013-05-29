@@ -272,12 +272,12 @@ void MyGLCanvas::OnMouse(wxMouseEvent& event)
   int w, h;;
 
   GetClientSize(&w, &h);
-  if (event.ButtonDown()) text.Printf(wxT("Mouse button %d pressed at %d %d"), event.GetButton(), event.m_x, h-event.m_y);
-  if (event.ButtonUp()) text.Printf(wxT("Mouse button %d released at %d %d"), event.GetButton(), event.m_x, h-event.m_y);
-  if (event.Dragging()) text.Printf(wxT("Mouse dragged to %d %d"), event.m_x, h-event.m_y);
-  if (event.Leaving()) text.Printf(wxT("Mouse left window at %d %d"), event.m_x, h-event.m_y);
+  //if (event.ButtonDown()) text.Printf(wxT("Mouse button %d pressed at %d %d"), event.GetButton(), event.m_x, h-event.m_y);
+  //if (event.ButtonUp()) text.Printf(wxT("Mouse button %d released at %d %d"), event.GetButton(), event.m_x, h-event.m_y);
+  //if (event.Dragging()) text.Printf(wxT("Mouse dragged to %d %d"), event.m_x, h-event.m_y);
+  //if (event.Leaving()) text.Printf(wxT("Mouse left window at %d %d"), event.m_x, h-event.m_y);
 
-  if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text,-1);
+  //if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text,-1);
 }
 
 void MyGLCanvas::populateTraceMatrix()
@@ -757,7 +757,10 @@ void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
     if (!ok)
         cout << "Error setting switch to 0" << endl;
     
-    errorBox(wxT("Switch changed to 0"));
+    wxString swStr = switchComboBox->GetStringSelection();
+    wxString commandLineText;
+    commandLineText.Printf(wxT("# %s changed to 0"),swStr.c_str());
+    commandLine->SetValue(commandLineText);
 }
 
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
@@ -779,8 +782,10 @@ void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
     if (!ok)
         cout << "Error setting switch to 1" << endl;
         
-    commandLine->SetValue(wxT("# Switch changed to 1"));
-    errorBox(wxT("Switch changed to 1"));
+    wxString swStr = switchComboBox->GetStringSelection();
+    wxString commandLineText;
+    commandLineText.Printf(wxT("# %s changed to 1"),swStr.c_str());
+    commandLine->SetValue(commandLineText);
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)

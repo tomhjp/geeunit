@@ -28,5 +28,11 @@ connections
 END
 MONITORS
     or;
+    and1;
+    and2;
+    and3;
+    A;
+    B;
+    C;
 END    
 ENDFILE
