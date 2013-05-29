@@ -452,7 +452,7 @@ void scanner_t::printError(int line, int col, string errorStr)
         if (l+1 == line)      // reached the line on which an error is being reported
         {
             cout << lineStr << endl;
-            for (int i=0; i<col; i++)
+            for (int i=0; i<col-1; i++)
                 cout << " ";
             cout << "^" << endl;
             cout << errorStr << endl;

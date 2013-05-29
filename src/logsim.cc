@@ -38,7 +38,7 @@ bool MyApp::OnInit()
     smz->closeDefinitionFile();
     
     
-    unsigned int line, col;
+    int line, col;
     string errorMessage;
     for (int i=0; i<errorVector.size(); i++)
     {
@@ -47,8 +47,8 @@ bool MyApp::OnInit()
     }
     for (int i=0; i<warningVector.size(); i++)
     {
-        warningVector[i]->getWarningDetails(line, col, errorMessage);
-        smz->printError(line, col, errorMessage);
+        //warningVector[i]->getWarningDetails(line, col, errorMessage);
+        //smz->printError(line, col, errorMessage);
     }
 
     if (errorVector.size() == 0) { // check the logic file parsed correctly, will be check that errorvector is empty

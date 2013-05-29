@@ -1,38 +1,32 @@
 STARTFILE
-DEVICES 
-    and1 = AND(2); 
+DEVICES
+    and1 = AND(2)
     and2 = AND(2);
-    and3 = AND(2); 
+    and3 = AND(2);
     or = OR(3);
-/*I REALLY LOVE COMMENTS*/ 
+/*I REALLY LOVE COMMENTS*/
     A = SWITCH(0);
     B = SWITCH(0);
     C = SWITCH(0);
 END
 CONNECTIONS
-/*This bit defines all of our 
+/*This bit defines all of our
 
 
 
-connections 
-*/ 
-    A -> and1.I1; 
+connections
+*/
+    A -> and1.I1;
     B -> and1.I2;
-    B -> and2.I1; 
-    C -> and2.I2; 
+    B -> and2.I1;
+    C -> and2.I2;
     C -> and3.I1;
-    A -> and3.I2; 
-    and1 -> or.I1; 
+    A -> and3.I2;
+    and1 -> or.I1;
     and2 -> or.I2;
-    and3 -> or.I3; 
+    and3 -> or.I3;
 END
 MONITORS
     or;
-    and1;
-    and2;
-    and3;
-    A;
-    B;
-    C;
-END    
+END
 ENDFILE
