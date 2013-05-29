@@ -48,13 +48,7 @@ name_t names::cvtname (namestring_t str)
             break;
         }
     }
-    
-    // this loop purely for bugfixing. 
-    for (index=0; index<table.size(); index++)
-    {	
-	entry = table[index];
-	cout << entry.namestring << endl;     if (index == table.size())
-    }
+    if (index == table.size())
     {
         /* str doesn't yet exist  */
         return blankname;

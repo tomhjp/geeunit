@@ -167,8 +167,9 @@ void parser::mainLineBuild(symbol_t symbol)
 
 bool parser::makeMonLine(void)
 {
+    cout << " ****** Make MONITOR ****** " <<endl; 
     bool ok;
-    name_t dev, outp;
+    name_t dev, outp, opid;
     devicekind opdevkind;
     devlink opdevlink;
     
@@ -183,8 +184,14 @@ bool parser::makeMonLine(void)
     else
     {
 	/* The monitor is monitoring a dtype output 	*/
-	if(context[2].symboltype = qsym) outp = qpin;
-	else if(context[2].symboltype = qbarsym) outp = qbarpin;
+	namestring_t opdevstring, opstring;
+	
+	opstring = context[2].namestring;
+	opdevstring = context[0].namestring;
+	opid = nmz->cvtname(opstring);
+	devlink devicelink = netz->finddevice(dev); 
+	outplink outputlink = netz->findoutput(devicelink, opid);
+	outp = outputlink->id;
     }
     mmz->makemonitor(dev, outp, ok);
     return ok;
@@ -199,7 +206,7 @@ bool parser::makeConLine(void)
     name_t idev, inp, odev, outp, ipid; 
     devlink opdevlink, ipdevlink; 
     devicekind ipdevkind, opdevkind;
-    namestring_t ipstring;
+    namestring_t ipstring, opstring;
     
     line = context[0].line;
     odev = nmz->lookup(context[0].namestring);
@@ -236,33 +243,42 @@ bool parser::makeConLine(void)
 	    else if(context[4].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
 	    else if(context[4].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
 	    else if(context[4].symboltype == dsetsym) inp = nmz->cvtname("SET");
-	    cout << "the input is " <<inp << endl; 
 	}
     }
     else
     {
 	/* The output device is a dtype */
-	/* Q input is stored first, then the qbar input.  From examination of the makedtype function  */
-	if(context[2].symboltype == qsym)
-	    outp = 0;
-	else
-	    outp = 1; 
+	name_t opdevid;
+	namestring_t opdevstring;
+	opstring = context[2].namestring;
+	opdevstring = context[0].namestring;
+	name_t opid = nmz->cvtname(opstring);
+	opdevid = nmz->cvtname(opdevstring);
+	devlink devicelink = netz->finddevice(opdevid); 
+	outplink outputlink = netz->findoutput(devicelink, opid);
+	outp = outputlink->id;
+	  
+	  
 	idev = nmz->lookup(context[4].namestring);
-	ipdevkind = dmz->devkind(idev);
-	devlink devicelink = netz->finddevice(idev);
+	devlink ipdevlink = netz->finddevice(idev);
+	ipdevkind = ipdevlink->kind;  
+	
 	if(ipdevkind != dtype)
 	{
 	    /* The input device is not a dtype 	*/ 
 	    /* ie dtype -> non-dtype		*/
+	    name_t ipid;
 	    ipstring = context[6].namestring;
-	    name_t ipid = nmz->cvtname(ipstring);
-	    inplink inputlink = netz->findinput(devicelink, ipid);
+	    ipid = nmz->cvtname(ipstring);
+	    inplink inputlink = netz->findinput(ipdevlink, ipid);
 	    inp = inputlink->id; 
 	}
 	else
 	{
+	    cout << "fdhafdsafdsafdsa" <<endl;
 	    /* The input device is a dtype 	*/
 	    /* ie. dtype -> dtype 		*/
+
 	    if(context[6].symboltype == ddatasym) inp = nmz->cvtname("DATA"); 
 	    else if(context[6].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
 	    else if(context[6].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
@@ -270,6 +286,7 @@ bool parser::makeConLine(void)
 	}
     }
  
+    cout << "input devid is " << idev << " input pin id is " << inp << " output devid is " << odev << " output pin is " << outp <<endl; 
      netz->makeconnection(idev, inp, odev, outp, line, ok);
      return ok; 
 }
@@ -832,8 +849,8 @@ bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
     devlink devicelink = netz->finddevice(devid); 
     if(dtypeinput.symboltype == ddatasym) ipid = nmz->cvtname("DATA");
     else if(dtypeinput.symboltype == dclksym) ipid = nmz->cvtname("CLK");
-    else if(dtypeinput.symboltype == dclearsym) ipid = nmz->cvtname("SET");
-    else if(dtypeinput.symboltype == dsetsym) ipid = nmz->cvtname("CLEAR");  
+    else if(dtypeinput.symboltype == dclearsym) ipid = nmz->cvtname("CLEAR");
+    else if(dtypeinput.symboltype == dsetsym) ipid = nmz->cvtname("SET");  
     cout << "  the devid found is " <<devid << " the devlink used is " << devicelink << " and the ipid is " <<ipid <<endl;
     inplink inputlink = netz->findinput(devicelink, ipid);
     if(inputlink->connect == NULL)
