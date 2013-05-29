@@ -75,7 +75,7 @@ public:
 
     void closeDefinitionFile(void);
 
-    void printError(int line, int col, string errorStr);
+    void printError(int line, int col, string errorStr, bool hasPosition);
 };
 
 #endif  /* scanner_h */

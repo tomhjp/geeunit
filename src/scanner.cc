@@ -425,24 +425,17 @@ void scanner_t::closeDefinitionFile(void)
 
 void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
 {
-    //inf.close();
-    inf.seekg(0);
-    //inf.open(file);
-    //if (!inf)
-    //{
-    //    cout << "Error: cannot open file for reading" << endl;
-    //    exit(1);
-    //}
-    
-    if (col > 80)
-    {
-        cout << "Bad col value " << col << ". No meaningful line in a definition file should have this many columns" << endl;
-        //inf.close();
-        return;
-    }
+    // clear the eofbit so that we can successfully seek the beginning of the file again
+    inf.clear();
+    inf.seekg(inf.beg);
     
     if (hasPosition)
     {
+        if (col > 80)
+        {
+            cout << "Bad col value " << col << ". No meaningful line in a definition file should have this many columns" << endl;
+            return;
+        }
         string lineStr;
         for (int l=0; l<line; l++)
         {
@@ -450,7 +443,6 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
             if (!getline(inf, lineStr))
             {
                 cout << "Bad line value, " << line << ". Seems to be outside the line range of the file" << endl;
-                //inf.close();
                 return;
             }
             if (l+1 == line)      // reached the line on which an error is being reported
@@ -465,5 +457,4 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
     }
     else
         cout << errorStr << endl;
-    //inf.close();
 }
