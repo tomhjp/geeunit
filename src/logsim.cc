@@ -40,9 +40,11 @@ bool MyApp::OnInit()
     
     int line, col;
     string errorMessage;
+    bool hasPosition;
     for (int i=0; i<errorVector.size(); i++)
     {
-        errorVector[i]->getErrorDetails(line, col, errorMessage);
+		cout << "Error " << i << endl;
+        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
         smz->printError(line, col, errorMessage);
     }
     for (int i=0; i<warningVector.size(); i++)

@@ -17,17 +17,19 @@ void Error::printErrMsg(void)
 } 
 
 /* used by the scanner to get the error details.  */ 
-void Error::getErrorDetails(int &l, int &c, string &errmsg)
+void Error::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
 {
 	l = line; 
 	c = col; 
-	errmsg = errorMessage;
+    hasPosition = hasPos; 
+	errmsg = "Error: " + errorMessage;
 	return;
 }
 
 Error::Error()
 {
     cout << "Error registered" << endl; 
+    hasPos = true;
     return;
 }
 
@@ -233,7 +235,14 @@ foundSymAfterEndf::foundSymAfterEndf(int l, int c)
 	line = l; 
 	col = c;
 }
-	
+
+unconnectInp::unconnectInp()
+{
+    errorMessage = "Unconnected input(s) detected (listed above)";
+    hasPos = false;
+   /* line = l;
+    col = c; */
+}	
 	
 /*****************************************************************************************/
 /**************** Methods for classes requiring prior information ************************/
@@ -258,10 +267,11 @@ int inputPrevConnected::getInitCon(void)
 	return l;
 }
 	
-void inputPrevConnected::getErrorDetails(int &l, int &c, string &errmsg)
+void inputPrevConnected::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
 {
 	l = line;
 	c = col; 
+    hasPosition = hasPos; 
 	makeLongErrMsg();
 	errmsg = longErrMsg;
 	return;
@@ -299,10 +309,11 @@ void nameAlreadyDefd::getInitDef(void)
 	initdefcol = nmz->getCol(devname);
 }
 
-void nameAlreadyDefd::getErrorDetails(int &l, int &c, string &errmsg)
+void nameAlreadyDefd::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
 {
 	l = line;
 	c = col; 
+    hasPosition = hasPos;
 	makeLongErrMsg();
 	errmsg = longErrMsg;
 	return;
@@ -318,7 +329,7 @@ void nameAlreadyDefd::makeLongErrMsg(void)
 	a = initdefcol;
 	ss << a;
 	firstCol = ss.str();
-	longErrMsg = errorMessage + firstLine + ", " + firstCol; 
+	longErrMsg = "Error: " + errorMessage + firstLine + ", " + firstCol; 
 	return;
 }
 	

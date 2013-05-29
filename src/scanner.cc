@@ -419,22 +419,26 @@ void scanner_t::nextSymbol(symbol_t &symbol)
 
 void scanner_t::closeDefinitionFile(void)
 {
+    cout << "*****************************************************Closing definition file from scanning***************************************************" << endl;
     inf.close();
     return;
 }
 
 void scanner_t::printError(int line, int col, string errorStr)
 {
+    cout << "Printing an error" << endl;
+    inf.close();
     inf.open(file);
     if (!inf)
     {
-        cout << "Error: cannot open file for reading" << endl;
+        cout << "Error: cannot open file for reading - position 1" << endl;
         exit(1);
     }
     
     if (col > 80)
     {
         cout << "Bad col value " << col << ". No meaningful line in a definition file should have this many columns" << endl;
+        cout << "Close point 1" << endl;
         inf.close();
         return;
     }
@@ -446,6 +450,7 @@ void scanner_t::printError(int line, int col, string errorStr)
         if (!getline(inf, lineStr))
         {
             cout << "Bad line value, " << line << ". Seems to be outside the line range of the file" << endl;
+            cout << "Close point 3" << endl;
             inf.close();
             return;
         }
@@ -458,5 +463,6 @@ void scanner_t::printError(int line, int col, string errorStr)
             cout << errorStr << endl;
         }
     }
+    cout << "Close point 3" << endl;
     inf.close();
 }

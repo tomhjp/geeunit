@@ -12,12 +12,13 @@ using namespace std;
 class Error 
 {
   protected:  
+    bool hasPos;
     int line;
     int col; 
     string errorMessage; 
   public: 
     void printErrMsg(void); 
-    void getErrorDetails(int &l, int &c, string &errmsg);
+    void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     Error(void);
 }; 
 
@@ -192,6 +193,13 @@ class foundSymAfterEndf: public Error
 	foundSymAfterEndf(int l, int c);
 };
 
+class unconnectInp: public Error
+{
+    public:
+    unconnectInp();
+};
+
+
 /***********************************************************/
 /********* more complex errors to report *******************/
 /***********************************************************/
@@ -207,7 +215,8 @@ class inputPrevConnected: public Error
     string longErrMsg;
     public:
     inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
-	void getErrorDetails(int &l, int &c, string &errmsg);
+    void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
+
     void printErrMsg(void);
 };
 
@@ -222,7 +231,7 @@ class nameAlreadyDefd : public Error
     string longErrMsg;
     public:
     nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod);
-    void getErrorDetails(int &l, int &c, string &errmsg);   
+    void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     void printErrMsg(void);
 };	
 	
