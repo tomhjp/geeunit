@@ -25,7 +25,8 @@ enum {
   SWITCH_BUTTON_1,
   ZAP_TRACE_COMBO_BOX,
   ADD_TRACE_COMBO_BOX,
-  SWITCH_COMBO_BOX
+  SWITCH_COMBO_BOX,
+  OPEN_DIALOG,
 }; // widget identifiers
 
 class MyGLCanvas;
@@ -58,6 +59,7 @@ class MyFrame: public wxFrame
         wxStaticText *runStaticText;
         wxStaticText *contStaticText;
         wxTextCtrl   *commandLine;
+        wxFileDialog     *openDialog;
         
         vector<wxString> switchNameVector;
         
@@ -65,6 +67,9 @@ class MyFrame: public wxFrame
         void runnetwork(int ncycles);           // function to run the logic network
         void OnExit(wxCommandEvent& event);     // callback for exit menu item
         void OnAbout(wxCommandEvent& event);    // callback for about menu item
+        void OnOpen(wxCommandEvent& event);
+        void OnNew(wxCommandEvent& event);
+        
         void OnRunButton(wxCommandEvent& event);   // callback for push button
         void OnContButton(wxCommandEvent& event);
         void OnButtonZap(wxCommandEvent& event);

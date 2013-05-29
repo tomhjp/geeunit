@@ -62,8 +62,7 @@ inplink network::findinput (devlink dev, name_t id)
   i = dev->ilist;
   found = false;
   while ((i != NULL) && (! found)) {
-    found = (i->id == id);
-    //cout <<"current input id searched is " << i->id << " in the devid " <<dev->id << endl; 
+    found = (i->id == id); 
     if (! found)
 	i = i->next;
   }

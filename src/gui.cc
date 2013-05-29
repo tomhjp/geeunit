@@ -59,7 +59,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
 
     int lenTrace = 20;
     int margin = 20;
-    int unitWidth;
+    float unitWidth;
     int x;
     int labelWidth = 30;
     GetClientSize(&width,&height);
@@ -84,11 +84,18 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
 
 
     glClear(GL_COLOR_BUFFER_BIT);
-
+    
+    unitWidth = traceboxWidth / cyclesdisplayed;
+    if (unitWidth < 1)
+        unitWidth = 0.3;
+        
+    cout << unitWidth << endl;  
+    cout << cyclesdisplayed << endl;
+//2700
     //If there are monitors then draw the first monitor signal, get trace from monitor class
     if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
     {
-        unitWidth = traceboxWidth / cyclesdisplayed;
+        
         if (unitWidth > 30)
         {
             unitWidth = 30;
@@ -335,7 +342,13 @@ void MyGLCanvas::populateMonitorNameVector()
         mmz->getmonname(n,dev,outp);
         namestring_t namestring = nmz->getName(dev);
         wxString devStr(namestring.c_str(), wxConvUTF8);
-
+        if (outp != blankname)
+        {   
+            namestring_t type = nmz->getName(outp);
+            wxString devType(type.c_str(), wxConvUTF8);
+            devStr.Append(wxT("."));
+            devStr.Append(devType);
+        }
         monitorNameVector.push_back(devStr);
     }
 }
@@ -356,6 +369,9 @@ void MyGLCanvas::setCyclesCompleted(int c)
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MyFrame::OnExit)
   EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+  EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
+  EVT_MENU(wxID_NEW,MyFrame::OnNew)
+  
 
   EVT_BUTTON(RUN_BUTTON,  MyFrame::OnRunButton)
   EVT_BUTTON(CONT_BUTTON, MyFrame::OnContButton)
@@ -402,6 +418,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     wxMenu *searchMenu = new wxMenu;
     wxMenu *toolsMenu = new wxMenu;
 
+    fileMenu->Append(wxID_NEW ,wxT("&New"));
+    fileMenu->Append(wxID_OPEN ,wxT("&Open"));
     fileMenu->Append(wxID_ABOUT, wxT("&About"));
     fileMenu->Append(wxID_EXIT, wxT("&Quit"));
 
@@ -413,8 +431,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     menuBar->Append(toolsMenu, wxT("&Tools"));
 
 
-    SetMenuBar(menuBar);
-
+    SetMenuBar(menuBar);;
     // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
     cyclescompleted = 0;
@@ -425,17 +442,18 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     canvas->populateTraceMatrix();
 
     canvas->setCanvasScrollBar();
-
     int numDevices = canvas->deviceNameVector.size();
     int numMonitors = canvas->monitorNameVector.size();
     int numSwitches = switchNameVector.size();
-
+    int c=0;
 
     // Define the sizers required
     wxBoxSizer *frame_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sidebar_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+   
+    
 
     // Initialise combo-box strings
     wxString zapTraceList[numDevices];
@@ -448,20 +466,20 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     {
         zapTraceList[i] = canvas->monitorNameVector[i];
     }
-
+    
     // Make the add combobox strings
     for (int i=0; i<numDevices; i++)
-    {
-        int c=0;
+    {        
         wxString deviceNamestring = canvas->deviceNameVector[i];
 
 		name_t did = getIdFromWxString(deviceNamestring);
         devicekind dkind = netz->netzdevkind(did);
         if (dkind == dtype)
-        {
+        {   
             addTraceList[c] = deviceNamestring.Append(wxT(".Q"));
             c++;
-            addTraceList[c] = deviceNamestring.Append(wxT(".QBAR"));
+            addTraceList[c] = deviceNamestring.Append(wxT("BAR"));
+            c++;
         }
         else
         {
@@ -479,16 +497,15 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
 
 
-
   // DEFINITIONS OF BUTTONS, CONTROLS AND SIZERS
   // *********************************************************************************************************************************
 
   //Define Zap Controls
-    zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to ZAP!"),wxDefaultPosition, wxDefaultSize,canvas->monitorNameVector.size(),zapTraceList);
+    zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to zap"),wxDefaultPosition, wxDefaultSize,canvas->monitorNameVector.size(),zapTraceList);
     zapTraceButton = new wxButton(this, ZAP_TRACE_BUTTON, wxT("ZAP"));
 
   // Define Add Controls
-    addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to Add"),wxDefaultPosition, wxDefaultSize,canvas->deviceNameVector.size()+canvas->numDtypes,addTraceList);
+    addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to add"),wxDefaultPosition, wxDefaultSize,canvas->deviceNameVector.size()+canvas->numDtypes,addTraceList);
     addTraceButton = new wxButton(this, ADD_TRACE_BUTTON, wxT("ADD"));
 
   // Define Switch Controls
@@ -594,13 +611,27 @@ name_t MyFrame::getIdFromWxString(wxString inStr)
 void MyFrame::OnExit(wxCommandEvent &event)
   // Callback for the exit menu item
 {
-  Close(true);
+    Close(true);
 }
 
 void MyFrame::OnAbout(wxCommandEvent &event)
   // Callback for the about menu item
 {
     wxString text = wxT("Example");
+}
+
+void MyFrame::OnOpen(wxCommandEvent &event)
+{
+    wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.def"),wxFD_OPEN, wxDefaultPosition);
+    openDialog->ShowModal();
+    wxString fid = openDialog->GetPath();
+    system("./logsim fid");
+    return;
+}
+
+void MyFrame::OnNew(wxCommandEvent &event)
+{
+    system("gedit untitled.def");
 }
 
 
@@ -615,6 +646,11 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 //****************************************************************************************************************************************
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
+    if (cyclescompleted > 2700)
+    {
+        errorBox(wxT("Can't display any more cycles. Click ""Run"" to start again. "));
+        return;
+    }
     int newcycles = 0;
 
   // Reset the monitor and run network
@@ -643,7 +679,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     if (selectionStr.IsEmpty())
     {
         errorBox(wxT("You need to select a device to monitor!"));
-        zapTraceComboBox->SetValue(wxT("# Choose trace to zap\n"));
+        zapTraceComboBox->SetValue(wxT("Choose trace to zap"));
         return;
     }
 
@@ -698,7 +734,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     commandLine->SetInsertionPoint(0);
 
   // Reset the text in the ComboBox
-    zapTraceComboBox->SetValue(wxT("Choose trace to zap!"));
+    zapTraceComboBox->SetValue(wxT("Choose trace to zap"));
 
   // Resize the scroll bar
     canvas->setCanvasScrollBar();
@@ -713,7 +749,7 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     if (selectionStr.IsEmpty())
     {
         errorBox(wxT("You need to select a device to monitor"));
-        addTraceComboBox->SetValue(wxT("Choose trace to add!"));
+        addTraceComboBox->SetValue(wxT("Choose trace to add"));
         return;
     }
     bool isDtype;
@@ -721,6 +757,10 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     wxString outputName;
     wxString monitorName = selectionStr;
     checkMonitorName(monitorName,deviceName,outputName,isDtype);
+    
+    cout << "deviceName =  " << string(deviceName.mb_str()) << endl;
+    cout << "outputName =  " << string(outputName.mb_str()) << endl;
+    cout << "monitorName =  " << string(monitorName.mb_str()) << endl;
     
   // Convert chosen string into a nameString
     string deviceString = string(deviceName.mb_str());
@@ -731,8 +771,11 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     did = nmz->cvtname(namestring);
     if (isDtype)
     {
-		namestring_t type = string(deviceName.mb_str());
+        cout << "IT'S A DTYPE" << endl;
+		namestring_t type = string(outputName.mb_str());
+		cout << type << endl;
         outp = nmz->cvtname(type);
+        cout << "outp = " << outp << endl;
 	}
     else
         outp = blankname;
@@ -850,7 +893,6 @@ void MyFrame::runnetwork(int ncycles)
     while ((n > 0) && ok)
     {
         dmz->executedevices (ok);
-
         if (ok)
             {
                n--;
