@@ -14,6 +14,13 @@ void Warning::printWarnMsg(void)
    cout << "Warning: " << line << ", " << col << ": " <<warningMessage <<endl;
 } 
 
+void Warning::getWarningDetails(int &l, int &c, string &warnmsg)
+{
+	l = line; 
+	c = col; 
+	warnmsg = warningMessage;
+	return;
+}
 Warning::Warning()
 {
 	return;
