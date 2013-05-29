@@ -33,14 +33,31 @@ bool MyApp::OnInit()
         smz->nextSymbol(symbol);
         pmz->readin(symbol);
     }
+    vector<Error*> errorVector = pmz->getErrorVector();
+    vector<Warning*> warningVector = pmz->getWarningVector();
+    smz->closeDefinitionFile();
+    
+    
+    unsigned int line, col;
+    string errorMessage;
+    for (int i=0; i<errorVector.size(); i++)
+    {
+        errorVector[i]->getErrorDetails(line, col, errorMessage);
+        smz->printError(line, col, errorMessage);
+    }
+    for (int i=0; i<warningVector.size(); i++)
+    {
+        warningVector[i]->getWarningDetails(line, col, errorMessage);
+        smz->printError(line, col, errorMessage);
+    }
 
-    if (1) { // check the logic file parsed correctly, will be check that errorvector is empty
+    if (errorVector.size() == 0) { // check the logic file parsed correctly, will be check that errorvector is empty
 #ifdef USE_GUI
     // glutInit cannot cope with Unicode command line arguments, so we pass
     // it some fake ASCII ones instead
     char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
     // Construct the GUI
-    MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1500, 800), nmz, dmz, mmz, netz);
+    MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 800), nmz, dmz, mmz, netz);
     frame->Show(true);
     return(true); // enter the GUI event loop
 #else
