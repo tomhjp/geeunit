@@ -169,10 +169,13 @@ bool parser::makeMonLine(void)
 {
     bool ok;
     name_t dev, outp;
-    devicekind devkind;
+    devicekind opdevkind;
+    devlink opdevlink;
+    
     dev = nmz->lookup(context[0].namestring);
-    devkind = dmz->devkind(dev);
-    if(devkind != dtype)
+    opdevlink = netz->finddevice(dev);
+    opdevkind = opdevlink->kind;
+    if(opdevkind != dtype)
     {
 	/* The monitor is not monitoring a dtype output */ 
 	outp = blankname;  // other device types have only one output 
@@ -194,21 +197,24 @@ bool parser::makeConLine(void)
     bool ok; 
     int line; 
     name_t idev, inp, odev, outp, ipid; 
+    devlink opdevlink, ipdevlink; 
     devicekind ipdevkind, opdevkind;
     namestring_t ipstring;
     
     line = context[0].line;
     odev = nmz->lookup(context[0].namestring);
-    opdevkind = dmz->devkind(odev);
+    opdevlink = netz->finddevice(odev);
+    opdevkind = opdevlink->kind;
+    cout << "the opdevkind found from netz is " <<opdevkind <<endl; 
     if(opdevkind != dtype)
     {
-	cout << "op device is not dtype" << endl; 
+	cout << "OP DEVICE IS NOT DTYPE" << endl; 
 	/* The output device is not a dtype */ 
 	
 	idev = nmz->lookup(context[2].namestring);
-	ipdevkind = dmz->devkind(idev);
-	devlink devicelink = netz->finddevice(idev);
-
+	devlink ipdevlink = netz->finddevice(idev);
+	ipdevkind = ipdevlink->kind;
+	
 	outp = blankname;  			// These devices only have one output. 
 	if(ipdevkind != dtype)
 	{
@@ -216,22 +222,21 @@ bool parser::makeConLine(void)
 	    /* ie. non-dtype -> non-dtype 	*/
 	    ipstring = context[4].namestring;
 	    name_t ipid = nmz->cvtname(ipstring);
-	    inplink inputlink = netz->findinput(devicelink, ipid);
-	    cout << "the inputlink returned is " <<inputlink << endl;
-	    cout << "the ipid returned is " <<ipid <<endl; 
+	    inplink inputlink = netz->findinput(ipdevlink, ipid);
 	    inp = inputlink->id; 
-	    cout << "inputlink->id " << inputlink->id <<endl;
 	}
 	else
-	{
+	{   
 	    /* The input device is a dtype 	*/
 	    /* ie non-dtype -> dtype 	    	*/
 	    ipstring = context[4].namestring;
 	    name_t ipid = nmz->cvtname(ipstring);
-	    if(context[4].symboltype == ddatasym) inp = datapin; 
-	    else if(context[4].symboltype == clksym) inp = clkpin; 
-	    else if(context[4].symboltype == dclearsym) inp = clrpin;
-	    else if(context[4].symboltype == dsetsym) inp = setpin;
+	    cout << context[4].symboltype << endl; 
+	    if(context[4].symboltype == ddatasym) inp = nmz->cvtname("DATA"); 
+	    else if(context[4].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
+	    else if(context[4].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
+	    else if(context[4].symboltype == dsetsym) inp = nmz->cvtname("SET");
+	    cout << "the input is " <<inp << endl; 
 	}
     }
     else
@@ -258,10 +263,10 @@ bool parser::makeConLine(void)
 	{
 	    /* The input device is a dtype 	*/
 	    /* ie. dtype -> dtype 		*/
-	    if(context[6].symboltype == ddatasym) inp = datapin; 
-	    else if(context[6].symboltype == clksym) inp = clkpin; 
-	    else if(context[6].symboltype == dclearsym) inp = clrpin;
-	    else if(context[6].symboltype == dsetsym) inp = setpin;
+	    if(context[6].symboltype == ddatasym) inp = nmz->cvtname("DATA"); 
+	    else if(context[6].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
+	    else if(context[6].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
+	    else if(context[6].symboltype == dsetsym) inp = nmz->cvtname("SET");
 	}
     }
  
@@ -273,7 +278,7 @@ bool parser::makeConLine(void)
 /* if the errorvector is empty. 							*/
 bool parser::makeDevLine(void) 
 {
-    //cout << "Make DEVICE" << endl; 
+    cout << "*****Make DEVICE******" << endl; 
     bool ok;  //used to check the makedevice method completes successfully 
     devicekind dkind; 
     symboltype_t devtype; 
@@ -296,10 +301,11 @@ bool parser::makeDevLine(void)
     else if(devtype == orsym) dkind = orgate;
     else if(devtype == norsym) dkind = norgate;
     else if(devtype == switchsym) dkind = aswitch; 
-    else if(devtype == clksym) dkind = aclock;
+    else if(devtype == clksym) dkind = aclock;	
     else if(devtype == dtypesym) dkind = dtype;
     else if(devtype == xorsym) dkind = xorgate;
     
+    cout << "makedevice called with dkind = " << dkind << endl;
     dmz->makedevice(dkind, id, variant, ok);
     return ok; 
 }
@@ -424,6 +430,7 @@ bool parser::checkConLine(void)
 {
     cout << "**************************check CONNECTIONS line**********************" << endl; 
 
+    /* prints outthe current line for debugging */ 
     for(int i=0; i<context.size(); i++)
 	cout << context[i].namestring;
     cout << endl; 
@@ -441,11 +448,21 @@ bool parser::checkConLine(void)
     /* check which devicetype is the output device on the line  */
     devicekind opdevkind, ipdevkind; 
     name_t opid, ipid;
+    devlink opdevlink, ipdevlink; 
+    
     opid = nmz->cvtname(context[0].namestring);
-    opdevkind = dmz->devkind(opid);
-    cout << "output device is of type " << opdevkind <<endl;
-    if(opdevkind != dtype)
+    cout << "finding the dkind of device with id " << opid << " and name " << context[0].namestring << endl;
+    opdevlink = netz->finddevice(opid);
+    opdevkind = opdevlink->kind;
+    cout << "the opdevkind found from netz is " <<opdevkind <<endl; 
+    if(opdevkind == baddevice)
     {
+	errorvector.push_back(new badDevType(context[0].line, context[0].col));
+	return false;
+    }
+    else if(opdevkind != dtype)
+    {
+	cout << "tralalalalalalalala" << endl;
 	/* device output is not from a dtype device */ 
 	if(!isConnPuncSym(context[1]))
 	{
@@ -467,20 +484,24 @@ bool parser::checkConLine(void)
 	    errorvector.push_back(new expDotSym(context[3].line, context[3].col));
 	    return false;
 	}
-	if(!isStrSym(context[4]))
-	{
-	    errorvector.push_back(new invInputSym(context[4].line, context[4].col));
-	    return false;
-	}
-	/* following depend on whether device input is into dtype or not */ 
+
+	/* the following depend on whether device input is into dtype or not */ 
+	
 	ipid = nmz->cvtname(context[2].namestring);
-	ipdevkind = dmz->devkind(ipid);
+	ipdevlink = netz->finddevice(ipid);
+	ipdevkind = ipdevlink->kind;
+
 	if(ipdevkind != dtype)
 	{
 	    /* input device is not a dtype device 	*/ 
 	    /* ie. nondtype -> nondtype 		*/ 
 	    cout << context[2].namestring <<endl; 
 	    name_t devid = nmz->cvtname(context[2].namestring); // gets the id for the device
+	    if(!isStrSym(context[4]))
+	    {
+		errorvector.push_back(new invInputSym(context[4].line, context[4].col));
+		return false;
+	    }
 	    if(!gateInputDefined(context[4], devid))
 	    {
 		errorvector.push_back(new inputUnDefd(context[4].line, context[4].col));
@@ -490,7 +511,6 @@ bool parser::checkConLine(void)
 	    {
 		if(!gateInputUnconnected(context[4], devid))
 		{
-		    cout << "hellolololol" << endl;
 		    devlink devicelink = netz->finddevice(devid); 
 		    errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, ipid, devicelink, netz));
 		    return false;
@@ -506,14 +526,13 @@ bool parser::checkConLine(void)
 	{
 	    /* input device is a dtype device   */ 
 	    /* ie. non-dtype -> dtype 		*/
-	    	    cout << "hereeeejjjjjjee" <<endl; 
-
+	    cout << "hereeeejjjjjjee" <<endl; 
 	    if(!isDtypeInput(context[4]))
 	    {
 		errorvector.push_back(new expDtypeInput(context[4].line, context[4].col));
 		return false;
 	    }
-	    if(!dtypeInputUnconnected(context[4]))
+	    if(!dtypeInputUnconnected(context[2], context[4]))
 	    {
 		name_t devid = nmz->cvtname(context[2].namestring); // gets the id for the device
 		devlink devicelink = netz->finddevice(devid); 
@@ -525,22 +544,17 @@ bool parser::checkConLine(void)
 		errorvector.push_back(new expSemiColSym(context[5].line, context[5].col));
 		return false;
 	    }
+	    
 	}
     }
     else
     {
-		    	    cout << "tytytytytytytyt" <<endl; 
+	cout << "tytytytytytytyt" <<endl; 
 
 	/* output devicetype is a dtype device   	*/
-	/* ie. dtype -> nondtype			*/
 	if(!isDotSym(context[1]))
 	{
 	    errorvector.push_back(new expDotSym(context[1].line, context[1].col));
-	    return false;
-	}
-	if(!isStrSym(context[2]))
-	{
-	    errorvector.push_back(new expDtypeOutput(context[2].line, context[2].col));
 	    return false;
 	}
 	if(!isDtypeOutput(context[2]))
@@ -570,7 +584,8 @@ bool parser::checkConLine(void)
 	}
 	/* The following depend on whether the input device is a dtype or not */ 
 	ipid = nmz->cvtname(context[4].namestring);
-	ipdevkind = dmz->devkind(ipid);
+	ipdevlink = netz->finddevice(ipid);
+	ipdevkind = ipdevlink->kind;
 	if(ipdevkind != dtype)
 	{
 	cout << "kokokokokokokoko" <<endl; 
@@ -604,19 +619,12 @@ bool parser::checkConLine(void)
 	{
 	    /* Input device is a dtype 		*/
 	    /* ie. dtype -> dtype 		*/
-	    	cout << "guguguguguguguguguggu" <<endl; 
-
-	    if(!isStrSym(context[6]))
+	    if(!isDtypeInput(context[6]))
 	    {
 		errorvector.push_back(new expDtypeInput(context[6].line, context[6].col));
 		return false;
 	    }
-	    if(!isDtypeInput(context[7]))
-	    {
-		errorvector.push_back(new expDtypeInput(context[6].line, context[6].col));
-		return false;
-	    }
-	    if(!dtypeInputUnconnected(context[6]))
+	    if(!dtypeInputUnconnected(context[4], context[6]))
 	    {
 		name_t devid = nmz->cvtname(context[4].namestring); // gets the id for the device
 		devlink devicelink = netz->finddevice(devid); 
@@ -659,9 +667,18 @@ bool parser::checkMonLine(void)
     /* dtype devices have multiple outputs				*/
     devicekind opdevkind; 
     name_t opid;
+    devlink opdevlink; 
+    
     opid = nmz->cvtname(context[0].namestring);
-    opdevkind = dmz->devkind(opid);
-    if(opdevkind !=dtype)
+    opdevlink = netz->finddevice(opid);
+    opdevkind = opdevlink->kind;
+
+    if(opdevkind == baddevice)
+    {
+	errorvector.push_back(new badDevType(context[0].line, context[0].col));
+	return false;
+    }
+    else if(opdevkind !=dtype)
     {
 	/* Monitoring a non-dtype device output  */
 	if(!isSemiColSym(context[1]))
@@ -676,11 +693,6 @@ bool parser::checkMonLine(void)
 	if(!isDotSym(context[1]))
 	{
 	    errorvector.push_back(new expDotSym(context[1].line, context[1].col));
-	    return false;
-	}
-	if(!isStrSym(context[2]))
-	{
-	    errorvector.push_back(new expDtypeOutput(context[2].line, context[2].col));
 	    return false;
 	}
 	if(!isDtypeOutput(context[2]))
@@ -742,7 +754,8 @@ bool parser::isSemiColSym(symbol_t symbol)
 bool parser::isDtypeInput(symbol_t symbol)
 {
     bool retval = false; 
-    if((symbol.symboltype == ddatasym) || (symbol.symboltype == clksym) || (symbol.symboltype == dsetsym) || (symbol.symboltype == dclearsym))
+    cout << symbol.symboltype << endl; 
+    if((symbol.symboltype == ddatasym) || (symbol.symboltype == dclksym) || (symbol.symboltype == dsetsym) || (symbol.symboltype == dclearsym))
 	retval = true; 
     return retval; 
 }
@@ -784,7 +797,6 @@ bool parser::gateInputDefined(symbol_t symbol, name_t devid)
     devlink devicelink = netz->finddevice(devid); 
     inplink inputlink = netz->findinput(devicelink, ipid); //gets a link to the input referenced 
     /* checks that the input exists. returns NULL if the input is not found */ 
-    cout << "returns ok" <<endl;
     if(inputlink != NULL)
 	retval = true; 
 	
@@ -806,19 +818,23 @@ bool parser::gateInputUnconnected(symbol_t symbol, name_t devid)
     inplink inputlink = netz->findinput(devicelink, ipid);
     if(inputlink->connect == NULL)
 	retval = true; 
+	
+    cout << "retval = " <<retval << endl;
     return retval;
 }
  
-bool parser::dtypeInputUnconnected(symbol_t symbol)
+bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
 {
+ 
     bool retval = false; 
     name_t devid, ipid; 
-    devid = nmz->cvtname(symbol.namestring); // gets the id for the device
+    devid = nmz->cvtname(dtypename.namestring); // gets the id for the device
     devlink devicelink = netz->finddevice(devid); 
-    if(symbol.symboltype == ddatasym) ipid = datapin; 
-    else if(symbol.symboltype == clksym) ipid = clkpin; 
-    else if(symbol.symboltype == dclearsym) ipid = clrpin;
-    else if(symbol.symboltype == dsetsym) ipid = setpin;
+    if(dtypeinput.symboltype == ddatasym) ipid = nmz->cvtname("DATA");
+    else if(dtypeinput.symboltype == dclksym) ipid = nmz->cvtname("CLK");
+    else if(dtypeinput.symboltype == dclearsym) ipid = nmz->cvtname("SET");
+    else if(dtypeinput.symboltype == dsetsym) ipid = nmz->cvtname("CLEAR");  
+    cout << "  the devid found is " <<devid << " the devlink used is " << devicelink << " and the ipid is " <<ipid <<endl;
     inplink inputlink = netz->findinput(devicelink, ipid);
     if(inputlink->connect == NULL)
 	retval = true; 

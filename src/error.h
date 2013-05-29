@@ -173,6 +173,12 @@ class inputUnDefd: public Error
     inputUnDefd(int l, int c);
 };
 
+class badDevType: public Error
+{
+    public:
+    badDevType(int l, int c);
+};
+
 class lineBuildFailed: public Error
 {
     public:

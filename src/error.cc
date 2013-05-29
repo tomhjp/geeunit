@@ -203,6 +203,13 @@ inputUnDefd::inputUnDefd(int l, int c)
     col = c;
 }
 
+badDevType::badDevType(int l, int c)
+{
+    errorMessage = "Invalid devicetype entered"; 
+    line = l;
+    col = c;
+}
+
 lineBuildFailed::lineBuildFailed(int l, int c)
 {
     errorMessage = "Parser error occurred.  This line parsed correctly, but failed to build";
@@ -236,7 +243,7 @@ inputPrevConnected::inputPrevConnected(int l, int c, name_t id, devlink dev, net
 
 int inputPrevConnected::getInitCon(void)
 {
-	int l;
+	int l= 5;
 	l = netz->getLineDefd(devicelink, ipid);
 	return l;
 }

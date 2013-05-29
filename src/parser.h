@@ -72,7 +72,7 @@ class parser {
     bool devNameDefined(symbol_t symbol);
     bool gateInputDefined(symbol_t symbol, name_t devid);
     bool gateInputUnconnected(symbol_t symbol, name_t devid);
-    bool dtypeInputUnconnected(symbol_t symbol);
+    bool dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput);
     
   public:
     /* Reads the definition of the logic system and builds the             */

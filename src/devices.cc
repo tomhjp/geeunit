@@ -416,10 +416,13 @@ void devices::writedevice (devicekind k)
  * 'baddevice' is returned if the name is not a legal device.    
  *
  */
+ /* NB. cannot be used with entries in nametable to find their type. 	*/ 
+ /* search for them in devicelist instead (in network class) 		*/
 devicekind devices::devkind (name_t id)
 {
   devicekind d;
   d = aswitch;
+  
   while ((d != baddevice) && (dtab[d] != id))
     d = static_cast<devicekind>(d + 1);
   return (d);
