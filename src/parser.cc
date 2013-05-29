@@ -11,7 +11,7 @@
 using namespace std;
 
 /* The parser for the circuit definition files */
-
+/* WORKING NOW IF THE SPEC FILE IS CORRECT */ 
 void parser::skipToBreak(symbol_t symbol)
 {
 	if(symbol.symboltype == semicolsym)
