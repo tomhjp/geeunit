@@ -99,7 +99,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             glBegin(GL_LINE_STRIP);
             
             bool skipLow = false, skipHigh = false;
-            for (c=0; c<cyclesdisplayed; c++) 
+            for (c=0; c<traceMatrix[0].size(); c++) 
             {   
                 s = traceMatrix[t][c];
                 if (s==low)
@@ -201,6 +201,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     glColor3f(0.0, 0.0, 0.0);
     glRasterPos2f(margin, 0.1*height);
     //for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
+
     
 
     // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
@@ -649,7 +650,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     }
     
   // Now that we've confirmed that the selection is valid, clear the traceMatrix 
-    canvas->traceMatrix.clear();
+//    canvas->traceMatrix.clear();
 
   // Find namestring of device   
     string devNamestring = string(selectionStr.mb_str());
@@ -673,7 +674,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
     }
     
   // Populate the new traceMatrix and Render the canvas to remove the desired trace
-    canvas->populateTraceMatrix();
+    canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
     canvas->Render(text,-1);
     
   // Reset the text in the ComboBox
@@ -726,10 +727,7 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     RunFunction(); 
 
   // Warn the user that I'll run for 10 cycles
-    wxString message;
-    message.Printf(wxT("Your new monitor has been added!!\nTo prevent errors the network was run for a few cycles and the trace has been updated"));
-    wxMessageDialog about(this,message,wxT("Add Response"), wxICON_INFORMATION | wxOK);
-    about.ShowModal();
+    errorBox(wxT("Your new monitor has been added!!\nTo prevent errors the network was run for a few cycles and the trace has been updated"));
     
   // Reset the text in the ComboBox
     addTraceComboBox->SetValue(wxT("Choose trace to add"));
@@ -741,6 +739,13 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
 void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
   // Callback for second pushbutton
 {
+    if (switchComboBox->GetStringSelection().IsEmpty())
+    {
+        errorBox(wxT("You need to select a device to monitor"));
+        addTraceComboBox->SetValue(wxT("Choose trace to add!"));
+        return;
+    }  
+
     name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
     // Following for debugging
     //namestring_t devStr = string(switchComboBox->GetStringSelection().mb_str());
@@ -751,11 +756,21 @@ void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
     dmz->setswitch(sid, s, ok);
     if (!ok)
         cout << "Error setting switch to 0" << endl;
+    
+    errorBox(wxT("Switch changed to 0"));
 }
 
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
   // Callback for second pushbutton
 {
+
+    if (switchComboBox->GetStringSelection().IsEmpty())
+    {
+        errorBox(wxT("You need to select a device to monitor"));
+        addTraceComboBox->SetValue(wxT("Choose trace to add!"));
+        return;
+    }  
+    
     name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
     asignal s = high;
     bool ok;
@@ -763,6 +778,9 @@ void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
     dmz->setswitch(sid, s, ok);
     if (!ok)
         cout << "Error setting switch to 1" << endl;
+        
+    commandLine->SetValue(wxT("# Switch changed to 1"));
+    errorBox(wxT("Switch changed to 1"));
 }
 
 void MyFrame::OnSpin(wxSpinEvent &event)
