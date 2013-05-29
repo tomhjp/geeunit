@@ -35,8 +35,6 @@ bool MyApp::OnInit()
     }
     vector<Error*> errorVector = pmz->getErrorVector();
     vector<Warning*> warningVector = pmz->getWarningVector();
-    smz->closeDefinitionFile();
-    
     
     int line, col;
     string errorMessage;
