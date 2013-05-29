@@ -24,7 +24,7 @@ int main(void)
     
     vector<Error*> errorvector;
     
-    const char* file = "dfile2";
+    const char* file = "dfile";
     nmz = new names();
     netz = new network(nmz);
     dmz = new devices(nmz, netz);

@@ -1,8 +1,15 @@
 
+<<<<<<< HEAD
 tits and arse;;
 STARTFILE
 DEVICES
     and1 = AND(2); '''
+=======
+/* tits and arse!~  */ 
+STARTFILE
+DEVICES
+    and1 = AND(2);
+>>>>>>> 32744078b5ada9a052af507d67593b973a2843a6
     and2 = AND(2);
     and3 = AND(2);
     or = OR(3);
@@ -20,7 +27,7 @@ connections
 */
     A -> and1.I1;
     B -> and1.I2;
-    B -> and2.I1;
+    B -> anffd2.I1;
     C -> and2.I2;
     C -> and3.I1;
     A -> and3.I2;
