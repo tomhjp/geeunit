@@ -199,17 +199,18 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("NOR"))         s = norsym;
     else if (!namestring.compare("DTYPE"))       s = dtypesym;
     else if (!namestring.compare("XOR"))         s = xorsym;
-    else if (!namestring.compare("CLK"))         s = clksym;
+    else if (!namestring.compare("CLOCK"))       s = clksym;   // to prevent interference with dtype.CLK input
     else if (!namestring.compare(","))           s = commasym;
     else if (!namestring.compare(";"))           s = semicolsym;
     else if (!namestring.compare("("))           s = opsym;
     else if (!namestring.compare(")"))           s = cpsym;
     else if (!namestring.compare("="))           s = equalsym;
     else if (!namestring.compare("."))           s = dotsym;
-    else if (!namestring.compare("->"))           s = connpuncsym;
+    else if (!namestring.compare("->"))          s = connpuncsym;
     else if (!namestring.compare("DATA"))	 s = ddatasym;
     else if (!namestring.compare("SET"))	 s = dsetsym;
     else if (!namestring.compare("CLEAR"))	 s = dclearsym; 
+    else if (!namestring.compare("CLK"))	 s = dclksym;
     else if (!namestring.compare("Q"))		 s = qsym;
     else if (!namestring.compare("QBAR"))	 s = qbarsym; 
     /* If first char is alphabetic then namestring was retrieved with getname and is a name */
