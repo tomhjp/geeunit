@@ -419,44 +419,51 @@ void scanner_t::nextSymbol(symbol_t &symbol)
 
 void scanner_t::closeDefinitionFile(void)
 {
-    inf.close();
+    //inf.close();
     return;
 }
 
-void scanner_t::printError(int line, int col, string errorStr)
+void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
 {
-    inf.open(file);
-    if (!inf)
-    {
-        cout << "Error: cannot open file for reading" << endl;
-        exit(1);
-    }
+    //inf.close();
+    inf.seekg(0);
+    //inf.open(file);
+    //if (!inf)
+    //{
+    //    cout << "Error: cannot open file for reading" << endl;
+    //    exit(1);
+    //}
     
     if (col > 80)
     {
         cout << "Bad col value " << col << ". No meaningful line in a definition file should have this many columns" << endl;
-        inf.close();
+        //inf.close();
         return;
     }
     
-    string lineStr;
-    for (int l=0; l<line; l++)
+    if (hasPosition)
     {
-        lineStr = "";
-        if (!getline(inf, lineStr))
+        string lineStr;
+        for (int l=0; l<line; l++)
         {
-            cout << "Bad line value, " << line << ". Seems to be outside the line range of the file" << endl;
-            inf.close();
-            return;
-        }
-        if (l+1 == line)      // reached the line on which an error is being reported
-        {
-            cout << lineStr << endl;
-            for (int i=0; i<col-1; i++)
-                cout << " ";
-            cout << "^" << endl;
-            cout << errorStr << endl;
+            lineStr = "";
+            if (!getline(inf, lineStr))
+            {
+                cout << "Bad line value, " << line << ". Seems to be outside the line range of the file" << endl;
+                //inf.close();
+                return;
+            }
+            if (l+1 == line)      // reached the line on which an error is being reported
+            {
+                cout << lineStr << endl;
+                for (int i=0; i<col-1; i++)
+                    cout << " ";
+                cout << "^" << endl;
+                cout << errorStr << endl;
+            }
         }
     }
-    inf.close();
+    else
+        cout << errorStr << endl;
+    //inf.close();
 }

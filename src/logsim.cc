@@ -40,10 +40,11 @@ bool MyApp::OnInit()
     
     int line, col;
     string errorMessage;
+    bool hasPosition;
     for (int i=0; i<errorVector.size(); i++)
     {
-        errorVector[i]->getErrorDetails(line, col, errorMessage);
-        smz->printError(line, col, errorMessage);
+        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
+        smz->printError(line, col, errorMessage, hasPosition);
     }
     for (int i=0; i<warningVector.size(); i++)
     {

@@ -1,6 +1,8 @@
+
+tits and arse;;
 STARTFILE
 DEVICES
-    and1 = AND(2)
+    and1 = AND(2); '''
     and2 = AND(2);
     and3 = AND(2);
     or = OR(3);
