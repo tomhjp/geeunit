@@ -2,6 +2,7 @@
 #include "names.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using namespace std; 
 
@@ -14,6 +15,15 @@ void Error::printErrMsg(void)
 {
    cout << "Error: " << line << ", " << col << ": " <<errorMessage <<endl;
 } 
+
+/* used by the scanner to get the error details.  */ 
+void Error::getErrorDetails(int &l, int &c, string &errmsg)
+{
+	l = line; 
+	c = col; 
+	errmsg = errorMessage;
+	return;
+}
 
 Error::Error()
 {
@@ -248,6 +258,25 @@ int inputPrevConnected::getInitCon(void)
 	return l;
 }
 	
+void inputPrevConnected::getErrorDetails(int &l, int &c, string &errmsg)
+{
+	l = line;
+	c = col; 
+	makeLongErrMsg();
+	errmsg = longErrMsg;
+	return;
+}
+
+void inputPrevConnected::makeLongErrMsg(void)
+{
+	string firstLine;
+	int a = initconline;
+	stringstream ss;
+	ss << a;
+	firstLine = ss.str();
+	longErrMsg = errorMessage + firstLine; 
+	return;
+}
 	
 nameAlreadyDefd::nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod)
 {
@@ -270,5 +299,27 @@ void nameAlreadyDefd::getInitDef(void)
 	initdefcol = nmz->getCol(devname);
 }
 
+void nameAlreadyDefd::getErrorDetails(int &l, int &c, string &errmsg)
+{
+	l = line;
+	c = col; 
+	makeLongErrMsg();
+	errmsg = longErrMsg;
+	return;
+}
 
+void nameAlreadyDefd::makeLongErrMsg(void)
+{
+	string firstLine, firstCol;
+	int a = initdefline;
+	stringstream ss;
+	ss << a;
+	firstLine = ss.str();
+	a = initdefcol;
+	ss << a;
+	firstCol = ss.str();
+	longErrMsg = errorMessage + firstLine + ", " + firstCol; 
+	return;
+}
+	
 
