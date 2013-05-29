@@ -417,12 +417,6 @@ void scanner_t::nextSymbol(symbol_t &symbol)
     }
 }
 
-void scanner_t::closeDefinitionFile(void)
-{
-    //inf.close();
-    return;
-}
-
 void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
 {
     // clear the eofbit so that we can successfully seek the beginning of the file again

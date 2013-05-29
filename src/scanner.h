@@ -73,8 +73,6 @@ public:
     void nextSymbol(symbol_t &symbol);
       /* Return the next symbol in the definition file in a struct */
 
-    void closeDefinitionFile(void);
-
     void printError(int line, int col, string errorStr, bool hasPosition);
 };
 
