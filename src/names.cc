@@ -17,11 +17,17 @@ names::names(void)  /* the constructor */
 
 name_t names::lookup (namestring_t str)
 {
-    name_t index = find(table.begin(), table.end(), str) - table.begin();
-    if (index == table.end() - table.begin())
+    name_t index;
+    index = cvtname(str);
+    if (index == blankname)
     {
-        // str didn't exist, insert str into table
-        table.push_back(str);
+        /* str didn't exist, make a namestruct and insert into table */
+        namestruct_t namestruct;
+        namestruct.namestring = str;
+        //namestruct.line = symbol.line;
+        //namestruct.col = symbol.col;
+
+        table.push_back(namestruct);
         return (name_t) table.size()-1;
     }
     else
@@ -30,57 +36,93 @@ name_t names::lookup (namestring_t str)
 
 name_t names::cvtname (namestring_t str)
 {
-    return 0;
+    name_t index;
+    namestruct_t entry;
+    //cout << "namestring passed to names is " << str << endl; 
+    for (index=0; index<table.size(); index++)
+    {	
+	entry = table[index];
+	//cout << entry.namestring << endl; 
+        if (entry.namestring == str)
+        {
+            break;
+        }
+    }
+    if (index == table.size())
+    {
+        /* str doesn't yet exist  */
+        return blankname;
+    }
+    else
+    {
+        /* str exists, and is at location index in the table  */
+        return index;
+    }
+
 }
+
+int names::getLine(namestring_t str)
+{
+    int linenum;
+    name_t index;
+    index = cvtname(str);
+    if (indexOk(index))
+        linenum = table[index].line;
+    return linenum;
+}
+
+int names::getCol(namestring_t str)
+{
+    int colnum;
+    name_t index;
+    index = cvtname(str);
+    if (indexOk(index))
+        colnum = table[index].col;
+    return colnum;
+}
+
+
+void names::setPos(namestring_t str, int line, int col)
+{
+    name_t index = cvtname(str);
+    if (indexOk(index))
+    {
+        table[index].line = line;
+        table[index].col = col;
+    }
+}
+
 
 void names::writename (name_t index)
 {
+    if (indexOk(index))
+        cout << table[index].namestring;
+}
+
+namestring_t names::getName(name_t index)
+{
+    return table[index].namestring;
+}
+
+int names::namelength (name_t index)
+{
+    if (indexOk(index))
+        return table[index].namestring.length();
+}
+
+bool names::indexOk(name_t index)
+{
     try
     {
-        if (index > table.size()-1)
-        throw index;
-        cout << table[index];
+        if (index >= table.size())
+            throw index;
+        return true;
     }
     catch (name_t index)
     {
         cout << "Warning: Attempted to access index " << index << " outside table size " << \
                 table.size() << endl;
+        return false;
     }
+    return false;
 }
-
-int names::namelength (name_t index)
-{
-    return table[index].length();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

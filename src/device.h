@@ -1,13 +1,16 @@
+#ifndef device_h
+#define	device_h
+
 using namespace std; 
 
 class Device
 {
+  protected: 
     int validNumParams;   /* Valid number of parameters passed. 1 in all cases in client's original spec */ 
   public:
-  
     Device(void);
     bool numParamsValid(int numParams);  /* Checks the number of parameters passed is correct*/
-    bool paramInValidRange(int param);  /* Checks the parameter passed is in a valid range*/ 
+    bool paramInValidRange(int param);  /* Checks the parameter passed is in a valid range, as specified in child classes */ 
 };
 
 class Dtype: public Device
@@ -16,26 +19,31 @@ class Dtype: public Device
     Dtype(void);
 }; 
 
-class Clk: Device
+class Clk: public Device
 {
   public:  
     Clk(void);
+    bool paramInValidRange(int param);
 };
 
-class Switch: Device 
+class Switch: public Device 
 {
   public: 
     Switch(void);
+    bool paramInValidRange(int param);
 };   
 
-class Gate: Device
+class Gate: public Device
 {
   public: 
     Gate(void);
+    bool paramInValidRange(int param);
 };
 
-class Xor: Device
+class Xor: public Device
 {
   public:
     Xor(void);
 };
+
+#endif

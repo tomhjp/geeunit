@@ -12,9 +12,6 @@ Device::Device(void)
     return;
 }
 
-/**********************************************************************/
-/* Methods for the devicetype subclasses */ 
-
 /* Checks the number of parameters specified is correct */
 bool Device::numParamsValid(int numParams)
 {
@@ -22,12 +19,15 @@ bool Device::numParamsValid(int numParams)
     else return false;
 } 
 
+/**********************************************************************/
+/* Methods for the devicetype subclasses */ 
 
 /* Constructor for the Clk class */ 
-Clk::Clk(void)
+Clk::Clk(void) : Device()
 {
     validNumParams = 1;
 }
+
 
 /* Checks the parameter passed to CLK devices is in the correct range */ 
 bool Clk::paramInValidRange(int param) 

@@ -133,6 +133,7 @@ void devices::makegate (devicekind dkind, name_t did, int ninputs, bool& ok)
 	iname += ((char) (n % 10)) + '0';
       }
       netz->addinput (d, nmz->lookup (iname));
+      cout << "the input id is nmz->lookup(iname) = " << nmz->lookup (iname) << endl; 
     }
   }
 }
@@ -415,10 +416,13 @@ void devices::writedevice (devicekind k)
  * 'baddevice' is returned if the name is not a legal device.    
  *
  */
+ /* NB. cannot be used with entries in nametable to find their type. 	*/ 
+ /* search for them in devicelist instead (in network class) 		*/
 devicekind devices::devkind (name_t id)
 {
   devicekind d;
   d = aswitch;
+  
   while ((d != baddevice) && (dtab[d] != id))
     d = static_cast<devicekind>(d + 1);
   return (d);

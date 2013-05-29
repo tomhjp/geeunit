@@ -34,8 +34,8 @@ class userint {
   void rdcmd (char& cmd, charset valid);
   void rdnumber (int& n, int lo, int hi);
   void rdstring (namestring_t& n);
-  void rdname (name& n);
-  void rdqualname (name& prefix, name& suffix);
+  void rdname (name_t& n);
+  void rdqualname (name_t& prefix, name_t& suffix);
   void setswcmd (void);
   void runnetwork (int ncycles);
   void runcmd (void);
