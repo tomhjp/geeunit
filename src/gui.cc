@@ -114,35 +114,61 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 bool skipLow = false, skipHigh = false;
                 for (c=0; c<traceMatrix[0].size(); c++)
                 {
-                    s = traceMatrix[t][c];
-                    if (s==low)
-                    {
-                        y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
-                        x = margin + labelWidth + traceMargin + unitWidth*c;
-                    }
 
-                    if (s==high)
-                    {
-                        y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
-                        x = margin + labelWidth + traceMargin + unitWidth*c;
-                    }
-                    /*if (y > (height-canvasPosition))
-                    {
-                        y = height - canvasPosition;
-                        skipHigh = true;
-                        glEnd();
-                    }
-                    else
-                    {
-                        skipHigh = false;
-                        glBegin(GL_LINE_STRIP);
-                    }*/
-                    glVertex2f(x, y);
-                    glVertex2f(x+unitWidth, y);
+                        s = traceMatrix[t][c];
+                        if (s==low)
+                        {
+                            y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
+                            x = margin + labelWidth + traceMargin + unitWidth*c;
+                        }
+
+                        if (s==high)
+                        {
+                            y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
+                            x = margin + labelWidth + traceMargin + unitWidth*c;
+                        }
+                        glVertex2f(x,y);
+                        glVertex2f(x+unitWidth, y);
+                        
                 }
             glEnd();
         }
+        
+        // WHY IS THERE NO ROUND() FUNCTION?!?!
+        int axisSpacing = 5;
+        if (cyclesdisplayed < 50)
+            axisSpacing = 2;
+        else if (cyclesdisplayed < 100)
+            axisSpacing = 5;
+        else if (cyclesdisplayed < 200)
+            axisSpacing = 10;
+        else if (cyclesdisplayed < 400)
+            axisSpacing = 20;
+        else 
+            axisSpacing = 100;
+            
 
+        cout <<"cycles = " << cyclesdisplayed << endl;
+        for (t=0; t<traceMatrix.size(); t++)
+        {
+            for (c=0; c<traceMatrix[0].size(); c++)
+            {
+                if (c%axisSpacing == 0)
+                {   
+                    wxString axisLabel;
+                    axisLabel.Printf(wxT("%d"),c);
+                    x = margin + labelWidth + traceMargin + unitWidth*c -6;
+                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5 - 15);
+                    glColor3f(0.0, 0.0, 0.0);
+                    glRasterPos2f(x,y);
+                    for (i=0; i < axisLabel.Len() ; i++)
+                    {
+                        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, axisLabel[i]);
+                    }
+                }    
+            }
+        }
+       
         // Write out labels for the traces
         for (int j=0; j<monitorNameVector.size(); j++)
         {
@@ -208,15 +234,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     }
     */
 
-
-    // Example of how to use GLUT to draw text on the canvas
-    glColor3f(0.0, 0.0, 0.0);
-    glRasterPos2f(margin, 0.1*height);
-    //for (i = 0; i < example_text.Len(); i++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, example_text[i]);
-
-
-
-    // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
+  // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
     glFlush();
     SwapBuffers();
 }
@@ -631,6 +649,7 @@ void MyFrame::OnOpen(wxCommandEvent &event)
     wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.def"),wxFD_OPEN, wxDefaultPosition);
     openDialog->ShowModal();
     wxString fid = openDialog->GetPath();
+    wxString fileName = fid.AfterLast('/');
     string fileid = string(fid.mb_str());
     
     delete nmz;
@@ -674,9 +693,9 @@ void MyFrame::OnOpen(wxCommandEvent &event)
         //smz->printError(line, col, errorMessage);
     }
     resetCanvas();
-    canvas->Render(wxT("New File Opened. Network run for a few cycles."),cyclescompleted);
+    canvas->Render(wxT("New File Opened Network run for a few cycles"),cyclescompleted);
     wxString commandLineText;
-    commandLineText = wxT("New File Opened. Network run for a few cycles.");
+    commandLineText.Printf(wxT("'%s' opened, Network run for a few cycles\n"),fileName.c_str());
     commandLine->WriteText(commandLineText);
     commandLine->SetInsertionPoint(0);
     cout << "cycles completed = " << cyclescompleted << endl;
@@ -696,7 +715,6 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 }
 
 // Callback for the continue button
-//****************************************************************************************************************************************
 void MyFrame::OnContButton(wxCommandEvent &event)
 {   
     int width, height;
@@ -724,10 +742,10 @@ void MyFrame::OnContButton(wxCommandEvent &event)
     commandLine->WriteText(commandLineText);
     commandLine->SetInsertionPoint(0);
 }
-//****************************************************************************************************************************************
 
-void MyFrame::OnButtonZap(wxCommandEvent &event)
+
   // Callback for Zap PushButton
+void MyFrame::OnButtonZap(wxCommandEvent &event)
 {
  // Take values from zap combobox
     wxString selectionStr = zapTraceComboBox->GetStringSelection();
