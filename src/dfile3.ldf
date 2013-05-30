@@ -1,0 +1,41 @@
+/* Circuit contains all device types */ 
+
+STARTFILE 
+DEVICES
+    A = SWITCH(0);
+    B = SWITCH(0)
+    C = SWITCH(0);
+    clk = CLOCK(1); 
+    set = SWITCH(0);
+    clear = SWITCH(0);
+    or = OR(2);
+    and = AND(2);
+    nand = NAND(2);
+    nor = NOR(2);
+    xor = XOR; 
+    dtype = DTYPE;
+END
+CONNECTIONS
+    A -> or.I1;
+    B -> or.I2;
+    C -> dtype.DATA;
+    clk -> dtype.CLK;
+    set -> dtype.SET;
+    clear -> dtype.CLEAR;
+    or -> nand.I1;
+    or -> and.I2;
+    dtype.Q -> and.I1;
+    dtype.QBAR -> nand.I2;
+    nand -> nor.I1;
+    and -> nor.I2;
+    nor -> xor.I1;
+    dtype.Q -> xor.I2;
+END
+MONITORS
+    dtype.Q;
+    xor;
+    A;
+    B;
+    C;  
+END
+ENDFILE       

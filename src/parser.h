@@ -63,10 +63,25 @@ class parser {
     bool makeMonLine(void);
     void emptyContextVector(void);
     
+    
+    /**** Booleans carrying out simple checks required often ***/ 
+	bool isEqualSym(symbol_t symbol);
+	bool isClkSym(symbol_t symbol);
+	bool isAndSym(symbol_t symbol);
+	bool isNandSym(symbol_t symbol);
+	bool isOrSym(symbol_t symbol);
+	bool isNorSym(symbol_t symbol);
+	bool isXorSym(symbol_t symbol);
+	bool isSwitchSym(symbol_t symbol);
+	bool isDtypeSym(symbol_t symbol);
+    bool isDevSym(symbol_t symbol);
     bool isStrSym(symbol_t symbol);
+    bool isNumSym(symbol_t symbol);
     bool isConnPuncSym(symbol_t symbol);
     bool isDotSym(symbol_t symbol);
     bool isSemiColSym(symbol_t symbol);
+    bool isOpSym(symbol_t symbol);
+    bool isCpSym(symbol_t symbol);
     bool isDtypeInput(symbol_t symbol);
     bool isDtypeOutput(symbol_t symbol);
     bool devNameDefined(symbol_t symbol);
