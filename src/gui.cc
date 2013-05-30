@@ -260,7 +260,6 @@ void MyGLCanvas::setCanvasScrollBar()
 {
     int scrollHeight = unitHeight/5;
     int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
-    //cout << "scrollHeight = " << scrollHeight << ", numPositions = " << numPositions << endl;
     SetScrollbar(wxVERTICAL,0,10,10+numPositions);
 }
 
@@ -646,59 +645,7 @@ void MyFrame::OnAbout(wxCommandEvent &event)
 
 void MyFrame::OnOpen(wxCommandEvent &event)
 {
-    wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.def"),wxFD_OPEN, wxDefaultPosition);
-    openDialog->ShowModal();
-    wxString fid = openDialog->GetPath();
-    wxString fileName = fid.AfterLast('/');
-    string fileid = string(fid.mb_str());
-    
-    delete nmz;
-    delete netz;
-    delete dmz;    
-    delete mmz;
-    delete smz;
-    delete pmz;
-    
-    nmz = new names();
-    netz = new network(nmz);
-    dmz = new devices(nmz, netz);
-    mmz = new monitor(nmz, netz);
-    smz = new scanner_t(fileid);
-    pmz = new parser(netz, dmz, mmz, smz, nmz);
-    symbol_t symbol;
-    symbol.symboltype = startfsym;      // arbitrary symboltype that is not eofsym
-    
- 
-    /* Read through whole file outputting one symbol and its type at a time */
-    while (symbol.symboltype != eofsym)
-    {
-        smz->nextSymbol(symbol);
-        pmz->readin(symbol);
-        
-    }
-    vector<Error*> errorVector = pmz->getErrorVector();
-    vector<Warning*> warningVector = pmz->getWarningVector();
-    
-    int line, col;
-    string errorMessage;
-    bool hasPosition;
-    for (int i=0; i<errorVector.size(); i++)
-    {
-        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
-        smz->printError(line, col, errorMessage, hasPosition);
-    }
-    for (int i=0; i<warningVector.size(); i++)
-    {
-        //warningVector[i]->getWarningDetails(line, col, errorMessage);
-        //smz->printError(line, col, errorMessage);
-    }
-    resetCanvas();
-    canvas->Render(wxT("New File Opened Network run for a few cycles"),cyclescompleted);
-    wxString commandLineText;
-    commandLineText.Printf(wxT("'%s' opened, Network run for a few cycles\n"),fileName.c_str());
-    commandLine->WriteText(commandLineText);
-    commandLine->SetInsertionPoint(0);
-    cout << "cycles completed = " << cyclescompleted << endl;
+    OpenFile();
 }
 
 void MyFrame::OnNew(wxCommandEvent &event)
@@ -1145,4 +1092,70 @@ void MyFrame::resetCanvas()
     switchComboBox->Clear();
     switchComboBox->Append(switchArray);
     
+}
+
+void MyFrame::OpenFile()
+{
+    wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.ldf"),wxFD_OPEN, wxDefaultPosition);
+    openDialog->ShowModal();
+    wxString fid = openDialog->GetPath();
+    wxString fileName = fid.AfterLast('/');
+    string fileid = string(fid.mb_str());
+    
+    delete nmz;
+    delete netz;
+    delete dmz;    
+    delete mmz;
+    delete smz;
+    delete pmz;
+    
+    nmz = new names();
+    netz = new network(nmz);
+    dmz = new devices(nmz, netz);
+    mmz = new monitor(nmz, netz);
+    smz = new scanner_t(fileid);
+    pmz = new parser(netz, dmz, mmz, smz, nmz);
+    symbol_t symbol;
+    symbol.symboltype = startfsym;      // arbitrary symboltype that is not eofsym
+    
+ 
+    /* Read through whole file outputting one symbol and its type at a time */
+    while (symbol.symboltype != eofsym)
+    {
+        smz->nextSymbol(symbol);
+        pmz->readin(symbol);
+        
+    }
+    vector<Error*> errorVector = pmz->getErrorVector();
+    vector<Warning*> warningVector = pmz->getWarningVector();
+    
+    int line, col;
+    string errorMessage;
+    bool hasPosition;
+    for (int i=0; i<errorVector.size(); i++)
+    {
+        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
+        smz->printError(line, col, errorMessage, hasPosition);
+    }
+    for (int i=0; i<warningVector.size(); i++)
+    {
+        //warningVector[i]->getWarningDetails(line, col, errorMessage);
+        //smz->printError(line, col, errorMessage);
+    }
+    if (errorVector.size() != 0)
+    {
+        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s contained an Error and cannot be simulated. Please open a valid file\n"),fileName.c_str());
+        commandLine->WriteText(commandLineText);
+        commandLine->SetInsertionPoint(0);
+        errorBox(commandLineText);        
+        OpenFile();
+        return;
+    }
+    resetCanvas();
+    canvas->Render(wxT("New File Opened Network run for a few cycles"),cyclescompleted);
+    wxString commandLineText;
+    commandLineText.Printf(wxT("# '%s' opened, Network run for a few cycles\n"),fileName.c_str());
+    commandLine->WriteText(commandLineText);
+    commandLine->SetInsertionPoint(0);
 }

@@ -89,6 +89,7 @@ class MyFrame: public wxFrame
         bool isdtype(name_t did);
         void checkMonitorName(wxString monitorName, wxString& deviceName, wxString& outputName, bool& isDtype);
         void resetCanvas();
+        void OpenFile();
         
 
         void populateSwitchNameVector();
