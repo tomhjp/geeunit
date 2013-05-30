@@ -348,7 +348,6 @@ void MyGLCanvas::setNetwork(network* network_mod)
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
   // Menu Events
     EVT_MENU(wxID_EXIT, MyFrame::OnExit)
-    EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
     EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
     EVT_MENU(wxID_NEW,MyFrame::OnNew)
 
@@ -400,7 +399,6 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
     fileMenu->Append(wxID_NEW ,wxT("&New"));
     fileMenu->Append(wxID_OPEN ,wxT("&Open"));
-    fileMenu->Append(wxID_ABOUT, wxT("&About"));
     fileMenu->Append(wxID_EXIT, wxT("&Quit"));
 
 
@@ -589,12 +587,6 @@ void MyFrame::OnExit(wxCommandEvent &event)
   // Callback for the exit menu item
 {
     Close(true);
-}
-
-void MyFrame::OnAbout(wxCommandEvent &event)
-  // Callback for the about menu item
-{
-    wxString text = wxT("Example");
 }
 
 void MyFrame::OnOpen(wxCommandEvent &event)
@@ -874,15 +866,6 @@ void MyFrame::runnetwork(int ncycles)
     {
         cyclescompleted = 0;
     }
-}
-
-void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
-{
-    wxString message;
-    message.Printf(wxT("Trace Selected: %s \nSwitch Selected: %s"),traceStr.c_str(),switchStr.c_str());
-    wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
-    about.ShowModal();
-    return;
 }
 
 

@@ -1,0 +1,44 @@
+STARTFILE
+    DEVICES
+
+    A = SWITCH(1);
+    B = SWITCH(1);
+    C = SWITCH(0);
+    dtypeSet = SWITCH(0);
+    dtypeClear = SWITCH(0);
+    clk1 = CLOCK(5);
+    dtype1 = DTYPE;
+    and1 = AND(2);
+    nand1 = NAND(2);
+    or1 = OR(2);
+    nor1 = NOR(2);
+    xor1 = XOR;
+    
+    END
+
+    CONNECTIONS
+
+    A -> nand1.I1;
+    A -> nor1.I1;
+    B -> nand1.I2;
+    B -> and1.I1;
+    C -> and1.I2;
+    C -> xor1.I2;
+    and1 -> or1.I2;
+    nand1 -> or1.I1;
+    or1 -> nor1.I2;
+    nor1 ->xor1.I1;
+    xor1 -> dtype1.DATA;
+    clk1 -> dtype1.CLK;
+    dtypeSet -> dtype1.SET;
+    dtypeClear -> dtype1.CLEAR;
+
+    END
+
+    MONITORS
+    
+    dtype1.Q;
+    dtype1.QBAR;
+    clk1;
+    END
+ENDFILE
