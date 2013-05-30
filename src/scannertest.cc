@@ -35,16 +35,14 @@ int main(void)
     symbol_t symbol;
     
     /* Read through whole file outputting one symbol and its type at a time */
-    //while (symbol.symboltype != eofsym)
-    //{
-    //    scanner.nextSymbol(symbol);
-    //    printout(symbol);
-    //}
+    while (symbol.symboltype != eofsym)
+    {
+        scanner.nextSymbol(symbol);
+        printout(symbol);
+    }
     
-    scanner.closeDefinitionFile();
-    
-    scanner.printError(3,4,"Hello");
-    scanner.printError(7,19,"This is an error message");
-    scanner.printError(4,200,"This is the third error message");
-    scanner.printError(100,5,"And finally...");
+    scanner.printError(3,4,"Hello", true);
+    scanner.printError(7,19,"This is an error message", true);
+    scanner.printError(4,200,"This is the third error message", true);
+    scanner.printError(100,5,"And finally...", true);
 }

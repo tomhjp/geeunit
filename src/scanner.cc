@@ -162,6 +162,7 @@ void scanner_t::getpunc(symbol_t &symbol)
                 return;
             }
         }
+        /* If is not space, alphabetic or digit */
         if (!isalnum(ch) && !isspace(ch))
         {
             str += ch;
@@ -207,12 +208,12 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("="))           s = equalsym;
     else if (!namestring.compare("."))           s = dotsym;
     else if (!namestring.compare("->"))          s = connpuncsym;
-    else if (!namestring.compare("DATA"))	 s = ddatasym;
-    else if (!namestring.compare("SET"))	 s = dsetsym;
-    else if (!namestring.compare("CLEAR"))	 s = dclearsym; 
-    else if (!namestring.compare("CLK"))	 s = dclksym;
-    else if (!namestring.compare("Q"))		 s = qsym;
-    else if (!namestring.compare("QBAR"))	 s = qbarsym; 
+    else if (!namestring.compare("DATA"))        s = ddatasym;
+    else if (!namestring.compare("SET"))         s = dsetsym;
+    else if (!namestring.compare("CLEAR"))       s = dclearsym; 
+    else if (!namestring.compare("CLK"))         s = dclksym;
+    else if (!namestring.compare("Q"))           s = qsym;
+    else if (!namestring.compare("QBAR"))        s = qbarsym; 
     /* If first char is alphabetic then namestring was retrieved with getname and is a name */
     else if (isalpha(firstchar))                 s = strsym;
     else if (!namestring.compare("\0"))          s = eofsym;
@@ -224,11 +225,14 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
 
 void scanner_t::incrementPosition(void)
 {
-    col++;
-    if (ch == '\n')
+    if (!eofile)    // only want to increment position if we haven't hit eofile
     {
-        line++;
-        col = 1;
+        col++;
+        if (ch == '\n')
+        {
+            line++;
+            col = 0;
+        }
     }
 }
 
@@ -249,7 +253,7 @@ punc_t scanner_t::puncType(char ch)
 void scanner_t::saveCurPosition(symbol_t &symbol)
 {
     symbol.line = line;
-    symbol.col = col-1;     // col represents col about to be read in scanner class
+    symbol.col = col;     // col represents col about to be read in scanner class
 }
 
 
@@ -336,7 +340,8 @@ scanner_t::scanner_t(string deffile)
     ofstream(defname) << fileString;*/
 
     line = 1;   // first line is line 1
-    col = 1;    // First possible cursor position is column 1
+    col = 0;    // First possible cursor position is column 1, but incrementPosition will be called
+                // as soon as a character is read in
     
     eofile = (inf.get(ch) == 0);    // get first character
     incrementPosition();
@@ -345,6 +350,7 @@ scanner_t::scanner_t(string deffile)
 
 scanner_t::~scanner_t()
 {
+    inf.close();
     return;
 }
 
@@ -405,7 +411,10 @@ void scanner_t::nextSymbol(symbol_t &symbol)
             /* ch will still be \n if eofile is reached so overwrite it
              * if the end of the file has been read in already */
             if (eofile)
+            {
                 symbol.symboltype = eofsym;
+                symbol.line -= 1;
+            }
             return;
         }
     }
@@ -413,6 +422,7 @@ void scanner_t::nextSymbol(symbol_t &symbol)
     else
     {
         symbol.symboltype = eofsym;
+        symbol.line -= 1;
         return;
     }
 }
@@ -423,24 +433,32 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
     inf.clear();
     inf.seekg(inf.beg);
     
+    /* Only try to label a position if it is an error with a position
+     * For example, missing inputs do not have their location printed out */
     if (hasPosition)
     {
-        if (col > 80)
-        {
-            cout << "Bad col value " << col << ". No meaningful line in a definition file should have this many columns" << endl;
-            return;
-        }
         string lineStr;
+        /* Start looping through lines until we get to the right line */
         for (int l=0; l<line; l++)
         {
             lineStr = "";
             if (!getline(inf, lineStr))
             {
-                cout << "Bad line value, " << line << ". Seems to be outside the line range of the file" << endl;
+                // failed to read this line from the file (it didn't exist)
+                cout << "Bad line value, " << line << ". Seems to be outside the line " << \
+                        "range of the file, " << l+1 << endl;
                 return;
             }
-            if (l+1 == line)      // reached the line on which an error is being reported
+            else if ((col > lineStr.length()) && (l+1 == line))
             {
+                // if col is outside range on the line we are looking for
+                cout << "Bad col value " << col << ". Greater than line length " \
+                     << lineStr.length() << " of line " << l+1 << endl;
+                return;
+            }
+            else if (l+1 == line)
+            {
+                // reached the line on which an error is being reported without line or col fault
                 cout << lineStr << endl;
                 for (int i=0; i<col-1; i++)
                     cout << " ";
