@@ -29,7 +29,7 @@ void printout(symbol_t &s)
 
 int main(void)
 {
-    string file = "dfile";
+    string file = "dfile.ldf";
     scanner_t scanner(file);
 
     symbol_t symbol;
@@ -41,8 +41,8 @@ int main(void)
         printout(symbol);
     }
     
-    scanner.printError(3,4,"Hello", true);
+    /*scanner.printError(3,4,"Hello", true);
     scanner.printError(7,19,"This is an error message", true);
     scanner.printError(4,200,"This is the third error message", true);
-    scanner.printError(100,5,"And finally...", true);
+    scanner.printError(100,5,"And finally...", true);*/
 }

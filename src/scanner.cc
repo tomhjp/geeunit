@@ -460,10 +460,21 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
             {
                 // reached the line on which an error is being reported without line or col fault
                 cout << lineStr << endl;
-                for (int i=0; i<col-1; i++)
-                    cout << " ";
-                cout << "^" << endl;
-                cout << errorStr << endl;
+                if (lineStr.length() <= 80)
+                {
+                    for (int i=0; i<col-1; i++)
+                        cout << " ";
+                    cout << "^" << endl;
+                    cout << errorStr << endl << endl;
+                }
+                else
+                {
+                    // Position of error will be reported poorly because the file line wraps on the command line
+                    cout << "Warning: The line with the error is longer than the default command window size. " << \
+                            "Please try adding new lines to the definition file to receive accurate position reporting"\
+                            << endl;
+                    cout << errorStr << endl << endl;
+                }
             }
         }
     }
