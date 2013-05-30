@@ -149,27 +149,35 @@ bool parser::makeMonLine(void)
     devicekind opdevkind;
     devlink opdevlink;
     
-    dev = nmz->lookup(context[0].namestring);
-    opdevlink = netz->finddevice(dev);
-    opdevkind = opdevlink->kind;
-    if(opdevkind != dtype)
+    if(nummonitorsmade < MAXMONITORS)
     {
-        /* The monitor is not monitoring a dtype output */ 
-        outp = blankname;  // these device types have only one output 
+	dev = nmz->lookup(context[0].namestring);
+	opdevlink = netz->finddevice(dev);
+	opdevkind = opdevlink->kind;
+	if(opdevkind != dtype)
+	{
+	    /* The monitor is not monitoring a dtype output */ 
+	    outp = blankname;  // these device types have only one output 
+	}
+	else
+	{
+	    /* The monitor is monitoring a dtype output     */
+	    namestring_t opdevstring, opstring;
+	    opstring = context[2].namestring;
+	    opdevstring = context[0].namestring;
+	    opid = nmz->cvtname(opstring);
+	    devlink devicelink = netz->finddevice(dev); 
+	    outplink outputlink = netz->findoutput(devicelink, opid);
+	    outp = outputlink->id;
+	}
+	mmz->makemonitor(dev, outp, ok);
+	nummonitorsmade++; 
     }
     else
     {
-        /* The monitor is monitoring a dtype output     */
-        namestring_t opdevstring, opstring;
-
-        opstring = context[2].namestring;
-        opdevstring = context[0].namestring;
-        opid = nmz->cvtname(opstring);
-        devlink devicelink = netz->finddevice(dev); 
-        outplink outputlink = netz->findoutput(devicelink, opid);
-        outp = outputlink->id;
+	errorvector.push_back(new overMaxMonLimit(context[0].line, context[0].col));
+	ok = true;	// Overflow been handled correctly - do not register a parser error on return 
     }
-    mmz->makemonitor(dev, outp, ok);
     return ok;
 }
 
@@ -867,6 +875,26 @@ bool parser::gateInputUnconnected(symbol_t symbol, name_t devid)
     return retval;
  
 }
+
+bool parser::connectRedefined(symbol_t idevsymbol, symbol_t ipsymbol, symbol_t odevsymbol, symbol_t opsymbol)
+{    
+    bool retval = false;
+    /* finds the inputlink
+    namestring_t ipstring = ipdevsymbol.namestring;
+    name_t ipdevid = nmz->cvtname(ipstring);
+    devlink ipdevicelink = netz->finddevice(ipdevid); 
+    inplink inputlink = netz->findinput(ipdevicelink, ipdevid);
+    
+    namestring_t ipstring = ipdevsymbol.namestring;
+    name_t ipdevid = nmz->cvtname(ipstring);
+    devlink ipdevicelink = netz->finddevice(ipdev); 
+    inplink inputlink = netz->findinput(devicelink, ipid);
+    
+    if(inputlink->connect == NULL)
+        retval = true;      
+    return retval;
+ */
+}
  
 bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
 {
@@ -909,55 +937,55 @@ void parser::nextKeyWordCheck(symbol_t symbol)
     }
     else if(section==devsect)
     {
-        if(symbol.symboltype != connsym && noconsymflag == 0)
-        {
-            errorvector.push_back(new expConSym(symbol.line, symbol.col));
-            noconsymflag = 1;
-            return;
-        }                   
-    else if(symbol.symboltype != connsym && noconsymflag == 1)
-        return;
-    else
-    {
-        needskeyflag=0;
-        section=consect;
-        return;
-    }
+	if(symbol.symboltype != connsym && noconsymflag == 0)
+	{
+	    errorvector.push_back(new expConSym(symbol.line, symbol.col));
+	    noconsymflag = 1;
+	    return;
+	}                   
+	else if(symbol.symboltype != connsym && noconsymflag == 1)
+	    return;
+	else
+	{
+	    needskeyflag=0;
+	    section=consect;
+	    return;
+	}
     }
     else if(section==consect)
     {
-    if(symbol.symboltype != monsym && nomonsymflag == 0)
-    {
-    errorvector.push_back(new expMonSym(symbol.line, symbol.col));
-    nomonsymflag = 1;
-    return;
-    }                   
-    else if(symbol.symboltype != monsym && nomonsymflag == 1)
-        return;
-    else
-    {
-        needskeyflag=0;
-        section=monsect;
-        return;
-    }
+	if(symbol.symboltype != monsym && nomonsymflag == 0)
+	{
+	errorvector.push_back(new expMonSym(symbol.line, symbol.col));
+	nomonsymflag = 1;
+	return;
+	}                   
+	else if(symbol.symboltype != monsym && nomonsymflag == 1)
+	    return;
+	else
+	{
+	    needskeyflag=0;
+	    section=monsect;
+	    return;
+	}
     }
     else if(section==monsect)
     {
-    if(symbol.symboltype != endfsym && noendfsymflag == 0)
-    {
-        errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
-        noendfsymflag = 1;
-        return;
-    }                   
-    else if(symbol.symboltype != endfsym && noendfsymflag == 1)
-        return;
-    else
-    {
-        needskeyflag=0;
-        filenotcompleteflag = 0;        //file has been terminated correctly with ENDFILE
-        section=postendfsect;
-        return;
-    }
+	if(symbol.symboltype != endfsym && noendfsymflag == 0)
+	{
+	    errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
+	    noendfsymflag = 1;
+	    return;
+	}                   
+	else if(symbol.symboltype != endfsym && noendfsymflag == 1)
+	    return;
+	else
+	{
+	    needskeyflag=0;
+	    filenotcompleteflag = 0;        //file has been terminated correctly with ENDFILE
+	    section=postendfsect;
+	    return;
+	}
     }
 }
 
@@ -970,16 +998,26 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 /* read in symbols from the scanner, and calls the relevant parsing functions */ 
 void parser::readin (symbol_t symbol)
 {   
-    /* an error in a line breaks, and the next symbol read in is the start of a new line  */
+    /* Calls the methods relevant to the section being parsed currently */
+    if(symbol.symboltype == eofsym)
+    {
+	if(filenotcompleteflag == 1)
+	{
+	    /* The file has terminated prematurely */ 
+	    errorvector.push_back(new fileNotComplete());
+	    return;
+	}
+    }
     if(needskeyflag == 1) nextKeyWordCheck(symbol); 
     else if(section == prestartfsect) preStartFCheck(symbol); 
     else if((section == devsect) || (section == consect )|| (section == monsect)) mainLineBuild(symbol); 
     else if(section == postendfsect) postEndFCheck(symbol);
     else 
     {
-    /* USED FOR BUG FIXING */
+	/* The parser has broken - does not recognise which section it is in */ 
+	errorvector.push_back(new fatalErr(symbol.line, symbol.col));
     }
-       
+    return;
 }
 
 vector<Error*> parser::getErrorVector(void)
@@ -1009,5 +1047,6 @@ parser::parser (network* network_mod, devices* devices_mod,
     nomonsymflag = 0;
     noendfsymflag = 0;
     filenotcompleteflag = 1;
+    nummonitorsmade = 0; 
 }
 

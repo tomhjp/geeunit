@@ -23,12 +23,11 @@ void Error::getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition)
 	c = col; 
     hasPosition = hasPos; 
 	errmsg = "Error: " + errorMessage;
-	return;
+    return;
 }
 
 Error::Error()
 {
-    cout << "Error registered" << endl; 
     hasPos = true;
     return;
 }
@@ -112,7 +111,7 @@ expNumSym::expNumSym(int l, int c)
 
 expDevTypeSym::expDevTypeSym(int l, int c)
 {
-	errorMessage = "Expected a device type keyword (eg. DTYPE, CLK, etc.)"; 
+	errorMessage = "Expected a device type keyword (eg. DTYPE, CLOCK, etc.)"; 
 	line = l;
 	col = c; 
 }
@@ -240,9 +239,28 @@ unconnectInp::unconnectInp()
 {
     errorMessage = "Unconnected input(s) detected (listed above)";
     hasPos = false;
-   /* line = l;
-    col = c; */
 }	
+
+overMaxMonLimit::overMaxMonLimit(int l, int c)
+{
+    errorMessage = "Maximum number of monitors (50) has been exceeded - monitor was not made";
+    line = l; 
+    col = c;
+}
+
+fileNotComplete::fileNotComplete()
+{
+    errorMessage = "Input file is not complete.  Have you included all sections and required keywords?";
+    hasPos = false;
+}
+
+fatalErr::fatalErr(int l, int c)
+{
+    errorMessage = "A fatal parser error has occurred - sorry! Check your input file and try again"; 
+    line = l; 
+    col = c; 
+}
+
 	
 /*****************************************************************************************/
 /**************** Methods for classes requiring extra information ************************/
@@ -255,7 +273,6 @@ inputPrevConnected::inputPrevConnected(int l, int c, name_t id, devlink dev, net
     col = c;
     netz = network_mod;
     devicelink = dev; 
-    cout << "devicelink is " <<devicelink << endl; 
     ipid = id;
 	initconline = getInitCon();
     errorMessage = "The input referenced has already been connected, at line ";
@@ -263,7 +280,7 @@ inputPrevConnected::inputPrevConnected(int l, int c, name_t id, devlink dev, net
 
 int inputPrevConnected::getInitCon(void)
 {
-	int l= 5;
+	int l;
 	l = netz->getLineDefd(devicelink, ipid);
 	return l;
 }
@@ -291,7 +308,7 @@ void inputPrevConnected::makeLongErrMsg(void)
 	
 nameAlreadyDefd::nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod)
 {
-	errorMessage = ": This device name has already been defined, at ";
+	errorMessage = "This device name has already been defined, at ";
 	line = l;
 	col = c; 
 	devname = dev;
@@ -331,6 +348,8 @@ void nameAlreadyDefd::makeLongErrMsg(void)
 	ss << a;
 	firstCol = ss.str();
 	longErrMsg = "Error: " + errorMessage + firstLine + ", " + firstCol; 
+    cout <<longErrMsg << endl; 
+    cout << "first line is " << firstLine <<endl; 
 	return;
 }
 	
