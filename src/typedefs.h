@@ -5,7 +5,7 @@
 
 using namespace std;
 
-typedef unsigned int name_t;
+typedef int name_t;
 typedef string namestring_t;
 
 typedef enum {strsym, numsym, startfsym, devsym, connsym, monsym, endsym, endfsym,

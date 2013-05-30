@@ -23,6 +23,7 @@ CONNECTIONS
     set -> dtype.SET;
     clear -> dtype.CLEAR;
     or -> nand.I1;
+    or -> nand.I1;
     or -> and.I2;
     dtype.Q -> and.I1;
     dtype.QBAR -> nand.I2;

@@ -41,6 +41,7 @@ bool MyApp::OnInit()
     int line, col;
     string errorMessage;
     bool hasPosition;
+    cout <<endl <<endl;   // spaces the "unconnected inputs" reporting from the error messages 
     for (int i=0; i<errorVector.size(); i++)
     {
         errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
@@ -48,8 +49,8 @@ bool MyApp::OnInit()
     }
     for (int i=0; i<warningVector.size(); i++)
     {
-        //warningVector[i]->getWarningDetails(line, col, errorMessage);
-        //smz->printError(line, col, errorMessage);
+        warningVector[i]->getWarningDetails(line, col, errorMessage, hasPosition);
+        smz->printError(line, col, errorMessage, hasPosition);
     }
 
     if (errorVector.size() == 0) { // check the logic file parsed correctly, will be check that errorvector is empty

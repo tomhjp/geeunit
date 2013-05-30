@@ -487,10 +487,17 @@ bool parser::checkConLine(void)
             {
                 if(!gateInputUnconnected(context[4], devid))
                 {
-                    devlink devicelink = netz->finddevice(devid); 
-		    name_t inputid = nmz->cvtname(context[4].namestring);
-                    errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
-                    return false;
+		    if(connectRedefined(context[2], context[4], context[0], context[0]))
+		    {
+			warningvector.push_back(new redefCon(context[0].line, context[0].col));
+		    }
+		    else
+		    {
+			devlink devicelink = netz->finddevice(devid); 
+			name_t inputid = nmz->cvtname(context[4].namestring);
+			errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
+			return false;
+		    }
                 }
             }
             if(!isSemiColSym(context[5]))
@@ -611,6 +618,10 @@ bool parser::checkConLine(void)
                 errorvector.push_back(new expSemiColSym(context[7].line, context[7].col));
                 return false;
             }
+	    if(context[6].symboltype == dclksym)
+	    {
+		warningvector.push_bback(new nonClkInput(context[0].line, context[0].col));
+	    }
         }
     }
     
@@ -878,22 +889,31 @@ bool parser::gateInputUnconnected(symbol_t symbol, name_t devid)
 
 bool parser::connectRedefined(symbol_t idevsymbol, symbol_t ipsymbol, symbol_t odevsymbol, symbol_t opsymbol)
 {    
+    /* tests whether the connection is the ame as that already stored  */ 
     bool retval = false;
-    /* finds the inputlink
-    namestring_t ipstring = ipdevsymbol.namestring;
-    name_t ipdevid = nmz->cvtname(ipstring);
-    devlink ipdevicelink = netz->finddevice(ipdevid); 
-    inplink inputlink = netz->findinput(ipdevicelink, ipdevid);
+  
+    name_t idevid = nmz->cvtname(idevsymbol.namestring); 
+    devlink idevlink = netz->finddevice(idevid);
+    name_t ipid = nmz->cvtname(ipsymbol.namestring); 
+    inplink incon = netz->findinput(idevlink, ipid);
+    outplink con = incon->connect;
+    name_t iconid = con->id;
     
-    namestring_t ipstring = ipdevsymbol.namestring;
-    name_t ipdevid = nmz->cvtname(ipstring);
-    devlink ipdevicelink = netz->finddevice(ipdev); 
-    inplink inputlink = netz->findinput(devicelink, ipid);
-    
-    if(inputlink->connect == NULL)
-        retval = true;      
+    name_t odevid = nmz->cvtname(odevsymbol.namestring);
+    devlink odevlink = netz->finddevice(odevid);
+   
+    name_t opid;
+    if(odevlink->kind ==dtype) opid = nmz->cvtname(opsymbol.namestring); 
+    else 
+	opid = blankname;
+
+    outplink outcon = netz->findoutput(odevlink, opid);
+    name_t oconid = outcon->id;
+
+    if(iconid == oconid)
+	retval = true;
+	
     return retval;
- */
 }
  
 bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)

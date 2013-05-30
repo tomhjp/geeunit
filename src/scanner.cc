@@ -465,7 +465,7 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
                     for (int i=0; i<col-1; i++)
                         cout << " ";
                     cout << "^" << endl;
-                    cout << errorStr << endl << endl;
+                    cout << line << "," << col <<": "<<errorStr << endl << endl;
                 }
                 else
                 {

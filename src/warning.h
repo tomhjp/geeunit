@@ -15,15 +15,27 @@ class Warning
 	int line;
 	int col; 
 	string warningMessage; 
+    bool hasPos;
   public: 
 	void printWarnMsg(void); 
-	void getWarningDetails(int &l, int &c, string &warnmsg);
+	void getWarningDetails(int &l, int &c, string &warnmsg, bool &hasPosition);
 	Warning(void);
 }; 
 
 
 /*************************** specific warnings  ***************************/ 
 
+class redefCon: public Warning
+{
+    public:
+    redefCon(int l, int c);
+};
+
+class nonClkInput: nonClkInput
+{
+    public:
+    nonClkInput(int l, int c);
+};
 
 
 #endif

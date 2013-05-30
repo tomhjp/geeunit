@@ -87,10 +87,12 @@ class parser {
     bool isCpSym(symbol_t symbol);
     bool isDtypeInput(symbol_t symbol);
     bool isDtypeOutput(symbol_t symbol);
+    
     bool devNameDefined(symbol_t symbol);
     bool gateInputDefined(symbol_t symbol, name_t devid);
     bool gateInputUnconnected(symbol_t symbol, name_t devid);
     bool dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput);
+    bool connectRedefined(symbol_t idevsymbol, symbol_t ipsymbol, symbol_t odevsymbol, symbol_t opsymbol);
     
   public:
     /* Reads the definition of the logic system and builds the             */

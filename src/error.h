@@ -230,7 +230,7 @@ class inputPrevConnected: public Error
     devlink devicelink;
     name_t ipid; 
     string longErrMsg;
-    public:
+  public:
     inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
     void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     void printErrMsg(void);
@@ -242,10 +242,10 @@ class nameAlreadyDefd : public Error
     int initdefcol;
     void getInitDef(void);
     void makeLongErrMsg(void);
-	namestring_t devname; 
+    namestring_t devname; 
     names* nmz; 
     string longErrMsg;
-    public:
+  public:
     nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod);
     void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     void printErrMsg(void);
