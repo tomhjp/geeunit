@@ -15,7 +15,7 @@
 #include <cstring>
 #include <vector>
 
-enum { 
+enum {
   RUN_SPINCTRL = wxID_HIGHEST + 1,
   CONT_SPINCTRL,
   COMMAND_LINE,
@@ -36,9 +36,9 @@ class MyGLCanvas;
 class MyFrame: public wxFrame
 {
  public:
-    MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size, 
-	  names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, network *network_mod = NULL, scanner_t *smz = NULL, parser *pmz = NULL, 
-	  long style = wxDEFAULT_FRAME_STYLE); // constructor
+    MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
+      names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, network *network_mod = NULL, scanner_t *smz = NULL, parser *pmz = NULL,
+      long style = wxDEFAULT_FRAME_STYLE); // constructor
     private:
         MyGLCanvas *canvas;                     // GL drawing area widget to draw traces
 
@@ -48,7 +48,7 @@ class MyFrame: public wxFrame
         network *netz;
         scanner_t *smz;
         parser *pmz;
-        
+
         wxSpinCtrl   *runSpin;
         wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
         wxComboBox   *zapTraceComboBox;           // pointer to combobox object
@@ -64,16 +64,16 @@ class MyFrame: public wxFrame
         wxStaticText *contStaticText;
         wxTextCtrl   *commandLine;
         wxFileDialog     *openDialog;
-        
+
         vector<wxString> switchNameVector;
-        
+
         int cyclescompleted;                    // how many simulation cycles have been completed
         void runnetwork(int ncycles);           // function to run the logic network
         void OnExit(wxCommandEvent& event);     // callback for exit menu item
         void OnAbout(wxCommandEvent& event);    // callback for about menu item
         void OnOpen(wxCommandEvent& event);
         void OnNew(wxCommandEvent& event);
-        
+
         void OnRunButton(wxCommandEvent& event);   // callback for push button
         void OnContButton(wxCommandEvent& event);
         void OnButtonZap(wxCommandEvent& event);
@@ -89,21 +89,22 @@ class MyFrame: public wxFrame
         bool isdtype(name_t did);
         void checkMonitorName(wxString monitorName, wxString& deviceName, wxString& outputName, bool& isDtype);
         void resetCanvas();
-        
+        void OpenFile();
+
 
         void populateSwitchNameVector();
         name_t getIdFromWxString(wxString inStr);
 
         DECLARE_EVENT_TABLE()
 };
-    
+
 class MyGLCanvas: public wxGLCanvas
 {
     public:
     MyGLCanvas(wxWindow *parent, wxWindowID id = wxID_ANY, monitor* monitor_mod = NULL, names* names_mod = NULL,network* network_mod = NULL,
-  	    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0,
-	    const wxString& name = wxT("MyGLCanvas")); // constructor
-	    
+        const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0,
+        const wxString& name = wxT("MyGLCanvas")); // constructor
+
 
     void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
     void populateTraceMatrix();
@@ -118,12 +119,12 @@ class MyGLCanvas: public wxGLCanvas
 
     typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;
-    
+
     vector<wxString> deviceNameVector;
     vector<wxString> monitorNameVector;
-    
+
     int numDtypes;
-        
+
     private:
         bool init;                         // has the GL context been initialised?
         int cyclesdisplayed;               // how many simulation cycles have been displayed
@@ -140,7 +141,7 @@ class MyGLCanvas: public wxGLCanvas
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
         void OnScroll(wxScrollWinEvent& event);
         void OnMouse(wxMouseEvent& event); // callback for mouse events inside
-     
+
         DECLARE_EVENT_TABLE()
-};    
+};
 #endif /* gui_h */

@@ -17,7 +17,7 @@ END_EVENT_TABLE()
 int wxglcanvas_attrib_list[5] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
 MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, names* names_mod,network* network_mod,
-		       const wxPoint& pos, const wxSize& size, long style, const wxString& name):
+               const wxPoint& pos, const wxSize& size, long style, const wxString& name):
     wxGLCanvas(parent, id, pos, size, style, name, wxglcanvas_attrib_list)
   // Constructor - initialises private variables
 {
@@ -66,12 +66,12 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     unitHeight = 20;
     traceboxWidth = width - 2*margin - labelWidth - 2*traceMargin;
     traceboxHeight = height - 2*margin - 2*traceMargin;
-    
+
     if (cycles > 0)
         cyclesdisplayed = cycles;
-        
+
     unitWidth = traceboxWidth / cyclesdisplayed;
-    
+
     if (unitWidth < 0.3)
         unitWidth = 0.3;
 
@@ -82,13 +82,13 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         InitGL();
         init = true;
     }
-    
+
     glClear(GL_COLOR_BUFFER_BIT);
-    
+
     //If there are monitors then draw the first monitor signal, get trace from monitor class
     if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
     {
-        
+
         if (unitWidth > 30)
         {
             unitWidth = 30;
@@ -97,43 +97,41 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         for (t=0; t<traceMatrix.size(); t++)
         {
             glColor3f(0.9, 0.9, 0.9);
-            
+
             glBegin(GL_QUADS);
-                x = (margin + labelWidth);
-                y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3);
-                
-                glVertex2f(x,y);
-                glVertex2f(x,y-unitHeight-6);
-                glVertex2f(width - margin,y - unitHeight-2*traceMargin);
-                glVertex2f(width-margin,y);
+            x = (margin + labelWidth);
+            y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3);
+
+            glVertex2f(x,y);
+            glVertex2f(x,y-unitHeight-6);
+            glVertex2f(width - margin,y - unitHeight-2*traceMargin);
+            glVertex2f(width-margin,y);
             glEnd();
-            
+
             glColor3f(0.0, 0.0, 1.0);
-            
+
             glBegin(GL_LINE_STRIP);
                 bool skipLow = false, skipHigh = false;
                 for (c=0; c<traceMatrix[0].size(); c++)
                 {
+                    s = traceMatrix[t][c];
+                    if (s==low)
+                    {
+                        y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
+                        x = margin + labelWidth + traceMargin + unitWidth*c;
+                    }
 
-                        s = traceMatrix[t][c];
-                        if (s==low)
-                        {
-                            y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
-                            x = margin + labelWidth + traceMargin + unitWidth*c;
-                        }
-
-                        if (s==high)
-                        {
-                            y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
-                            x = margin + labelWidth + traceMargin + unitWidth*c;
-                        }
-                        glVertex2f(x,y);
-                        glVertex2f(x+unitWidth, y);
-                        
+                    if (s==high)
+                    {
+                        y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
+                        x = margin + labelWidth + traceMargin + unitWidth*c;
+                    }
+                    glVertex2f(x,y);
+                    glVertex2f(x+unitWidth, y);
                 }
             glEnd();
         }
-        
+
         // WHY IS THERE NO ROUND() FUNCTION?!?!
         int axisSpacing = 5;
         if (cyclesdisplayed < 50)
@@ -144,17 +142,16 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             axisSpacing = 10;
         else if (cyclesdisplayed < 400)
             axisSpacing = 20;
-        else 
+        else
             axisSpacing = 100;
-            
 
-        cout <<"cycles = " << cyclesdisplayed << endl;
+
         for (t=0; t<traceMatrix.size(); t++)
         {
             for (c=0; c<traceMatrix[0].size(); c++)
             {
                 if (c%axisSpacing == 0)
-                {   
+                {
                     wxString axisLabel;
                     axisLabel.Printf(wxT("%d"),c);
                     x = margin + labelWidth + traceMargin + unitWidth*c -6;
@@ -165,10 +162,10 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                     {
                         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, axisLabel[i]);
                     }
-                }    
+                }
             }
         }
-       
+
         // Write out labels for the traces
         for (int j=0; j<monitorNameVector.size(); j++)
         {
@@ -187,52 +184,6 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             }
         }
     }
-
-  /*// If there are no montiors then draw an artificial trace.
-    else
-    {
-        for (int j=0;j<traceMatrix.size();j++)
-        {
-
-            glColor3f(1.0, 0.0, 0.0);
-            glBegin(GL_LINE_STRIP);
-            for (i=0; i<cyclesdisplayed; i++)
-            {
-                if (i%2)
-                {
-                    y = (traceboxHeight + margin - 2.5*unitHeight*j);
-                    x = margin + labelWidth + unitWidth*i;
-                }
-
-                else
-                {
-                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*j);
-                    x = (margin + labelWidth + unitWidth*i);
-                }
-
-                glVertex2f(x, y);
-                glVertex2f(x + unitWidth, y);
-            }
-            glEnd();
-        }
-
-        for (int j=0; j<monitorNameVector.size(); j++)
-        {
-            y = (traceboxHeight-1 - 2.5*unitHeight*j);
-            glColor3f(0.0, 0.0, 0.0);
-            glRasterPos2f(margin/2,y);
-
-            wxString traceText;
-            traceText = monitorNameVector[j];
-
-            for (i = 0; i < traceText.Len() ; i++)
-            {
-                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
-            }
-        }
-
-    }
-    */
 
   // We've been drawing to the back buffer, flush the graphics pipeline and swap the back buffer to the front
     glFlush();
@@ -256,15 +207,7 @@ void MyGLCanvas::InitGL()
      glLoadIdentity();
 }
 
-void MyGLCanvas::setCanvasScrollBar()
-{
-    int scrollHeight = unitHeight/5;
-    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
-    //cout << "scrollHeight = " << scrollHeight << ", numPositions = " << numPositions << endl;
-    SetScrollbar(wxVERTICAL,0,10,10+numPositions);
-}
-
-  // Callback function for when the canvas is exposed
+// Callback function for when the canvas is exposed
 void MyGLCanvas::OnPaint(wxPaintEvent& event)
 {
     int w, h;
@@ -276,15 +219,25 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
     Render(text,-1);
 }
 
- // Callback for Scroll Event
+// Callback for Scroll Event
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
 {
     canvasPosition = event.GetPosition();
     Render(wxT("Scrolling"),-1);
 }
 
+// Function to set size of scroll bar, called when canvas resized
+void MyGLCanvas::setCanvasScrollBar()
+{
+    // Proportion of a trace by which the canvas will move when scroll position changes
+    int scrollHeight = unitHeight/5;
+    // Set maximum scroll point such that only the last monitor is visible
+    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
+    SetScrollbar(wxVERTICAL,0,10,10+numPositions);
+}
 
-  // Callback function for when the canvas is resized
+
+// Callback function for when the canvas is resized
 void MyGLCanvas::OnSize(wxSizeEvent& event)
 {
     wxGLCanvas::OnSize(event); // required on some platforms
@@ -298,9 +251,8 @@ void MyGLCanvas::OnSize(wxSizeEvent& event)
   // Callback function for mouse events inside the GL canvas
 void MyGLCanvas::OnMouse(wxMouseEvent& event)
 {
-    wxString text;
-    int w, h;;
-    GetClientSize(&w, &h);
+    // Currently not doing anything
+    return;
 }
 
 void MyGLCanvas::populateTraceMatrix()
@@ -358,7 +310,7 @@ void MyGLCanvas::populateMonitorNameVector()
         namestring_t namestring = nmz->getName(dev);
         wxString devStr(namestring.c_str(), wxConvUTF8);
         if (outp != blankname)
-        {   
+        {
             namestring_t type = nmz->getName(outp);
             wxString devType(type.c_str(), wxConvUTF8);
             devStr.Append(wxT("."));
@@ -399,30 +351,31 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
     EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
     EVT_MENU(wxID_NEW,MyFrame::OnNew)
-    
+
   // Button Events
     EVT_BUTTON(RUN_BUTTON,  MyFrame::OnRunButton)
-    EVT_BUTTON(CONT_BUTTON, MyFrame::OnContButton)  
+    EVT_BUTTON(CONT_BUTTON, MyFrame::OnContButton)
     EVT_BUTTON(ZAP_TRACE_BUTTON, MyFrame::OnButtonZap)
     EVT_BUTTON(ADD_TRACE_BUTTON, MyFrame::OnButtonAdd)
     EVT_BUTTON(SWITCH_BUTTON_0, MyFrame::OnButtonSwitch0)
     EVT_BUTTON(SWITCH_BUTTON_1, MyFrame::OnButtonSwitch1)
-    
+
   // Combo Box Events
     EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
     EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
-    
+
   // SpinControl Events
     EVT_SPINCTRL(RUN_SPINCTRL,  MyFrame::OnSpin)
     EVT_SPINCTRL(CONT_SPINCTRL, MyFrame::OnSpin)
-    
-  // Command Line Events  
+
+  // Command Line Events
     EVT_TEXT_ENTER(COMMAND_LINE, MyFrame::OnText)
 END_EVENT_TABLE()
 
 
 MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
-		 names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, scanner_t *scanner_mod, parser *parser_mod , long style):
+         names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, scanner_t *scanner_mod,
+         parser *parser_mod , long style):
   wxFrame(parent, wxID_ANY, title, pos, size, style)
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
@@ -476,8 +429,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sidebar_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
-   
-    
+
+
 
     // Initialise combo-box strings
     wxArrayString zapTraceArray;
@@ -489,16 +442,16 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     {
         zapTraceArray.Add(canvas->monitorNameVector[i],1);
     }
-    
+
     // Make the add combobox strings
     for (int i=0; i<numDevices; i++)
-    {        
+    {
         wxString deviceNamestring = canvas->deviceNameVector[i];
-		name_t did = getIdFromWxString(deviceNamestring);
+        name_t did = getIdFromWxString(deviceNamestring);
         devicekind dkind = netz->netzdevkind(did);
-        
+
         if (dkind == dtype)
-        {   
+        {
             addTraceArray.Add(deviceNamestring.Append(wxT(".Q")));
             c++;
             addTraceArray.Add(deviceNamestring.Append(wxT("BAR")));
@@ -646,59 +599,7 @@ void MyFrame::OnAbout(wxCommandEvent &event)
 
 void MyFrame::OnOpen(wxCommandEvent &event)
 {
-    wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.def"),wxFD_OPEN, wxDefaultPosition);
-    openDialog->ShowModal();
-    wxString fid = openDialog->GetPath();
-    wxString fileName = fid.AfterLast('/');
-    string fileid = string(fid.mb_str());
-    
-    delete nmz;
-    delete netz;
-    delete dmz;    
-    delete mmz;
-    delete smz;
-    delete pmz;
-    
-    nmz = new names();
-    netz = new network(nmz);
-    dmz = new devices(nmz, netz);
-    mmz = new monitor(nmz, netz);
-    smz = new scanner_t(fileid);
-    pmz = new parser(netz, dmz, mmz, smz, nmz);
-    symbol_t symbol;
-    symbol.symboltype = startfsym;      // arbitrary symboltype that is not eofsym
-    
- 
-    /* Read through whole file outputting one symbol and its type at a time */
-    while (symbol.symboltype != eofsym)
-    {
-        smz->nextSymbol(symbol);
-        pmz->readin(symbol);
-        
-    }
-    vector<Error*> errorVector = pmz->getErrorVector();
-    vector<Warning*> warningVector = pmz->getWarningVector();
-    
-    int line, col;
-    string errorMessage;
-    bool hasPosition;
-    for (int i=0; i<errorVector.size(); i++)
-    {
-        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
-        smz->printError(line, col, errorMessage, hasPosition);
-    }
-    for (int i=0; i<warningVector.size(); i++)
-    {
-        //warningVector[i]->getWarningDetails(line, col, errorMessage);
-        //smz->printError(line, col, errorMessage);
-    }
-    resetCanvas();
-    canvas->Render(wxT("New File Opened Network run for a few cycles"),cyclescompleted);
-    wxString commandLineText;
-    commandLineText.Printf(wxT("'%s' opened, Network run for a few cycles\n"),fileName.c_str());
-    commandLine->WriteText(commandLineText);
-    commandLine->SetInsertionPoint(0);
-    cout << "cycles completed = " << cyclescompleted << endl;
+    OpenFile();
 }
 
 void MyFrame::OnNew(wxCommandEvent &event)
@@ -710,16 +611,16 @@ void MyFrame::OnNew(wxCommandEvent &event)
 // Callback for the run button
 void MyFrame::OnRunButton(wxCommandEvent &event)
 {
-  // Call the run function to run the network for the number of cycles currently in the
+  // Call the run function to run the network for the number of cycles currently in the combo box
     RunFunction();
 }
 
 // Callback for the continue button
 void MyFrame::OnContButton(wxCommandEvent &event)
-{   
+{
     int width, height;
     canvas->GetClientSize(&width,&height);
-    
+
     int maxcycles = (width-115)/0.3;
     if (cyclescompleted > maxcycles)
     {
@@ -825,7 +726,7 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     wxString outputName;
     wxString monitorName = selectionStr;
     checkMonitorName(monitorName,deviceName,outputName,isDtype);
-        
+
   // Convert chosen string into a nameString
     string deviceString = string(deviceName.mb_str());
     namestring_t namestring = (namestring_t) deviceString;
@@ -836,11 +737,11 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     if (isDtype)
     {
         cout << "IT'S A DTYPE" << endl;
-		namestring_t type = string(outputName.mb_str());
-		cout << type << endl;
+        namestring_t type = string(outputName.mb_str());
+        cout << type << endl;
         outp = nmz->cvtname(type);
         cout << "outp = " << outp << endl;
-	}
+    }
     else
         outp = blankname;
 
@@ -875,8 +776,8 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     canvas->setCanvasScrollBar();
 }
 
+// Callback for second pushbutton
 void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
-  // Callback for second pushbutton
 {
     if (switchComboBox->GetStringSelection().IsEmpty())
     {
@@ -886,9 +787,6 @@ void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
     }
 
     name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
-    // Following for debugging
-    //namestring_t devStr = string(switchComboBox->GetStringSelection().mb_str());
-    //name_t sid = nmz->cvtname(devStr);
     asignal s = low;
     bool ok;
 
@@ -903,8 +801,8 @@ void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
     commandLine->SetInsertionPoint(0);
 }
 
+// Callback for second pushbutton
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
-  // Callback for second pushbutton
 {
 
     if (switchComboBox->GetStringSelection().IsEmpty())
@@ -1056,14 +954,14 @@ void MyFrame::resetCanvas()
     canvas->traceMatrix.clear();
     canvas->deviceNameVector.clear();
     canvas->monitorNameVector.clear();
-    
-  // Reset the names, monitor and network classes/  
+
+  // Reset the names, monitor and network classes/
     canvas->setNames(nmz);
     canvas->setMonitor(mmz);
     canvas->setNetwork(netz);
-    
+
     canvas->numDtypes=0;
-    
+
   // Populate deviceNameVector with the wxString names of all devices in the network
     devlink dlink = netz->devicelist();     // Find beginning of the list of devices
     while (dlink != NULL)
@@ -1077,19 +975,19 @@ void MyFrame::resetCanvas()
         canvas->deviceNameVector.push_back(devStr);
         dlink = dlink->next;
     }
-    
+
   // Reset the network and run for a few cycles (set to an arbitrary 10 here)
     cyclescompleted = 0;
     runnetwork(10);
-    
+
   // Populate the traceMatrix, switchVector
     canvas->populateMonitorNameVector();
     populateSwitchNameVector();
     canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
     canvas->setCanvasScrollBar();
-    
-  // Initialise values for populating the comboBox   
+
+  // Initialise values for populating the comboBox
     int numDevices = canvas->deviceNameVector.size();
     int numMonitors = canvas->monitorNameVector.size();
     int numSwitches = switchNameVector.size();
@@ -1105,16 +1003,16 @@ void MyFrame::resetCanvas()
     {
         zapTraceArray.Add(canvas->monitorNameVector[i],1);
     }
-    
+
   // Make the add comboBox strings
     for (int i=0; i<numDevices; i++)
-    {        
+    {
         wxString deviceNamestring = canvas->deviceNameVector[i];
-		name_t did = getIdFromWxString(deviceNamestring);
+        name_t did = getIdFromWxString(deviceNamestring);
         devicekind dkind = netz->netzdevkind(did);
-        
+
         if (dkind == dtype)
-        {   
+        {
             addTraceArray.Add(deviceNamestring.Append(wxT(".Q")));
             c++;
             addTraceArray.Add(deviceNamestring.Append(wxT("BAR")));
@@ -1144,5 +1042,71 @@ void MyFrame::resetCanvas()
 
     switchComboBox->Clear();
     switchComboBox->Append(switchArray);
-    
+
+}
+
+void MyFrame::OpenFile()
+{
+    wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.ldf"),wxFD_OPEN, wxDefaultPosition);
+    openDialog->ShowModal();
+    wxString fid = openDialog->GetPath();
+    wxString fileName = fid.AfterLast('/');
+    string fileid = string(fid.mb_str());
+
+    delete nmz;
+    delete netz;
+    delete dmz;
+    delete mmz;
+    delete smz;
+    delete pmz;
+
+    nmz = new names();
+    netz = new network(nmz);
+    dmz = new devices(nmz, netz);
+    mmz = new monitor(nmz, netz);
+    smz = new scanner_t(fileid);
+    pmz = new parser(netz, dmz, mmz, smz, nmz);
+    symbol_t symbol;
+    symbol.symboltype = startfsym;      // arbitrary symboltype that is not eofsym
+
+
+    /* Read through whole file outputting one symbol and its type at a time */
+    while (symbol.symboltype != eofsym)
+    {
+        smz->nextSymbol(symbol);
+        pmz->readin(symbol);
+
+    }
+    vector<Error*> errorVector = pmz->getErrorVector();
+    vector<Warning*> warningVector = pmz->getWarningVector();
+
+    int line, col;
+    string errorMessage;
+    bool hasPosition;
+    for (int i=0; i<errorVector.size(); i++)
+    {
+        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
+        smz->printError(line, col, errorMessage, hasPosition);
+    }
+    for (int i=0; i<warningVector.size(); i++)
+    {
+        //warningVector[i]->getWarningDetails(line, col, errorMessage);
+        //smz->printError(line, col, errorMessage);
+    }
+    if (errorVector.size() != 0)
+    {
+        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s contained an Error and cannot be simulated. Please open a valid file\n"),fileName.c_str());
+        commandLine->WriteText(commandLineText);
+        commandLine->SetInsertionPoint(0);
+        errorBox(commandLineText);
+        OpenFile();
+        return;
+    }
+    resetCanvas();
+    canvas->Render(wxT("New File Opened Network run for a few cycles"),cyclescompleted);
+    wxString commandLineText;
+    commandLineText.Printf(wxT("# '%s' opened, Network run for a few cycles\n"),fileName.c_str());
+    commandLine->WriteText(commandLineText);
+    commandLine->SetInsertionPoint(0);
 }
