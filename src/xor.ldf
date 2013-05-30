@@ -1,0 +1,26 @@
+STARTFILE
+DEVICES
+    A = SWITCH(1);
+    B = SWITCH(0);
+    not1 = NAND(1);
+    not2 = NAND(1);
+    nand1 = NAND(2);
+    nand2 = NAND(2);
+    nand3 = NAND(2);
+END
+CONNECTIONS
+    A -> not2.I1;
+    B -> not1.I1;
+    A -> nand1.I1;
+    B -> nand2.I2;
+    not1 -> nand1.I2;
+    not2 -> nand2.I1;
+    nand1 -> nand3.I1;
+    nand2 -> nand3.I2;
+END
+MONITORS
+    A;
+    B;
+    nand3;
+END
+ENDFILE
