@@ -41,8 +41,8 @@ class parser {
 				// all sections and keywords have been detected 
     
     
-    name_t      clkpin, datapin, setpin;
-    name_t      clrpin, qpin, qbarpin;     /* Input and Output Pin names for dtype devices */
+    name_t  clkpin, datapin, setpin;
+    name_t  clrpin, qpin, qbarpin;     /* Input and Output Pin names for dtype devices */
     
     /* Vector of pointers to errors. returned to main after the whole file has been parsed */
     vector<Error*> errorvector;
@@ -65,15 +65,15 @@ class parser {
     
     
     /**** Booleans carrying out simple checks required often ***/ 
-	bool isEqualSym(symbol_t symbol);
-	bool isClkSym(symbol_t symbol);
-	bool isAndSym(symbol_t symbol);
-	bool isNandSym(symbol_t symbol);
-	bool isOrSym(symbol_t symbol);
-	bool isNorSym(symbol_t symbol);
-	bool isXorSym(symbol_t symbol);
-	bool isSwitchSym(symbol_t symbol);
-	bool isDtypeSym(symbol_t symbol);
+    bool isEqualSym(symbol_t symbol);
+    bool isClkSym(symbol_t symbol);
+    bool isAndSym(symbol_t symbol);
+    bool isNandSym(symbol_t symbol);
+    bool isOrSym(symbol_t symbol);
+    bool isNorSym(symbol_t symbol);
+    bool isXorSym(symbol_t symbol);
+    bool isSwitchSym(symbol_t symbol);
+    bool isDtypeSym(symbol_t symbol);
     bool isDevSym(symbol_t symbol);
     bool isStrSym(symbol_t symbol);
     bool isNumSym(symbol_t symbol);

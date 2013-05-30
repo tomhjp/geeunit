@@ -133,7 +133,6 @@ void devices::makegate (devicekind dkind, name_t did, int ninputs, bool& ok)
 	iname += ((char) (n % 10)) + '0';
       }
       netz->addinput (d, nmz->lookup (iname));
-      cout << "the input id is nmz->lookup(iname) = " << nmz->lookup (iname) << endl; 
     }
   }
 }

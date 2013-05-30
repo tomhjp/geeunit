@@ -11,31 +11,12 @@
 using namespace std;
 
 /* The parser for the circuit definition files */
-/* WORKING NOW IF THE SPEC FILE IS CORRECT */ 
-/*
-void parser::skipToBreak(symbol_t symbol)
-{
-    if(symbol.symboltype == semicolsym)
-    {
-        skipflag = 0; 
-        return;
-    }
-    else if(symbol.symboltype == endsym)
-    {
-        needskeyflag == 1;
-        skipflag = 0;
-        return;
-    }
-    else 
-        return; 
-}
-*/
+
 void parser::preStartFCheck(symbol_t symbol)
 {
     if(symbol.symboltype != startfsym) 
     {
-        errorvector.push_back(new noStrtFile(symbol.line, symbol.col));
-        skipflag=1; 
+        errorvector.push_back(new noStrtFile(symbol.line, symbol.col)); 
     }
     else needskeyflag=1;
     return;
@@ -75,7 +56,6 @@ void parser::mainLineBuild(symbol_t symbol)
                 if(!allInsCon)
                 {
                     // check all inputs to find those which are not connected 
-                    //cout << "found unconnected inputs" <<endl; 
                     errorvector.push_back(new unconnectInp());
                 }
             }
@@ -95,10 +75,9 @@ void parser::mainLineBuild(symbol_t symbol)
         if(section == devsect)
         {
             bool pass = checkDevLine();
-            //cout << "pass = " << pass << endl; 
             if(pass)
             {
-                //make the device (look in devices class) 
+                //make the device 
                 done = makeDevLine();        
                 if(!done)
                 {
@@ -234,7 +213,6 @@ bool parser::makeConLine(void)
         /* ie non-dtype -> dtype            */
         ipstring = context[4].namestring;
         name_t ipid = nmz->cvtname(ipstring);
-        cout << context[4].symboltype << endl; 
         if(context[4].symboltype == ddatasym) inp = nmz->cvtname("DATA"); 
         else if(context[4].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
         else if(context[4].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
@@ -486,7 +464,6 @@ bool parser::checkConLine(void)
         {
             /* input device is not a dtype device   */ 
             /* ie. nondtype -> nondtype             */ 
-            cout << context[2].namestring <<endl; 
             name_t devid = nmz->cvtname(context[2].namestring); // gets the id for the device
             if(!isStrSym(context[4]))
             {
@@ -503,7 +480,8 @@ bool parser::checkConLine(void)
                 if(!gateInputUnconnected(context[4], devid))
                 {
                     devlink devicelink = netz->finddevice(devid); 
-                    errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, ipid, devicelink, netz));
+		    name_t inputid = nmz->cvtname(context[4].namestring);
+                    errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
                     return false;
                 }
             }
@@ -526,7 +504,8 @@ bool parser::checkConLine(void)
             {
                 name_t devid = nmz->cvtname(context[2].namestring); // gets the id for the device
                 devlink devicelink = netz->finddevice(devid); 
-                errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, ipid, devicelink, netz));
+		name_t inputid = nmz->cvtname(context[4].namestring);
+                errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
                 return false;
             }
             if(!isSemiColSym(context[5]))
@@ -592,7 +571,8 @@ bool parser::checkConLine(void)
             if(!gateInputUnconnected(context[6], devid))
             {
                 devlink devicelink = netz->finddevice(devid); 
-                errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, ipid, devicelink, netz));
+		name_t inputid = nmz->cvtname(context[6].namestring);
+                errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, inputid, devicelink, netz));
                 return false;
             }
             if(!isSemiColSym(context[7]))
@@ -614,7 +594,8 @@ bool parser::checkConLine(void)
             {
                 name_t devid = nmz->cvtname(context[4].namestring); // gets the id for the device
                 devlink devicelink = netz->finddevice(devid); 
-                errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, ipid, devicelink, netz));
+		name_t inputid = nmz->cvtname(context[4].namestring);;
+                errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, inputid, devicelink, netz));
                 return false;
             }
             if(!isSemiColSym(context[7]))
@@ -838,7 +819,6 @@ bool parser::isSemiColSym(symbol_t symbol)
 bool parser::isDtypeInput(symbol_t symbol)
 {
     bool retval = false; 
-    cout << symbol.symboltype << endl; 
     if((symbol.symboltype == ddatasym) || (symbol.symboltype == dclksym) || (symbol.symboltype == dsetsym) || (symbol.symboltype == dclearsym))
         retval = true; 
     return retval; 
@@ -883,8 +863,9 @@ bool parser::gateInputUnconnected(symbol_t symbol, name_t devid)
     devlink devicelink = netz->finddevice(devid); 
     inplink inputlink = netz->findinput(devicelink, ipid);
     if(inputlink->connect == NULL)
-        retval = true; 
+        retval = true;      
     return retval;
+ 
 }
  
 bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
@@ -989,7 +970,6 @@ void parser::nextKeyWordCheck(symbol_t symbol)
 /* read in symbols from the scanner, and calls the relevant parsing functions */ 
 void parser::readin (symbol_t symbol)
 {   
-    //if(skipflag == 1) skipToBreak(symbol);  // not needed as we are parsing a line at a time. 
     /* an error in a line breaks, and the next symbol read in is the start of a new line  */
     if(needskeyflag == 1) nextKeyWordCheck(symbol); 
     else if(section == prestartfsect) preStartFCheck(symbol); 
@@ -998,8 +978,6 @@ void parser::readin (symbol_t symbol)
     else 
     {
     /* USED FOR BUG FIXING */
-    //cout << "Erm, something's gone wrong" << endl;  //PANIC. 
-    //cout << "Section = " << section <<endl; 
     }
        
 }
@@ -1026,7 +1004,6 @@ parser::parser (network* network_mod, devices* devices_mod,
     /* any other initialisation you want to do? */
     section = prestartfsect; 
     needskeyflag = 0;
-    skipflag = 0;
     nodevsymflag = 0;
     noconsymflag = 0;
     nomonsymflag = 0;
