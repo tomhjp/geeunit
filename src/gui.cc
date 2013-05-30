@@ -99,13 +99,13 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             glColor3f(0.9, 0.9, 0.9);
 
             glBegin(GL_QUADS);
-                x = (margin + labelWidth);
-                y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3);
+            x = (margin + labelWidth);
+            y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3);
 
-                glVertex2f(x,y);
-                glVertex2f(x,y-unitHeight-6);
-                glVertex2f(width - margin,y - unitHeight-2*traceMargin);
-                glVertex2f(width-margin,y);
+            glVertex2f(x,y);
+            glVertex2f(x,y-unitHeight-6);
+            glVertex2f(width - margin,y - unitHeight-2*traceMargin);
+            glVertex2f(width-margin,y);
             glEnd();
 
             glColor3f(0.0, 0.0, 1.0);
@@ -114,22 +114,20 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 bool skipLow = false, skipHigh = false;
                 for (c=0; c<traceMatrix[0].size(); c++)
                 {
+                    s = traceMatrix[t][c];
+                    if (s==low)
+                    {
+                        y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
+                        x = margin + labelWidth + traceMargin + unitWidth*c;
+                    }
 
-                        s = traceMatrix[t][c];
-                        if (s==low)
-                        {
-                            y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
-                            x = margin + labelWidth + traceMargin + unitWidth*c;
-                        }
-
-                        if (s==high)
-                        {
-                            y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
-                            x = margin + labelWidth + traceMargin + unitWidth*c;
-                        }
-                        glVertex2f(x,y);
-                        glVertex2f(x+unitWidth, y);
-
+                    if (s==high)
+                    {
+                        y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
+                        x = margin + labelWidth + traceMargin + unitWidth*c;
+                    }
+                    glVertex2f(x,y);
+                    glVertex2f(x+unitWidth, y);
                 }
             glEnd();
         }
@@ -148,7 +146,6 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             axisSpacing = 100;
 
 
-        cout <<"cycles = " << cyclesdisplayed << endl;
         for (t=0; t<traceMatrix.size(); t++)
         {
             for (c=0; c<traceMatrix[0].size(); c++)
@@ -210,14 +207,7 @@ void MyGLCanvas::InitGL()
      glLoadIdentity();
 }
 
-void MyGLCanvas::setCanvasScrollBar()
-{
-    int scrollHeight = unitHeight/5;
-    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
-    SetScrollbar(wxVERTICAL,0,10,10+numPositions);
-}
-
-  // Callback function for when the canvas is exposed
+// Callback function for when the canvas is exposed
 void MyGLCanvas::OnPaint(wxPaintEvent& event)
 {
     int w, h;
@@ -229,15 +219,25 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
     Render(text,-1);
 }
 
- // Callback for Scroll Event
+// Callback for Scroll Event
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
 {
     canvasPosition = event.GetPosition();
     Render(wxT("Scrolling"),-1);
 }
 
+// Function to set size of scroll bar, called when canvas resized
+void MyGLCanvas::setCanvasScrollBar()
+{
+    // Proportion of a trace by which the canvas will move when scroll position changes
+    int scrollHeight = unitHeight/5;
+    // Set maximum scroll point such that only the last monitor is visible
+    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
+    SetScrollbar(wxVERTICAL,0,10,10+numPositions);
+}
 
-  // Callback function for when the canvas is resized
+
+// Callback function for when the canvas is resized
 void MyGLCanvas::OnSize(wxSizeEvent& event)
 {
     wxGLCanvas::OnSize(event); // required on some platforms
@@ -251,9 +251,8 @@ void MyGLCanvas::OnSize(wxSizeEvent& event)
   // Callback function for mouse events inside the GL canvas
 void MyGLCanvas::OnMouse(wxMouseEvent& event)
 {
-    wxString text;
-    int w, h;;
-    GetClientSize(&w, &h);
+    // Currently not doing anything
+    return;
 }
 
 void MyGLCanvas::populateTraceMatrix()
@@ -375,7 +374,8 @@ END_EVENT_TABLE()
 
 
 MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
-         names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, scanner_t *scanner_mod, parser *parser_mod , long style):
+         names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, scanner_t *scanner_mod,
+         parser *parser_mod , long style):
   wxFrame(parent, wxID_ANY, title, pos, size, style)
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
@@ -611,7 +611,7 @@ void MyFrame::OnNew(wxCommandEvent &event)
 // Callback for the run button
 void MyFrame::OnRunButton(wxCommandEvent &event)
 {
-  // Call the run function to run the network for the number of cycles currently in the
+  // Call the run function to run the network for the number of cycles currently in the combo box
     RunFunction();
 }
 
@@ -776,8 +776,8 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     canvas->setCanvasScrollBar();
 }
 
+// Callback for second pushbutton
 void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
-  // Callback for second pushbutton
 {
     if (switchComboBox->GetStringSelection().IsEmpty())
     {
@@ -787,9 +787,6 @@ void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
     }
 
     name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
-    // Following for debugging
-    //namestring_t devStr = string(switchComboBox->GetStringSelection().mb_str());
-    //name_t sid = nmz->cvtname(devStr);
     asignal s = low;
     bool ok;
 
@@ -804,8 +801,8 @@ void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
     commandLine->SetInsertionPoint(0);
 }
 
+// Callback for second pushbutton
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
-  // Callback for second pushbutton
 {
 
     if (switchComboBox->GetStringSelection().IsEmpty())
