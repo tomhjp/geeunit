@@ -18,7 +18,7 @@ typedef outputrec* outplink;
 struct inputrec {
   name_t    id;
   outplink  connect;
-  int lineDefd;
+  int       lineDefd;
   inputrec* next;
 };
 typedef inputrec* inplink;

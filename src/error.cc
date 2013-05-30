@@ -245,7 +245,7 @@ unconnectInp::unconnectInp()
 }	
 	
 /*****************************************************************************************/
-/**************** Methods for classes requiring prior information ************************/
+/**************** Methods for classes requiring extra information ************************/
 /*****************************************************************************************/
 /*****************  eg. if a device name is already defined, needs line, col *************/ 
 
@@ -255,6 +255,7 @@ inputPrevConnected::inputPrevConnected(int l, int c, name_t id, devlink dev, net
     col = c;
     netz = network_mod;
     devicelink = dev; 
+    cout << "devicelink is " <<devicelink << endl; 
     ipid = id;
 	initconline = getInitCon();
     errorMessage = "The input referenced has already been connected, at line ";
