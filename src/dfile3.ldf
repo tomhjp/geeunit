@@ -1,9 +1,9 @@
 /* Circuit contains all device types */ 
 
 STARTFILE 
-START
+DEVICES
     A = SWITCH(0);
-    B = SWITCH(0);
+    B = SWITCH(0)
     C = SWITCH(0);
     clk = CLOCK(1); 
     set = SWITCH(0);
