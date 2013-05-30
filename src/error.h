@@ -189,8 +189,8 @@ class lineBuildFailed: public Error
 
 class foundSymAfterEndf: public Error
 {
-	public:
-	foundSymAfterEndf(int l, int c);
+    public:
+    foundSymAfterEndf(int l, int c);
 };
 
 class unconnectInp: public Error
@@ -199,6 +199,23 @@ class unconnectInp: public Error
     unconnectInp();
 };
 
+class overMaxMonLimit: public Error
+{
+    public:
+    overMaxMonLimit(int l, int c);
+};
+
+class fileNotComplete: public Error
+{
+    public:
+    fileNotComplete();
+};
+
+class fatalErr: public Error
+{
+    public:
+    fatalErr(int l, int c);
+};
 
 /***********************************************************/
 /********* more complex errors to report *******************/
@@ -216,7 +233,6 @@ class inputPrevConnected: public Error
     public:
     inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
     void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
-
     void printErrMsg(void);
 };
 

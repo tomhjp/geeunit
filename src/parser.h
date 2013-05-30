@@ -15,6 +15,8 @@
 using namespace std;
 
 
+#define MAXMONITORS 	50
+ 
 typedef enum {prestartfsect, devsect, consect, monsect, postendfsect} section_t; 
 
 
@@ -40,6 +42,7 @@ class parser {
     int filenotcompleteflag;  	// used to check the file is 'complete', ie. eofile has been detected before
 				// all sections and keywords have been detected 
     
+    int nummonitorsmade; 	// used to keep number of monitors created below limit of MAXMONITORS
     
     name_t  clkpin, datapin, setpin;
     name_t  clrpin, qpin, qbarpin;     /* Input and Output Pin names for dtype devices */

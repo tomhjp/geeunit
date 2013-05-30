@@ -95,8 +95,6 @@ int network::getLineDefd(devlink dev, name_t id)
     int linenum;
     inplink i; 
     i = findinput(dev, id);
-    cout << dev->id << endl; 
-    cout << "inputlink is " << i << " for ipid " << id <<endl; 
     linenum = i->lineDefd;
     return linenum;
 } 
