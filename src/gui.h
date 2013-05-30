@@ -9,6 +9,8 @@
 #include "names.h"
 #include "devices.h"
 #include "monitor.h"
+#include "scanner.h"
+#include "parser.h"
 #include <string>
 #include <cstring>
 #include <vector>
@@ -35,7 +37,7 @@ class MyFrame: public wxFrame
 {
  public:
     MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size, 
-	  names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, network *network_mod = NULL, 
+	  names *names_mod = NULL, devices *devices_mod = NULL, monitor *monitor_mod = NULL, network *network_mod = NULL, scanner_t *smz = NULL, parser *pmz = NULL, 
 	  long style = wxDEFAULT_FRAME_STYLE); // constructor
     private:
         MyGLCanvas *canvas;                     // GL drawing area widget to draw traces
@@ -44,6 +46,8 @@ class MyFrame: public wxFrame
         devices *dmz;                           // pointer to devices class
         monitor *mmz;                           // pointer to monitor class
         network *netz;
+        scanner_t *smz;
+        parser *pmz;
         
         wxSpinCtrl   *runSpin;
         wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
@@ -84,6 +88,7 @@ class MyFrame: public wxFrame
         void RunFunction();
         bool isdtype(name_t did);
         void checkMonitorName(wxString monitorName, wxString& deviceName, wxString& outputName, bool& isDtype);
+        void resetCanvas();
         
 
         void populateSwitchNameVector();
@@ -107,6 +112,9 @@ class MyGLCanvas: public wxGLCanvas
     void setCyclesDisplayed(int c);
     void setCyclesCompleted(int c);
     void setCanvasScrollBar();
+    void setNames(names* names_mod);
+    void setMonitor(monitor* monitor_mod);
+    void setNetwork(network* network_mod);
 
     typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;

@@ -11,10 +11,12 @@ IMPLEMENT_APP(MyApp)
 bool MyApp::OnInit()
   // This function is automatically called when the application starts
 {
-  if (argc != 2) { // check we have one command line argument
-    wcout << "Usage:      " << argv[0] << " [filename]" << endl;
-    exit(1);
-  }
+  // check we have one command line argument
+    if (argc != 2) 
+    { 
+        wcout << "Usage:      " << argv[0] << " [filename]" << endl;
+        exit(1);
+    }
 
   // Construct the six classes required by the innards of the logic simulator
     nmz = new names();
@@ -56,7 +58,7 @@ bool MyApp::OnInit()
     // it some fake ASCII ones instead
     char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
     // Construct the GUI
-    MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 800), nmz, dmz, mmz, netz);
+    MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 800), nmz, dmz, mmz, netz,smz,pmz);
     frame->Show(true);
     return(true); // enter the GUI event loop
 #else

@@ -51,15 +51,12 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
   // When the simulator is run, the number of cycles is passed as a parameter and the first monitor
   // trace is displayed.
 {
+  // Initialise Variables that Render needs
     float y;
     unsigned int i,j,c,t;
     asignal s;
-    int x;
     float unitWidth;
-    
-    int width, height,margin,labelWidth,traceWidth,traceMargin,unitHeight,traceboxWidth,traceboxHeight;
-//    int numTraces = 10;
-//    int lenTrace = 20;
+    int x,width, height,margin,labelWidth,traceWidth,traceMargin,unitHeight,traceboxWidth,traceboxHeight;
 
     GetClientSize(&width,&height);
     margin = 20;
@@ -67,17 +64,14 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     traceWidth = width - 2*margin - labelWidth - 2*traceMargin;
     traceMargin = 3;
     unitHeight = 20;
-    
-    
     traceboxWidth = width - 2*margin - labelWidth - 2*traceMargin;
     traceboxHeight = height - 2*margin - 2*traceMargin;
-    int num = 1;
-
-
+    
     if (cycles > 0)
         cyclesdisplayed = cycles;
         
     unitWidth = traceboxWidth / cyclesdisplayed;
+    
     if (unitWidth < 0.3)
         unitWidth = 0.3;
 
@@ -88,8 +82,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         InitGL();
         init = true;
     }
-
-
+    
     glClear(GL_COLOR_BUFFER_BIT);
     
     //If there are monitors then draw the first monitor signal, get trace from monitor class
@@ -104,48 +97,49 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
         for (t=0; t<traceMatrix.size(); t++)
         {
             glColor3f(0.9, 0.9, 0.9);
+            
             glBegin(GL_QUADS);
-            
-            x = margin + labelWidth;
-            y = traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3;
-            glVertex2f(x,y);
-            glVertex2f(x,y-unitHeight-6);
-            glVertex2f(width - margin,y - unitHeight-2*traceMargin);
-            glVertex2f(width-margin,y);
-            
+                x = (margin + labelWidth);
+                y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3);
+                
+                glVertex2f(x,y);
+                glVertex2f(x,y-unitHeight-6);
+                glVertex2f(width - margin,y - unitHeight-2*traceMargin);
+                glVertex2f(width-margin,y);
             glEnd();
+            
             glColor3f(0.0, 0.0, 1.0);
+            
             glBegin(GL_LINE_STRIP);
+                bool skipLow = false, skipHigh = false;
+                for (c=0; c<traceMatrix[0].size(); c++)
+                {
+                    s = traceMatrix[t][c];
+                    if (s==low)
+                    {
+                        y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
+                        x = margin + labelWidth + traceMargin + unitWidth*c;
+                    }
 
-            bool skipLow = false, skipHigh = false;
-            for (c=0; c<traceMatrix[0].size(); c++)
-            {
-                s = traceMatrix[t][c];
-                if (s==low)
-                {
-                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
-                    x = margin + labelWidth + traceMargin + unitWidth*c;
+                    if (s==high)
+                    {
+                        y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
+                        x = margin + labelWidth + traceMargin + unitWidth*c;
+                    }
+                    /*if (y > (height-canvasPosition))
+                    {
+                        y = height - canvasPosition;
+                        skipHigh = true;
+                        glEnd();
+                    }
+                    else
+                    {
+                        skipHigh = false;
+                        glBegin(GL_LINE_STRIP);
+                    }*/
+                    glVertex2f(x, y);
+                    glVertex2f(x+unitWidth, y);
                 }
-
-                if (s==high)
-                {
-                    y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
-                    x = margin + labelWidth + traceMargin + unitWidth*c;
-                }
-                /*if (y > (height-canvasPosition))
-                {
-                    y = height - canvasPosition;
-                    skipHigh = true;
-                    glEnd();
-                }
-                else
-                {
-                    skipHigh = false;
-                    glBegin(GL_LINE_STRIP);
-                }*/
-                glVertex2f(x, y);
-                glVertex2f(x+unitWidth, y);
-            }
             glEnd();
         }
 
@@ -367,6 +361,18 @@ void MyGLCanvas::setCyclesCompleted(int c)
     cyclescompleted = c;
 }
 
+void MyGLCanvas::setNames(names* names_mod)
+{
+    nmz = names_mod;
+}
+void MyGLCanvas::setMonitor(monitor* monitor_mod)
+{
+    mmz = monitor_mod;
+}
+void MyGLCanvas::setNetwork(network* network_mod)
+{
+    netz = network_mod;
+}
 // MyFrame *******************************************************************************************************************************
 //         *******************************************************************************************************************************
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
@@ -398,7 +404,7 @@ END_EVENT_TABLE()
 
 
 MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, const wxSize& size,
-		 names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, long style):
+		 names *names_mod, devices *devices_mod, monitor *monitor_mod, network *network_mod, scanner_t *scanner_mod, parser *parser_mod , long style):
   wxFrame(parent, wxID_ANY, title, pos, size, style)
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
@@ -408,6 +414,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     dmz = devices_mod;
     mmz = monitor_mod;
     netz = network_mod;
+    smz = scanner_mod;
+    pmz = parser_mod;
 
     if (nmz == NULL || dmz == NULL || mmz == NULL)
     {
@@ -418,10 +426,6 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     wxMenuBar *menuBar = new wxMenuBar;
 
     wxMenu *fileMenu = new wxMenu;
-    wxMenu *editMenu = new wxMenu;
-    wxMenu *viewMenu = new wxMenu;
-    wxMenu *searchMenu = new wxMenu;
-    wxMenu *toolsMenu = new wxMenu;
 
     fileMenu->Append(wxID_NEW ,wxT("&New"));
     fileMenu->Append(wxID_OPEN ,wxT("&Open"));
@@ -430,10 +434,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
 
     menuBar->Append(fileMenu, wxT("&File"));
-    menuBar->Append(editMenu, wxT("&Edit"));
-    menuBar->Append(viewMenu, wxT("&View"));
-    menuBar->Append(searchMenu, wxT("&Search"));
-    menuBar->Append(toolsMenu, wxT("&Tools"));
+
 
 
     SetMenuBar(menuBar);;
@@ -461,15 +462,14 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     
 
     // Initialise combo-box strings
-    wxString zapTraceList[numDevices];
-    wxString addTraceList[numDevices + canvas->numDtypes];
-    wxString switchList[numSwitches];
-
+    wxArrayString zapTraceArray;
+    wxArrayString addTraceArray;
+    wxArrayString switchArray;
 
     // Make the zap combobox strings
     for (int i=0; i<numMonitors; i++)
     {
-        zapTraceList[i] = canvas->monitorNameVector[i];
+        zapTraceArray.Add(canvas->monitorNameVector[i],1);
     }
     
     // Make the add combobox strings
@@ -481,14 +481,14 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
         
         if (dkind == dtype)
         {   
-            addTraceList[c] = deviceNamestring.Append(wxT(".Q"));
+            addTraceArray.Add(deviceNamestring.Append(wxT(".Q")));
             c++;
-            addTraceList[c] = deviceNamestring.Append(wxT("BAR"));
+            addTraceArray.Add(deviceNamestring.Append(wxT("BAR")));
             c++;
         }
         else
         {
-            addTraceList[c] = deviceNamestring;
+            addTraceArray.Add(deviceNamestring);
             c++;
         }
     }
@@ -496,8 +496,9 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     // Make the switch combo-box strings
     for (int i=0; i<numSwitches; i++)
     {
-        switchList[i] = switchNameVector[i];
+        switchArray.Add(switchNameVector[i]);
     }
+
 
 
 
@@ -506,15 +507,15 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // *********************************************************************************************************************************
 
   //Define Zap Controls
-    zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to zap"),wxDefaultPosition, wxDefaultSize,canvas->monitorNameVector.size(),zapTraceList);
+    zapTraceComboBox = new wxComboBox(this,ZAP_TRACE_COMBO_BOX, wxT("Choose trace to zap"),wxDefaultPosition, wxDefaultSize,zapTraceArray);
     zapTraceButton = new wxButton(this, ZAP_TRACE_BUTTON, wxT("ZAP"));
 
   // Define Add Controls
-    addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to add"),wxDefaultPosition, wxDefaultSize,canvas->deviceNameVector.size()+canvas->numDtypes,addTraceList);
+    addTraceComboBox = new wxComboBox(this,ADD_TRACE_COMBO_BOX, wxT("Choose trace to add"),wxDefaultPosition, wxDefaultSize,addTraceArray);
     addTraceButton = new wxButton(this, ADD_TRACE_BUTTON, wxT("ADD"));
 
   // Define Switch Controls
-    switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch "), wxDefaultPosition, wxDefaultSize, numSwitches, switchList);
+    switchComboBox = new wxComboBox(this,SWITCH_COMBO_BOX, wxT("Choose Switch "), wxDefaultPosition, wxDefaultSize, switchArray);
     switchButton0 = new wxButton(this, SWITCH_BUTTON_0, wxT("Set to 0"));
     switchButton1 = new wxButton(this, SWITCH_BUTTON_1, wxT("Set to 1"));
 
@@ -630,9 +631,55 @@ void MyFrame::OnOpen(wxCommandEvent &event)
     wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.def"),wxFD_OPEN, wxDefaultPosition);
     openDialog->ShowModal();
     wxString fid = openDialog->GetPath();
-    Close(true);
-    system("./logsim dtypeCircuit.def");
-    return;
+    string fileid = string(fid.mb_str());
+    
+    delete nmz;
+    delete netz;
+    delete dmz;    
+    delete mmz;
+    delete smz;
+    delete pmz;
+    
+    nmz = new names();
+    netz = new network(nmz);
+    dmz = new devices(nmz, netz);
+    mmz = new monitor(nmz, netz);
+    smz = new scanner_t(fileid);
+    pmz = new parser(netz, dmz, mmz, smz, nmz);
+    symbol_t symbol;
+    symbol.symboltype = startfsym;      // arbitrary symboltype that is not eofsym
+    
+ 
+    /* Read through whole file outputting one symbol and its type at a time */
+    while (symbol.symboltype != eofsym)
+    {
+        smz->nextSymbol(symbol);
+        pmz->readin(symbol);
+        
+    }
+    vector<Error*> errorVector = pmz->getErrorVector();
+    vector<Warning*> warningVector = pmz->getWarningVector();
+    
+    int line, col;
+    string errorMessage;
+    bool hasPosition;
+    for (int i=0; i<errorVector.size(); i++)
+    {
+        errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
+        smz->printError(line, col, errorMessage, hasPosition);
+    }
+    for (int i=0; i<warningVector.size(); i++)
+    {
+        //warningVector[i]->getWarningDetails(line, col, errorMessage);
+        //smz->printError(line, col, errorMessage);
+    }
+    resetCanvas();
+    canvas->Render(wxT("New File Opened. Network run for a few cycles."),cyclescompleted);
+    wxString commandLineText;
+    commandLineText = wxT("New File Opened. Network run for a few cycles.");
+    commandLine->WriteText(commandLineText);
+    commandLine->SetInsertionPoint(0);
+    cout << "cycles completed = " << cyclescompleted << endl;
 }
 
 void MyFrame::OnNew(wxCommandEvent &event)
@@ -653,8 +700,8 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 void MyFrame::OnContButton(wxCommandEvent &event)
 {   
     int width, height;
-    
     canvas->GetClientSize(&width,&height);
+    
     int maxcycles = (width-115)/0.3;
     if (cyclescompleted > maxcycles)
     {
@@ -760,11 +807,7 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     wxString outputName;
     wxString monitorName = selectionStr;
     checkMonitorName(monitorName,deviceName,outputName,isDtype);
-    
-    cout << "deviceName =  " << string(deviceName.mb_str()) << endl;
-    cout << "outputName =  " << string(outputName.mb_str()) << endl;
-    cout << "monitorName =  " << string(monitorName.mb_str()) << endl;
-    
+        
   // Convert chosen string into a nameString
     string deviceString = string(deviceName.mb_str());
     namestring_t namestring = (namestring_t) deviceString;
@@ -987,4 +1030,101 @@ void MyFrame::checkMonitorName(wxString monitorName, wxString& deviceName, wxStr
         isDtype = false;
     else
         isDtype = true;
+}
+
+void MyFrame::resetCanvas()
+{
+  // Clear the old Canvas data
+    canvas->traceMatrix.clear();
+    canvas->deviceNameVector.clear();
+    canvas->monitorNameVector.clear();
+    
+  // Reset the names, monitor and network classes/  
+    canvas->setNames(nmz);
+    canvas->setMonitor(mmz);
+    canvas->setNetwork(netz);
+    
+    canvas->numDtypes=0;
+    
+  // Populate deviceNameVector with the wxString names of all devices in the network
+    devlink dlink = netz->devicelist();     // Find beginning of the list of devices
+    while (dlink != NULL)
+    {
+        name_t did = dlink->id;
+        namestring_t namestring = nmz->getName(did);
+        devicekind dkind = netz->netzdevkind(did);
+        if (dkind == dtype)
+            canvas->numDtypes++;
+        wxString devStr(namestring.c_str(), wxConvUTF8);
+        canvas->deviceNameVector.push_back(devStr);
+        dlink = dlink->next;
+    }
+    
+  // Reset the network and run for a few cycles (set to an arbitrary 10 here)
+    cyclescompleted = 0;
+    runnetwork(10);
+    
+  // Populate the traceMatrix, switchVector
+    canvas->populateMonitorNameVector();
+    populateSwitchNameVector();
+    canvas->setCyclesCompleted(cyclescompleted);
+    canvas->populateTraceMatrix();
+    canvas->setCanvasScrollBar();
+    
+  // Initialise values for populating the comboBox   
+    int numDevices = canvas->deviceNameVector.size();
+    int numMonitors = canvas->monitorNameVector.size();
+    int numSwitches = switchNameVector.size();
+    int c=0;
+
+  // Initialise comboBox strings
+    wxArrayString zapTraceArray;
+    wxArrayString addTraceArray;
+    wxArrayString switchArray;
+
+  // Make the zap comboBox strings
+    for (int i=0; i<numMonitors; i++)
+    {
+        zapTraceArray.Add(canvas->monitorNameVector[i],1);
+    }
+    
+  // Make the add comboBox strings
+    for (int i=0; i<numDevices; i++)
+    {        
+        wxString deviceNamestring = canvas->deviceNameVector[i];
+		name_t did = getIdFromWxString(deviceNamestring);
+        devicekind dkind = netz->netzdevkind(did);
+        
+        if (dkind == dtype)
+        {   
+            addTraceArray.Add(deviceNamestring.Append(wxT(".Q")));
+            c++;
+            addTraceArray.Add(deviceNamestring.Append(wxT("BAR")));
+            c++;
+        }
+        else
+        {
+            addTraceArray.Add(deviceNamestring);
+            c++;
+        }
+    }
+
+  // Make the switch comboBox strings
+    for (int i=0; i<numSwitches; i++)
+    {
+        switchArray.Add(switchNameVector[i]);
+    }
+
+
+  // Reset the Zap, Add and Switch comboBox selection Lists
+    zapTraceComboBox->Clear();
+    zapTraceComboBox->Append(zapTraceArray);
+
+
+    addTraceComboBox->Clear();
+    addTraceComboBox->Append(addTraceArray);
+
+    switchComboBox->Clear();
+    switchComboBox->Append(switchArray);
+    
 }
