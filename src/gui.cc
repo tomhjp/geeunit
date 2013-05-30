@@ -8,10 +8,10 @@ using namespace std;
 // MyGLCanvas /////////////////////////////////////////////////////////////////////////////////////
 
 BEGIN_EVENT_TABLE(MyGLCanvas, wxGLCanvas)
-  EVT_SIZE(MyGLCanvas::OnSize)
-  EVT_PAINT(MyGLCanvas::OnPaint)
-  EVT_SCROLLWIN(MyGLCanvas::OnScroll)
-  EVT_MOUSE_EVENTS(MyGLCanvas::OnMouse)
+    EVT_SIZE(MyGLCanvas::OnSize)
+    EVT_PAINT(MyGLCanvas::OnPaint)
+    EVT_SCROLLWIN(MyGLCanvas::OnScroll)
+    EVT_MOUSE_EVENTS(MyGLCanvas::OnMouse)
 END_EVENT_TABLE()
 
 int wxglcanvas_attrib_list[5] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
@@ -54,25 +54,32 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     float y;
     unsigned int i,j,c,t;
     asignal s;
-    int width, height,traceboxWidth,traceboxHeight;
-    int numTraces = 10;
-
-    int lenTrace = 20;
-    int margin = 20;
-    float unitWidth;
     int x;
-    int labelWidth = 30;
-    GetClientSize(&width,&height);
-    //cout << "Width: " << width << endl;
-    //cout << "Height: " << height << endl;
+    float unitWidth;
+    
+    int width, height,margin,labelWidth,traceWidth,traceMargin,unitHeight,traceboxWidth,traceboxHeight;
+//    int numTraces = 10;
+//    int lenTrace = 20;
 
-    traceboxWidth = width - 2*margin - labelWidth;
-    traceboxHeight = height - 2*margin;
+    GetClientSize(&width,&height);
+    margin = 20;
+    labelWidth = 50;
+    traceWidth = width - 2*margin - labelWidth - 2*traceMargin;
+    traceMargin = 3;
+    unitHeight = 20;
+    
+    
+    traceboxWidth = width - 2*margin - labelWidth - 2*traceMargin;
+    traceboxHeight = height - 2*margin - 2*traceMargin;
     int num = 1;
 
 
     if (cycles > 0)
         cyclesdisplayed = cycles;
+        
+    unitWidth = traceboxWidth / cyclesdisplayed;
+    if (unitWidth < 0.3)
+        unitWidth = 0.3;
 
     SetCurrent();
 
@@ -85,13 +92,6 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
 
     glClear(GL_COLOR_BUFFER_BIT);
     
-    unitWidth = traceboxWidth / cyclesdisplayed;
-    if (unitWidth < 1)
-        unitWidth = 0.3;
-        
-    cout << unitWidth << endl;  
-    cout << cyclesdisplayed << endl;
-//2700
     //If there are monitors then draw the first monitor signal, get trace from monitor class
     if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
     {
@@ -103,7 +103,17 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
 
         for (t=0; t<traceMatrix.size(); t++)
         {
-
+            glColor3f(0.9, 0.9, 0.9);
+            glBegin(GL_QUADS);
+            
+            x = margin + labelWidth;
+            y = traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5 + 3;
+            glVertex2f(x,y);
+            glVertex2f(x,y-unitHeight-6);
+            glVertex2f(width - margin,y - unitHeight-2*traceMargin);
+            glVertex2f(width-margin,y);
+            
+            glEnd();
             glColor3f(0.0, 0.0, 1.0);
             glBegin(GL_LINE_STRIP);
 
@@ -114,13 +124,13 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
                 if (s==low)
                 {
                     y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + canvasPosition*5);
-                    x = margin + labelWidth + unitWidth*c;
+                    x = margin + labelWidth + traceMargin + unitWidth*c;
                 }
 
                 if (s==high)
                 {
                     y = (traceboxHeight + margin - 2.5*unitHeight*t + canvasPosition*5);
-                    x = margin + labelWidth + unitWidth*c;
+                    x = margin + labelWidth + traceMargin + unitWidth*c;
                 }
                 /*if (y > (height-canvasPosition))
                 {
@@ -217,21 +227,21 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     SwapBuffers();
 }
 
+ // Function to initialise the GL context
 void MyGLCanvas::InitGL()
-  // Function to initialise the GL context
 {
-  int w, h;
+     int w, h;
 
-  GetClientSize(&w, &h);
-  SetCurrent();
-  glDrawBuffer(GL_BACK);
-  glClearColor(1.0, 1.0, 1.0, 0.0);
-  glViewport(0, 0, (GLint) w, (GLint) h);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0, w, 0, h, -1, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+     GetClientSize(&w, &h);
+     SetCurrent();
+     glDrawBuffer(GL_BACK);
+     glClearColor(1.0, 1.0, 1.0, 0.0);
+     glViewport(0, 0, (GLint) w, (GLint) h);
+     glMatrixMode(GL_PROJECTION);
+     glLoadIdentity();
+     glOrtho(0, w, 0, h, -1, 1);
+     glMatrixMode(GL_MODELVIEW);
+     glLoadIdentity();
 }
 
 void MyGLCanvas::setCanvasScrollBar()
@@ -242,50 +252,43 @@ void MyGLCanvas::setCanvasScrollBar()
     SetScrollbar(wxVERTICAL,0,10,10+numPositions);
 }
 
-void MyGLCanvas::OnPaint(wxPaintEvent& event)
   // Callback function for when the canvas is exposed
+void MyGLCanvas::OnPaint(wxPaintEvent& event)
 {
-  int w, h;
-  wxString text;
+    int w, h;
+    wxString text;
 
-  wxPaintDC dc(this); // required for correct refreshing under MS windows
-  GetClientSize(&w, &h);
-  text.Printf(wxT("Canvas redrawn by OnPaint callback, canvas size is %d by %d"), w, h);
-  Render(text,-1);
+    wxPaintDC dc(this); // required for correct refreshing under MS windows
+    GetClientSize(&w, &h);
+    text.Printf(wxT("Canvas redrawn by OnPaint callback, canvas size is %d by %d"), w, h);
+    Render(text,-1);
 }
 
+ // Callback for Scroll Event
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
 {
     canvasPosition = event.GetPosition();
-    //cout << "Canvas position is " << canvasPosition << endl;
     Render(wxT("Scrolling"),-1);
 }
 
 
-void MyGLCanvas::OnSize(wxSizeEvent& event)
   // Callback function for when the canvas is resized
+void MyGLCanvas::OnSize(wxSizeEvent& event)
 {
-  wxGLCanvas::OnSize(event); // required on some platforms
-  init = false;
-  setCanvasScrollBar();
-  canvasPosition = 0;
-  Refresh(); // required by some buggy nvidia graphics drivers,
-  Update();  // harmless on other platforms!
+    wxGLCanvas::OnSize(event); // required on some platforms
+    init = false;
+    setCanvasScrollBar();
+    canvasPosition = 0;
+    Refresh(); // required by some buggy nvidia graphics drivers,
+    Update();  // harmless on other platforms!
 }
 
-void MyGLCanvas::OnMouse(wxMouseEvent& event)
   // Callback function for mouse events inside the GL canvas
+void MyGLCanvas::OnMouse(wxMouseEvent& event)
 {
-  wxString text;
-  int w, h;;
-
-  GetClientSize(&w, &h);
-  //if (event.ButtonDown()) text.Printf(wxT("Mouse button %d pressed at %d %d"), event.GetButton(), event.m_x, h-event.m_y);
-  //if (event.ButtonUp()) text.Printf(wxT("Mouse button %d released at %d %d"), event.GetButton(), event.m_x, h-event.m_y);
-  //if (event.Dragging()) text.Printf(wxT("Mouse dragged to %d %d"), event.m_x, h-event.m_y);
-  //if (event.Leaving()) text.Printf(wxT("Mouse left window at %d %d"), event.m_x, h-event.m_y);
-
-  //if (event.ButtonDown() || event.ButtonUp() || event.Dragging() || event.Leaving()) Render(text,-1);
+    wxString text;
+    int w, h;;
+    GetClientSize(&w, &h);
 }
 
 void MyGLCanvas::populateTraceMatrix()
@@ -367,28 +370,30 @@ void MyGLCanvas::setCyclesCompleted(int c)
 // MyFrame *******************************************************************************************************************************
 //         *******************************************************************************************************************************
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
-  EVT_MENU(wxID_EXIT, MyFrame::OnExit)
-  EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-  EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
-  EVT_MENU(wxID_NEW,MyFrame::OnNew)
-  
-
-  EVT_BUTTON(RUN_BUTTON,  MyFrame::OnRunButton)
-  EVT_BUTTON(CONT_BUTTON, MyFrame::OnContButton)
-
-  EVT_BUTTON(ZAP_TRACE_BUTTON, MyFrame::OnButtonZap)
-  EVT_BUTTON(ADD_TRACE_BUTTON, MyFrame::OnButtonAdd)
-
-  EVT_BUTTON(SWITCH_BUTTON_0, MyFrame::OnButtonSwitch0)
-  EVT_BUTTON(SWITCH_BUTTON_1, MyFrame::OnButtonSwitch1)
-
-  EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
-  EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
-
-  EVT_SPINCTRL(RUN_SPINCTRL,  MyFrame::OnSpin)
-  EVT_SPINCTRL(CONT_SPINCTRL, MyFrame::OnSpin)
-
-  EVT_TEXT_ENTER(COMMAND_LINE, MyFrame::OnText)
+  // Menu Events
+    EVT_MENU(wxID_EXIT, MyFrame::OnExit)
+    EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
+    EVT_MENU(wxID_OPEN, MyFrame::OnOpen)
+    EVT_MENU(wxID_NEW,MyFrame::OnNew)
+    
+  // Button Events
+    EVT_BUTTON(RUN_BUTTON,  MyFrame::OnRunButton)
+    EVT_BUTTON(CONT_BUTTON, MyFrame::OnContButton)  
+    EVT_BUTTON(ZAP_TRACE_BUTTON, MyFrame::OnButtonZap)
+    EVT_BUTTON(ADD_TRACE_BUTTON, MyFrame::OnButtonAdd)
+    EVT_BUTTON(SWITCH_BUTTON_0, MyFrame::OnButtonSwitch0)
+    EVT_BUTTON(SWITCH_BUTTON_1, MyFrame::OnButtonSwitch1)
+    
+  // Combo Box Events
+    EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
+    EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
+    
+  // SpinControl Events
+    EVT_SPINCTRL(RUN_SPINCTRL,  MyFrame::OnSpin)
+    EVT_SPINCTRL(CONT_SPINCTRL, MyFrame::OnSpin)
+    
+  // Command Line Events  
+    EVT_TEXT_ENTER(COMMAND_LINE, MyFrame::OnText)
 END_EVENT_TABLE()
 
 
@@ -471,9 +476,9 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     for (int i=0; i<numDevices; i++)
     {        
         wxString deviceNamestring = canvas->deviceNameVector[i];
-
 		name_t did = getIdFromWxString(deviceNamestring);
         devicekind dkind = netz->netzdevkind(did);
+        
         if (dkind == dtype)
         {   
             addTraceList[c] = deviceNamestring.Append(wxT(".Q"));
@@ -562,21 +567,21 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   // NESTED SIZERS FOR PLACEMENT OF CONTROL LOOPS
   //**********************************************************************************************************************************
-  frame_sizer->Add(topsizer,5, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,30);
-  frame_sizer->Add(commandLine,1,wxEXPAND | wxALL,20);
+    frame_sizer->Add(topsizer,5, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,30);
+    frame_sizer->Add(commandLine,1,wxEXPAND | wxALL,20);
 
-  topsizer->Add(canvas,3,wxEXPAND,0);
-  topsizer->Add(sidebar_sizer,2,wxALIGN_CENTRE,0);
+    topsizer->Add(canvas,3,wxEXPAND,0);
+    topsizer->Add(sidebar_sizer,2,wxALIGN_CENTRE,0);
 
-  sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE);
-  sidebar_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
-  sidebar_sizer->Add(run_button_sizer,0,wxALIGN_CENTRE);
-  sidebar_sizer->Add(cont_button_sizer,0,wxALIGN_CENTRE);
+    sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE);
+    sidebar_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
+    sidebar_sizer->Add(run_button_sizer,0,wxALIGN_CENTRE);
+    sidebar_sizer->Add(cont_button_sizer,0,wxALIGN_CENTRE);
 
-  combo_sizer->Add(zap_sizer, 0, wxALIGN_CENTER);
-  combo_sizer->Add(add_sizer, 0, wxALIGN_CENTRE);
+    combo_sizer->Add(zap_sizer, 0, wxALIGN_CENTER);
+    combo_sizer->Add(add_sizer, 0, wxALIGN_CENTRE);
 
-  switch_sizer->Add(switchButton_sizer,0,wxALIGN_CENTRE);
+    switch_sizer->Add(switchButton_sizer,0,wxALIGN_CENTRE);
 //************************************************************************************************************************************
 
     SetSizeHints(1000, 400);
@@ -625,7 +630,8 @@ void MyFrame::OnOpen(wxCommandEvent &event)
     wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.def"),wxFD_OPEN, wxDefaultPosition);
     openDialog->ShowModal();
     wxString fid = openDialog->GetPath();
-    system("./logsim fid");
+    Close(true);
+    system("./logsim dtypeCircuit.def");
     return;
 }
 
@@ -645,8 +651,12 @@ void MyFrame::OnRunButton(wxCommandEvent &event)
 // Callback for the continue button
 //****************************************************************************************************************************************
 void MyFrame::OnContButton(wxCommandEvent &event)
-{
-    if (cyclescompleted > 2700)
+{   
+    int width, height;
+    
+    canvas->GetClientSize(&width,&height);
+    int maxcycles = (width-115)/0.3;
+    if (cyclescompleted > maxcycles)
     {
         errorBox(wxT("Can't display any more cycles. Click ""Run"" to start again. "));
         return;
@@ -696,16 +706,9 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
 
     if (!found)
     {
-        {
-            errorBox(wxT("Sorry we couldn't find the monitor you tried to zap"));
-            return;
-        }
+        errorBox(wxT("Sorry we couldn't find the monitor you tried to zap"));
         return;
     }
-
-  // Now that we've confirmed that the selection is valid, clear the traceMatrix
-//    canvas->traceMatrix.clear();
-
   // Find namestring of device
     string devNamestring = string(selectionStr.mb_str());
 
@@ -868,9 +871,9 @@ void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
 void MyFrame::OnSpin(wxSpinEvent &event)
   // Callback for the spin control
 {
-  wxString text;
-  text.Printf(wxT("New spinctrl value %d"), event.GetPosition());
-  canvas->Render(text,-1);
+    wxString text;
+    text.Printf(wxT("New spinctrl value %d"), event.GetPosition());
+    canvas->Render(text,-1);
 }
 
 void MyFrame::OnText(wxCommandEvent &event)
@@ -894,41 +897,43 @@ void MyFrame::runnetwork(int ncycles)
     {
         dmz->executedevices (ok);
         if (ok)
-            {
-               n--;
-               mmz->recordsignals ();
-            }
+        {
+           n--;
+           mmz->recordsignals ();
+        }
         else
-        cout << "Error: network is oscillating" << endl;
+        {
+            cout << "Error: network is oscillating" << endl;
+        }
     }
 
-  if (ok)
-  {
-    cyclescompleted = cyclescompleted + ncycles;
-  }
-  else
-  {
-    cyclescompleted = 0;
-  }
+    if (ok)
+    {
+        cyclescompleted = cyclescompleted + ncycles;
+    }
+    else
+    {
+        cyclescompleted = 0;
+    }
 }
 
 void MyFrame::aboutfunction(wxString traceStr, wxString switchStr)
 {
-  wxString message;
-  message.Printf(wxT("Trace Selected: %s \nSwitch Selected: %s"),traceStr.c_str(),switchStr.c_str());
-  wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
-  about.ShowModal();
-  return;
+    wxString message;
+    message.Printf(wxT("Trace Selected: %s \nSwitch Selected: %s"),traceStr.c_str(),switchStr.c_str());
+    wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
+    about.ShowModal();
+    return;
 }
 
 
 void MyFrame::errorBox(wxString errorBox)
 {
-  wxString message;
-  message.Printf(wxT("%s"),errorBox.c_str());
-  wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
-  about.ShowModal();
-  return;
+    wxString message;
+    message.Printf(wxT("%s"),errorBox.c_str());
+    wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
+    about.ShowModal();
+    return;
 }
 
 
@@ -954,7 +959,6 @@ void MyFrame::RunFunction()
     mmz->resetmonitor();
     runnetwork(ncycles);
 
-
   // Populate the traceMatrix and render the canvas
     canvas->setCyclesCompleted(cyclescompleted);
     canvas->populateTraceMatrix();
@@ -963,7 +967,6 @@ void MyFrame::RunFunction()
     commandLineText.Printf(wxT("# Network run for %d cycles\n"),ncycles);
     commandLine->WriteText(commandLineText);
     commandLine->SetInsertionPoint(0);
- 
 }
 
 bool MyFrame::isdtype(name_t did)

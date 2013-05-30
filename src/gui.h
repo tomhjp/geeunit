@@ -134,6 +134,5 @@ class MyGLCanvas: public wxGLCanvas
         void OnMouse(wxMouseEvent& event); // callback for mouse events inside
      
         DECLARE_EVENT_TABLE()
-};
-    
+};    
 #endif /* gui_h */
