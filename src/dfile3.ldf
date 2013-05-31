@@ -9,9 +9,9 @@ DEVICES
     clk = CLOCK(1); 
     set = SWITCH(0);
     clear = SWITCH(0);
-    or = OR(2);
+    or = OR(2)
     and = AND(2);
-    nand = NAND(2);
+    nand = NAND(2)
     nor = NOR(2);
     xor = XOR; 
     dtype = DTYPE;

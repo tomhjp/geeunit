@@ -596,7 +596,8 @@ void MyFrame::OnOpen(wxCommandEvent &event)
 
 void MyFrame::OnNew(wxCommandEvent &event)
 {
-    system("gedit untitled.def");
+    string command = "gedit untitled.ldf &";
+    system(command);
 }
 
 
@@ -1078,6 +1079,11 @@ void MyFrame::OpenFile()
     }
     if (errorVector.size() != 0)
     {
+        wxString wxCommand;
+        wxCommand.Printf(wxT("gedit %s &"),fileid)
+  
+        string command = string(wxCommand.mb_str());
+        system('command')
         wxString commandLineText;
         commandLineText.Printf(wxT("# %s contained an Error and cannot be simulated. Please open a valid file\n"),fileName.c_str());
         commandLine->WriteText(commandLineText);
