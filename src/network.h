@@ -79,8 +79,8 @@ class network {
     /* Checks that all inputs are connected to an output.                  */
  
   int getLineDefd(devlink dev, name_t id);
-    /* Returns the line at which the input connection was defined. 	   */
-    /* used for error reporting 					   */
+    /* Returns the line at which the input connection was defined. 	 */
+    /* used for error reporting 					                 */
     
   network (names* names_mod);
   /* Called on system initialisation.                                      */

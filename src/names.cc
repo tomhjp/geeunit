@@ -36,12 +36,10 @@ name_t names::lookup (namestring_t str)
 name_t names::cvtname (namestring_t str)
 {
     name_t index;
-    namestruct_t entry;
-    //cout << "namestring passed to names is " << str << endl; 
+    namestruct_t entry; 
     for (index=0; index<table.size(); index++)
     {	
 	entry = table[index];
-	//cout << entry.namestring << endl; 
         if (entry.namestring == str)
         {
             break;

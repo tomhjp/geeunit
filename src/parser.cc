@@ -620,7 +620,7 @@ bool parser::checkConLine(void)
             {
                 name_t devid = nmz->cvtname(context[4].namestring); // gets the id for the device
                 devlink devicelink = netz->finddevice(devid); 
-		name_t inputid = nmz->cvtname(context[4].namestring);;
+		name_t inputid = nmz->cvtname(context[4].namestring);
                 errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, inputid, devicelink, netz));
                 return false;
             }
