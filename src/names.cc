@@ -26,7 +26,6 @@ name_t names::lookup (namestring_t str)
         namestruct.namestring = str;
         //namestruct.line = symbol.line;
         //namestruct.col = symbol.col;
-
         table.push_back(namestruct);
         return (name_t) table.size()-1;
     }

@@ -299,6 +299,7 @@ bool parser::makeDevLine(void)
     else if(isXorSym(context[2])) dkind = xorgate;
     
     dmz->makedevice(dkind, id, variant, ok);
+    nmz->setPos(context[0].namestring, context[0].line, context[0].col);
     return ok; 
 }
 
@@ -386,7 +387,9 @@ bool parser::checkDevLine(void)
         }   
         if(!isSemiColSym(context[6]))
         {
-            errorvector.push_back(new expSemiColSym(context[6].line, context[6].col));
+	    // reports the column where the ';' was expected, not where the error was detected 
+	    int col = context[5].col + context[5].namestring.length();		
+            errorvector.push_back(new expSemiColSym(context[5].line, col));
             return false;
         }
     }
@@ -395,7 +398,9 @@ bool parser::checkDevLine(void)
     {
         if(!isSemiColSym(context[3]))
         {
-            errorvector.push_back(new expSemiColSym(context[3].line, context[3].col));
+	    // reports the column where the ';' was expected, not where the error was detected 
+	    int col = context[2].col + context[2].namestring.length();		
+            errorvector.push_back(new expSemiColSym(context[2].line, col));
             return false;
         }
     }
@@ -502,7 +507,9 @@ bool parser::checkConLine(void)
             }
             if(!isSemiColSym(context[5]))
             {
-                errorvector.push_back(new expSemiColSym(context[5].line, context[5].col));
+                // reports the column where the ';' was expected, not where the error was detected 
+		int col = context[4].col + context[4].namestring.length();		
+		errorvector.push_back(new expSemiColSym(context[4].line, col));
                 return false;
             }
         }
@@ -525,7 +532,9 @@ bool parser::checkConLine(void)
             }
             if(!isSemiColSym(context[5]))
             {
-                errorvector.push_back(new expSemiColSym(context[5].line, context[5].col));
+                // reports the column where the ';' was expected, not where the error was detected 
+		int col = context[4].col + context[4].namestring.length();		
+		errorvector.push_back(new expSemiColSym(context[4].line, col));
                 return false;
             }
             
@@ -592,7 +601,9 @@ bool parser::checkConLine(void)
             }
             if(!isSemiColSym(context[7]))
             {
-                errorvector.push_back(new expSemiColSym(context[7].line, context[7].col));
+                // reports the column where the ';' was expected, not where the error was detected 
+		int col = context[6].col + context[6].namestring.length();		
+		errorvector.push_back(new expSemiColSym(context[6].line, col));
                 return false;
             }
         }
@@ -615,12 +626,14 @@ bool parser::checkConLine(void)
             }
             if(!isSemiColSym(context[7]))
             {
-                errorvector.push_back(new expSemiColSym(context[7].line, context[7].col));
+                // reports the column where the ';' was expected, not where the error was detected 
+		int col = context[6].col + context[6].namestring.length();		
+		errorvector.push_back(new expSemiColSym(context[6].line, col));
                 return false;
             }
 	    if(context[6].symboltype == dclksym)
 	    {
-		warningvector.push_bback(new nonClkInput(context[0].line, context[0].col));
+		warningvector.push_back(new nonClkInput(context[0].line, context[0].col));
 	    }
         }
     }
@@ -663,7 +676,9 @@ bool parser::checkMonLine(void)
         /* Monitoring a non-dtype device output  */
         if(!isSemiColSym(context[1]))
         {
-            errorvector.push_back(new expSemiColSym(context[1].line, context[1].col));
+	    // reports the column where the ';' was expected, not where the error was detected 
+	    int col = context[0].col + context[0].namestring.length();		
+	    errorvector.push_back(new expSemiColSym(context[0].line, col));
             return false;
         }
     }
@@ -682,7 +697,9 @@ bool parser::checkMonLine(void)
         }
         if(!isSemiColSym(context[3]))
         {
-            errorvector.push_back(new expSemiColSym(context[3].line, context[3].col));
+            // reports the column where the ';' was expected, not where the error was detected 
+	    int col = context[2].col + context[2].namestring.length();		
+	    errorvector.push_back(new expSemiColSym(context[2].line, col));
             return false;
         }
     }

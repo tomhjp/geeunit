@@ -449,7 +449,7 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
                         "range of the file, " << l+1 << endl;
                 return;
             }
-            else if ((col > lineStr.length()) && (l+1 == line))
+            else if ((col > lineStr.length()+1) && (l+1 == line))
             {
                 // if col is outside range on the line we are looking for
                 cout << "Bad col value " << col << ". Greater than line length " \

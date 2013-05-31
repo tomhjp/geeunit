@@ -31,7 +31,7 @@ class redefCon: public Warning
     redefCon(int l, int c);
 };
 
-class nonClkInput: nonClkInput
+class nonClkInput: public Warning
 {
     public:
     nonClkInput(int l, int c);

@@ -48,21 +48,21 @@ noStrtFile::noStrtFile(int l, int c)
 
 expDeviSym::expDeviSym(int l, int c)
 {
-    errorMessage = "Expected 'DEVICES' keyword (keywords must be upper case)"; 
+    errorMessage = "Expected 'DEVICES' keyword (keywords must be upper case, and sections must be correctly ordered)"; 
     line = l;
     col = c;
 }
 
 expMonSym::expMonSym(int l, int c)
 {
-	errorMessage = "Expected 'MONITORS' keyword (keywords must be upper case)";
+	errorMessage = "Expected 'MONITORS' keyword (keywords must be upper case, and sections must be correctly ordered)";
 	line = l;
 	col = c;
 }
 
 expConSym::expConSym(int l, int c)
 {
-	errorMessage = "Expected 'CONNECTIONS' keyword (keywords must be upper case)"; 
+	errorMessage = "Expected 'CONNECTIONS' keyword (keywords must be upper case, and sections must be correctly ordered)"; 
 	line = l;
 	col = c; 
 }
@@ -275,7 +275,7 @@ inputPrevConnected::inputPrevConnected(int l, int c, name_t id, devlink dev, net
     devicelink = dev; 
     ipid = id;
 	initconline = getInitCon();
-    errorMessage = "The input referenced has already been connected, at line ";
+    errorMessage = "The input referenced has already been connected.";
 }
 
 int inputPrevConnected::getInitCon(void)
@@ -308,7 +308,7 @@ void inputPrevConnected::makeLongErrMsg(void)
 	
 nameAlreadyDefd::nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod)
 {
-	errorMessage = "This device name has already been defined, at ";
+	errorMessage = "This device name has already been defined. ";
 	line = l;
 	col = c; 
 	devname = dev;
@@ -347,9 +347,7 @@ void nameAlreadyDefd::makeLongErrMsg(void)
 	a = initdefcol;
 	ss << a;
 	firstCol = ss.str();
-	longErrMsg = "Error: " + errorMessage + firstLine + ", " + firstCol; 
-    cout <<longErrMsg << endl; 
-    cout << "first line is " << firstLine <<endl; 
+	longErrMsg = errorMessage + firstLine + ", " + firstCol; 
 	return;
 }
 	

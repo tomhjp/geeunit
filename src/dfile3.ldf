@@ -1,6 +1,7 @@
 /* Circuit contains all device types */ 
 
 STARTFILE 
+
 DEVICES
     A = SWITCH(0);
     B = SWITCH(0);
@@ -14,15 +15,14 @@ DEVICES
     nor = NOR(2);
     xor = XOR; 
     dtype = DTYPE;
-END
+    END
 CONNECTIONS
     A -> or.I1;
     B -> or.I2;
     C -> dtype.DATA;
-    clk -> dtype.DATA;
+    clk -> dtype.CLK;
     set -> dtype.SET;
     clear -> dtype.CLEAR;
-    or -> nand.I1;
     or -> nand.I1;
     or -> and.I2;
     dtype.Q -> and.I1;

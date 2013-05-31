@@ -50,6 +50,7 @@ bool MyApp::OnInit()
     for (int i=0; i<warningVector.size(); i++)
     {
         warningVector[i]->getWarningDetails(line, col, errorMessage, hasPosition);
+        cout << line << " " << col <<endl; 
         smz->printError(line, col, errorMessage, hasPosition);
     }
 
