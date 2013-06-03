@@ -464,7 +464,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     wxBoxSizer *frame_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *topsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sidebar_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticBoxSizer *combo_sizer = new wxStaticBoxSizer(wxHORIZONTAL,this,wxT("Add or Zap Traces"));
 
 
 
@@ -544,39 +544,43 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   // Place Zap Controls
     wxBoxSizer *zap_sizer = new wxBoxSizer(wxVERTICAL);
-    zap_sizer->Add(zapTraceComboBox,0,0,0);
-    zap_sizer->Add(zapTraceButton,  0,wxALIGN_CENTRE,0);
+    zap_sizer->Add(zapTraceComboBox,0,wxTOP|wxLEFT,20);
+    zap_sizer->Add(zapTraceButton,0,wxALIGN_CENTRE|wxBOTTOM,20);
 
   // Place Add controls
     wxBoxSizer *add_sizer = new wxBoxSizer(wxVERTICAL);
-    add_sizer->Add(addTraceComboBox,0,0,0);
-    add_sizer->Add(addTraceButton,  0,wxALIGN_CENTRE,0);
+    add_sizer->Add(addTraceComboBox,0,wxTOP|wxRIGHT,20);
+    add_sizer->Add(addTraceButton,0,wxALIGN_CENTRE|wxBOTTOM,20);
 
   // Place switch combo
-    wxBoxSizer *switch_sizer = new wxBoxSizer(wxVERTICAL);
-    switch_sizer->Add(switchComboBox,0,wxALIGN_CENTRE | wxEXPAND | wxTOP,30);
+    wxStaticBoxSizer *switch_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Change Switches"));
+    switch_sizer->Add(switchComboBox,0,wxALIGN_CENTRE | wxEXPAND|wxLEFT|wxRIGHT|wxTOP,20);
 
   // Place switch buttons
     wxBoxSizer *switchButton_sizer = new wxBoxSizer(wxHORIZONTAL);
-    switchButton_sizer->Add(switchButton0,0,0,0);
-    switchButton_sizer->Add(switchButton1,0,0,0);
+    switchButton_sizer->Add(switchButton0,0,wxLEFT|wxBOTTOM,20);
+    switchButton_sizer->Add(switchButton1,0,wxRIGHT|wxBOTTOM,20);
 
   // Place Buttons
     wxBoxSizer *run_button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    run_button_sizer->Add(runButton, 0, wxTOP, 30);
-    run_button_sizer->Add(runSpin, 0, wxEXPAND | wxTOP, 30);
-    run_button_sizer->Add(runStaticText,0,wxALIGN_CENTRE|wxTOP,30);
+    run_button_sizer->Add(runButton, 0, wxTOP|wxLEFT, 20);
+    run_button_sizer->Add(runSpin, 0, wxEXPAND | wxTOP, 20);
+    run_button_sizer->Add(runStaticText,0,wxALIGN_CENTRE|wxTOP|wxRIGHT,20);
 
   // Place Buttons
     wxBoxSizer *cont_button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    cont_button_sizer->Add(contButton, 0, wxTOP, 30);
-    cont_button_sizer->Add(contSpin, 0, wxEXPAND | wxTOP, 30);
-    cont_button_sizer->Add(contStaticText,0,wxALIGN_CENTRE|wxTOP,30);
+    cont_button_sizer->Add(contButton, 0, wxBOTTOM|wxLEFT, 20);
+    cont_button_sizer->Add(contSpin, 0, wxEXPAND | wxBOTTOM, 20);
+    cont_button_sizer->Add(contStaticText,0,wxALIGN_CENTRE|wxBOTTOM|wxRIGHT,20);
+    
+    wxStaticBoxSizer *network_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Run or Continue Network"));
+    network_sizer->Add(run_button_sizer,0,wxALIGN_CENTRE,0);
+    network_sizer->Add(cont_button_sizer,0,wxALIGN_CENTRE,0);
     
   // Place Buttons
-    wxBoxSizer *timer_button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    timer_button_sizer->Add(startTimerButton,0,wxALIGN_CENTRE|wxTOP,30);
-    timer_button_sizer->Add(stopTimerButton,0,wxALIGN_CENTRE|wxTOP,30);
+    wxStaticBoxSizer *timer_button_sizer = new wxStaticBoxSizer(wxHORIZONTAL,this,wxT("Continuous Mode"));
+    timer_button_sizer->Add(startTimerButton,0,wxALIGN_CENTRE|wxALL,20);
+    timer_button_sizer->Add(stopTimerButton,0,wxALIGN_CENTRE| wxALL,20);
 
 
   // *********************************************************************************************************************************
@@ -592,11 +596,10 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     topsizer->Add(canvas,3,wxEXPAND,0);
     topsizer->Add(sidebar_sizer,2,wxALIGN_CENTRE,0);
 
-    sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE);
-    sidebar_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE);
-    sidebar_sizer->Add(run_button_sizer,0,wxALIGN_CENTRE);
-    sidebar_sizer->Add(cont_button_sizer,0,wxALIGN_CENTRE);
-    sidebar_sizer->Add(timer_button_sizer,0,wxALIGN_CENTRE);
+    sidebar_sizer->Add(combo_sizer,0,wxALIGN_CENTRE|wxALL, 20);
+    sidebar_sizer->Add(switch_sizer, 0, wxALIGN_CENTRE|wxALL, 20);
+    sidebar_sizer->Add(network_sizer,0,wxALIGN_CENTRE,0);
+    sidebar_sizer->Add(timer_button_sizer,0,wxALIGN_CENTRE|wxALL, 20);
 
     combo_sizer->Add(zap_sizer, 0, wxALIGN_CENTER);
     combo_sizer->Add(add_sizer, 0, wxALIGN_CENTRE);
