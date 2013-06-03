@@ -74,7 +74,7 @@ class MyFrame: public wxFrame
 
         vector<wxString> switchNameVector;
 
-        int cyclescompleted;                    // how many simulation cycles have been completed
+        int  FRAMEcyclescompleted;                    // how many simulation cycles have been completed
         void runnetwork(int ncycles);           // function to run the logic network
         void OnExit(wxCommandEvent& event);     // callback for exit menu item
         void OnAbout(wxCommandEvent& event);    // callback for about menu item
@@ -123,6 +123,7 @@ class MyGLCanvas: public wxGLCanvas
     void setCyclesCompleted(int c);
     void setCanvasVerticalScrollBar();
     void setCanvasHorizontalScrollBar();
+    void setHorizontalPosition(int position);
     void setNames(names* names_mod);
     void setMonitor(monitor* monitor_mod);
     void setNetwork(network* network_mod);
