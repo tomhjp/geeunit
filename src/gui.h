@@ -74,7 +74,8 @@ class MyFrame: public wxFrame
 
         vector<wxString> switchNameVector;
 
-        int  FRAMEcyclescompleted;                    // how many simulation cycles have been completed
+        int  FRAMEcyclesCompleted;
+        int  FRAMEtotalCycles;                    // how many simulation cycles have been completed
         void runnetwork(int ncycles);           // function to run the logic network
         void OnExit(wxCommandEvent& event);     // callback for exit menu item
         void OnAbout(wxCommandEvent& event);    // callback for about menu item
@@ -115,14 +116,14 @@ class MyGLCanvas: public wxGLCanvas
         const wxString& name = wxT("MyGLCanvas")); // constructor
 
 
-    void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
+    void Render(int totalCycles); // function to draw canvas contents
     void populateTraceMatrix();
     void appendToTraceMatrix();
     void populateMonitorNameVector();
-    void setCyclesDisplayed(int c);
-    void setCyclesCompleted(int c);
+    void setCANVAStotalCycles(int c);
+    void setCANVAScyclesCompleted(int c);
     void setCanvasVerticalScrollBar();
-    void setCanvasHorizontalScrollBar();
+    void setCanvasHorizontalScrollBar(int position);
     void setHorizontalPosition(int position);
     void setNames(names* names_mod);
     void setMonitor(monitor* monitor_mod);
@@ -138,8 +139,8 @@ class MyGLCanvas: public wxGLCanvas
 
     private:
         bool init;                         // has the GL context been initialised?
-        int cyclesdisplayed;               // how many simulation cycles have been displayed
-        int cyclescompleted;
+        int CANVAStotalCycles;               // how many simulation cycles have been displayed
+        int CANVAScyclesCompleted;
         int unitHeight;
         int unitWidth;
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces

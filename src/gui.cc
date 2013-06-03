@@ -25,7 +25,8 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     nmz = names_mod;
     netz = network_mod;
     init = false;
-    cyclesdisplayed = -1;
+    CANVAStotalCycles = 0;
+    CANVAScyclesCompleted = 0;
     vertCanvasPosition = 0;
     horizCanvasPosition = 0;
     unitHeight = 20;
@@ -46,12 +47,15 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     }
 }
 
-void MyGLCanvas::Render(wxString example_text, int cycles)
+void MyGLCanvas::Render(int totalCycles)
   // Draws canvas contents - the following example writes the string "example text" onto the canvas
   // and draws a signal trace. The trace is artificial if the simulator has not yet been run.
   // When the simulator is run, the number of cycles is passed as a parameter and the first monitor
   // trace is displayed.
 {
+
+ //   cout << "Canvas thinks that the total number of cycles run is: "<< CANVAStotalCycles << endl;
+ //   cout << "Canvas thinks that the number of new cycles completed is: "<< CANVAScyclesCompleted << endl;
   // Initialise Variables that Render needs
     float y;
     unsigned int i,j,c,t;
@@ -67,11 +71,7 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     unitHeight = 20;
     traceboxWidth = width - 2*margin - labelWidth - 2*traceMargin;
     traceboxHeight = height - 2*margin - 2*traceMargin;
-
-    if (cycles > 0)
-        cyclesdisplayed = cycles;
-
-//    unitWidth = traceboxWidth / cyclesdisplayed;
+    cout << "Canvas thinks that horizCanvasPosition = " << horizCanvasPosition << endl;
 
 //    if (unitWidth < 2)
         unitWidth = 5;
@@ -87,10 +87,10 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
     glClear(GL_COLOR_BUFFER_BIT);
 
     //If there are monitors then draw the first monitor signal, get trace from monitor class
-    if ((cyclesdisplayed > 0) && (mmz->moncount() > 0))
+    if ((totalCycles > 0) && (mmz->moncount() > 0))
     {
         int offset = 0;
-        cout << "HCP = " << horizCanvasPosition << endl; 
+        //cout << "HCP = " << horizCanvasPosition << endl; 
         
         if (unitWidth > 30)
         {
@@ -139,21 +139,11 @@ void MyGLCanvas::Render(wxString example_text, int cycles)
             glEnd();
         }
 
-/*        // WHY IS THERE NO ROUND() FUNCTION?!?!
-        int axisSpacing = 5;
-        if (cyclesdisplayed < 50)
-            axisSpacing = 2;
-        else if (cyclesdisplayed < 100)
-            axisSpacing = 5;
-        else if (cyclesdisplayed < 200)
-            axisSpacing = 10;
-        else if (cyclesdisplayed < 400)
-            axisSpacing = 20;
-        else
-            axisSpacing = 100;
-*/
 
         int axisSpacing = 5;
+        if (CANVAStotalCycles > 1000)
+            axisSpacing = 10;
+
         for (t=0; t<traceMatrix.size(); t++)
         {
             for (c=0; c<traceMatrix[0].size(); c++)
@@ -235,21 +225,22 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
     wxPaintDC dc(this); // required for correct refreshing under MS windows
     GetClientSize(&w, &h);
     text.Printf(wxT("Canvas redrawn by OnPaint callback, canvas size is %d by %d"), w, h);
-    Render(text,-1);
+    Render(CANVAStotalCycles);
 }
 
 // Callback for Scroll Event
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
 {   
+    cout << "We've had a scroll event" << endl;
     if (event.GetOrientation() == wxVERTICAL)
     {
         vertCanvasPosition = event.GetPosition();
-        Render(wxT("Scrolling"),-1);
+        Render(CANVAStotalCycles);
     }
     else if (event.GetOrientation() == wxHORIZONTAL)
     {
         horizCanvasPosition = event.GetPosition();
-        Render(wxT("Scrolling"),-1);
+        Render(CANVAStotalCycles);
     }
 }
 
@@ -261,32 +252,33 @@ void MyGLCanvas::setCanvasVerticalScrollBar()
     int scrollHeight = unitHeight/5;
   // Set maximum scroll point such that only the last monitor is visible
     int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
-    SetScrollbar(wxVERTICAL,0,10,10+numPositions);
+    SetScrollbar(wxVERTICAL,0,10,10+numPositions,true);
 }
 
 // Function to set size of horizontal scroll bar, called when canvas resized
-void MyGLCanvas::setCanvasHorizontalScrollBar()
+void MyGLCanvas::setCanvasHorizontalScrollBar(int position)
 {   
-    int scrollWidth = unitWidth;
-    int numHorizPositions = (cyclesdisplayed) - (120);
-    cout << "cyclesdisplayed = "<< cyclesdisplayed << endl;
-    cout << "HorizPositions  = "<< numHorizPositions << endl;
+    cout << "Canvas thinks that the scrollbar is at position: " << position << endl;
+    int numHorizPositions = (CANVAStotalCycles) - (120);        
+    if (position == -1)
+        position = numHorizPositions;
     if (numHorizPositions > 0)
-        SetScrollbar(wxHORIZONTAL,0,100,100+numHorizPositions);
+        SetScrollbar(wxHORIZONTAL,position,100,100+numHorizPositions,true);
     else
-        cout << "negative" << endl;
+        SetScrollbar(wxHORIZONTAL,0,100,-1,true);
 }
 
 
 // Callback function for when the canvas is resized
 void MyGLCanvas::OnSize(wxSizeEvent& event)
 {
+    cout << "we've had a size event" << endl;
     wxGLCanvas::OnSize(event); // required on some platforms
     init = false;
     setCanvasVerticalScrollBar();
-    setCanvasHorizontalScrollBar();
+    int position = GetScrollPos(wxHORIZONTAL);
+    setCanvasHorizontalScrollBar(position);
     vertCanvasPosition = 0;
-    horizCanvasPosition = 0;
     Refresh(); // required by some buggy nvidia graphics drivers,
     Update();  // harmless on other platforms!
 }
@@ -305,7 +297,7 @@ void MyGLCanvas::populateTraceMatrix()
         vector<asignal> emptyVector;
         traceMatrix.push_back(emptyVector);
 
-        for (int i=0;i<cyclescompleted;i++)
+        for (int i=0;i<CANVAScyclesCompleted;i++)
         {
             asignal s;
             bool ok = mmz->getsignaltrace(n, i, s);
@@ -326,7 +318,7 @@ void MyGLCanvas::appendToTraceMatrix()
 {
     for (int n=0; n < (mmz->moncount()); n++)
     {
-        for (int i=0;i<cyclescompleted;i++)
+        for (int i=0;i<CANVAScyclesCompleted;i++)
         {
             asignal s;
             bool ok = mmz->getsignaltrace(n, i, s);
@@ -364,14 +356,14 @@ void MyGLCanvas::populateMonitorNameVector()
 }
 
 
-void MyGLCanvas::setCyclesDisplayed(int c)
+void MyGLCanvas::setCANVAStotalCycles(int c)
 {
-    cyclesdisplayed = c;
+    CANVAStotalCycles = c;
 }
 
-void MyGLCanvas::setCyclesCompleted(int c)
+void MyGLCanvas::setCANVAScyclesCompleted(int c)
 {
-    cyclescompleted = c;
+    CANVAScyclesCompleted = c;
 }
 
 void MyGLCanvas::setNames(names* names_mod)
@@ -464,14 +456,18 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     SetMenuBar(menuBar);;
     // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
-    FRAMEcyclescompleted = 0;
+    FRAMEcyclesCompleted = 0;
+    FRAMEtotalCycles = 0;
     runnetwork(10);
+    FRAMEtotalCycles += FRAMEcyclesCompleted;
+    canvas->setCANVAScyclesCompleted(FRAMEcyclesCompleted);
+    canvas->setCANVAStotalCycles(FRAMEtotalCycles);
     canvas->populateMonitorNameVector();
     populateSwitchNameVector();
-    canvas->setCyclesCompleted(FRAMEcyclescompleted);
+    
     canvas->populateTraceMatrix();
     canvas->setCanvasVerticalScrollBar();
-    canvas->setCanvasHorizontalScrollBar();
+    canvas->setCanvasHorizontalScrollBar(0);
     
     int numDevices = canvas->deviceNameVector.size();
     int numMonitors = canvas->monitorNameVector.size();
@@ -627,8 +623,6 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
     SetSizeHints(1000, 400);
     SetSizer(frame_sizer);
-
-//    canvas->Render(wxT("INITIALISING WINDOW"),10);
 }
 
 void MyFrame::populateSwitchNameVector()
@@ -747,7 +741,7 @@ void MyFrame::OnButtonZap(wxCommandEvent &event)
   // Resize the scroll bar
     canvas->setCanvasVerticalScrollBar();
     
-    canvas->Render(commandLineText,-1);
+    canvas->Render(FRAMEtotalCycles);
 }
 
 void MyFrame::OnButtonAdd(wxCommandEvent &event)
@@ -870,7 +864,7 @@ void MyFrame::OnSpin(wxSpinEvent &event)
 {
     wxString text;
     text.Printf(wxT("New spinctrl value %d"), event.GetPosition());
-    canvas->Render(text,-1);
+    canvas->Render(FRAMEtotalCycles);
 }
 
   // Callback for the text entry field
@@ -884,7 +878,6 @@ void MyFrame::OnText(wxCommandEvent &event)
     commandLine->SetInsertionPoint(0);
     commandLine->WriteText(wxT("# "));
     commandLine->SetInsertionPoint(2);
-    canvas->Render(text,-1);
 }
 
   // Callback for the time button
@@ -909,6 +902,7 @@ void MyFrame::OnTimer(wxTimerEvent &event)
 void MyFrame::runnetwork(int ncycles)
   // Function to run the network, derived from corresponding function in userint.cc
 {
+    FRAMEcyclesCompleted = 0;
     bool ok = true;
     int n = ncycles;
 
@@ -928,11 +922,11 @@ void MyFrame::runnetwork(int ncycles)
 
     if (ok)
     {
-        FRAMEcyclescompleted = FRAMEcyclescompleted + ncycles;
+        FRAMEcyclesCompleted += ncycles;
     }
     else
     {
-        FRAMEcyclescompleted = 0;
+        FRAMEcyclesCompleted = 0;
     }
 }
 
@@ -954,9 +948,10 @@ void MyFrame::OnSelect(wxCommandEvent &event)
 
 void MyFrame::RunFunction()
 {
-    int  ncycles;
-    FRAMEcyclescompleted = 0;
-    canvas->setCyclesCompleted(0);
+    int ncycles;
+    FRAMEcyclesCompleted = 0;
+    FRAMEtotalCycles = 0;
+    canvas->setHorizontalPosition(0);
     ncycles = runSpin->GetValue();
 
 
@@ -969,11 +964,14 @@ void MyFrame::RunFunction()
   // Reset the monitor and run network
     mmz->resetmonitor();
     runnetwork(ncycles);
+    FRAMEtotalCycles += FRAMEcyclesCompleted;
+    canvas->setCANVAScyclesCompleted(FRAMEcyclesCompleted);
+    canvas->setCANVAStotalCycles(FRAMEtotalCycles);
 
   // Populate the traceMatrix and render the canvas
-    canvas->setCyclesCompleted(FRAMEcyclescompleted);
     canvas->populateTraceMatrix();
-    canvas->Render(wxT("Run button pressed"), FRAMEcyclescompleted);
+    canvas->Render(FRAMEtotalCycles);
+    canvas->setCanvasHorizontalScrollBar(0);
     wxString commandLineText;
     commandLineText.Printf(wxT("# Network run for %d cycles\n"),ncycles);
     WriteToCommandLine(commandLineText);
@@ -982,34 +980,47 @@ void MyFrame::RunFunction()
 
 void MyFrame::ContinueFunction()
 {   
+    FRAMEcyclesCompleted = 0;
     int width, height;
     canvas->GetClientSize(&width,&height);
 
     int maxcycles = 100000;
-    if (FRAMEcyclescompleted > maxcycles)
+    if (FRAMEtotalCycles > maxcycles)
     {
         errorBox(wxT("Can't display any more cycles. Click ""Run"" to start again. "));
         return;
     }
-    int newcycles = 0;
 
   // Reset the monitor and run network
     mmz->resetmonitor ();
     runnetwork(contSpin->GetValue());
-    newcycles = contSpin->GetValue();
+    FRAMEtotalCycles += FRAMEcyclesCompleted;
+    
+    canvas->setCANVAScyclesCompleted(FRAMEcyclesCompleted);
+    canvas->setCANVAStotalCycles(FRAMEtotalCycles);
 
   // Populate the traceMatrix and render the canvas
-    canvas->setCyclesCompleted(newcycles);
     canvas->appendToTraceMatrix();
     
-    if (FRAMEcyclescompleted > 120)
-        canvas->setHorizontalPosition(FRAMEcyclescompleted-120);
-        
-    canvas->Render(wxT("Run button pressed"),FRAMEcyclescompleted);
-    canvas->setCanvasHorizontalScrollBar();
+   // cout << "Frame thinks that the total number of cycles run is: "<< FRAMEtotalCycles << endl;
+    //cout << "Frame thinks that the number of new cycles completed is: "<< FRAMEcyclesCompleted << endl;
+    cout << "*** PRESSED RUN BUTTON TOTAL CYCLES = " << FRAMEtotalCycles << endl;
+    cout << "setting scrollbar" << endl;
+    cout << "setting HorizontalPosition" << endl;
+    if (FRAMEtotalCycles > 119)
+    {   
+        canvas->setHorizontalPosition(FRAMEtotalCycles-120);
+        canvas->setCanvasHorizontalScrollBar(-1);
+    }
+    cout << "Rendering" << endl;
+    canvas->Render(FRAMEtotalCycles);
+    
+    
     wxString commandLineText;
-    commandLineText.Printf(wxT("# Network continued for %d cycles\n"),newcycles);
+    commandLineText.Printf(wxT("# Network continued for %d cycles\n"),FRAMEcyclesCompleted);
     WriteToCommandLine(commandLineText);
+    
+    cout << "Exit Continue Button Function" << endl;
     
 }
 
@@ -1063,16 +1074,17 @@ void MyFrame::resetCanvas()
     }
 
   // Reset the network and run for a few cycles (set to an arbitrary 10 here)
-    FRAMEcyclescompleted = 0;
+    FRAMEcyclesCompleted = 0;
     runnetwork(10);
+    FRAMEtotalCycles += FRAMEcyclesCompleted;
 
   // Populate the traceMatrix, switchVector
     canvas->populateMonitorNameVector();
     populateSwitchNameVector();
-    canvas->setCyclesCompleted(FRAMEcyclescompleted);
+
     canvas->populateTraceMatrix();
     canvas->setCanvasVerticalScrollBar();
-    canvas->setCanvasHorizontalScrollBar();
+    canvas->setCanvasHorizontalScrollBar(0);
 
   // Initialise values for populating the comboBox
     int numDevices = canvas->deviceNameVector.size();
@@ -1196,7 +1208,7 @@ void MyFrame::OpenFile()
         return;
     }
     resetCanvas();
-    canvas->Render(wxT("New File Opened Network run for a few cycles"),FRAMEcyclescompleted);
+    canvas->Render(FRAMEtotalCycles);
     wxString commandLineText;
     commandLineText.Printf(wxT("# '%s' opened, Network run for a few cycles\n"),fileName.c_str());
     WriteToCommandLine(commandLineText);
