@@ -11,7 +11,6 @@ BEGIN_EVENT_TABLE(MyGLCanvas, wxGLCanvas)
     EVT_SIZE(MyGLCanvas::OnSize)
     EVT_PAINT(MyGLCanvas::OnPaint)
     EVT_SCROLLWIN(MyGLCanvas::OnScroll)
-    EVT_MOUSE_EVENTS(MyGLCanvas::OnMouse)
 END_EVENT_TABLE()
 
 int wxglcanvas_attrib_list[5] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
@@ -199,97 +198,6 @@ void MyGLCanvas::Render(int totalCycles)
     SwapBuffers();
 }
 
- // Function to initialise the GL context
-void MyGLCanvas::InitGL()
-{
-     int w, h;
-
-     GetClientSize(&w, &h);
-     SetCurrent();
-     glDrawBuffer(GL_BACK);
-     glClearColor(1.0, 1.0, 1.0, 0.0);
-     glViewport(0, 0, (GLint) w, (GLint) h);
-     glMatrixMode(GL_PROJECTION);
-     glLoadIdentity();
-     glOrtho(0, w, 0, h, -1, 1);
-     glMatrixMode(GL_MODELVIEW);
-     glLoadIdentity();
-}
-
-// Callback function for when the canvas is exposed
-void MyGLCanvas::OnPaint(wxPaintEvent& event)
-{
-    int w, h;
-    wxString text;
-
-    wxPaintDC dc(this); // required for correct refreshing under MS windows
-    GetClientSize(&w, &h);
-    text.Printf(wxT("Canvas redrawn by OnPaint callback, canvas size is %d by %d"), w, h);
-    Render(CANVAStotalCycles);
-}
-
-// Callback for Scroll Event
-void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
-{   
-    cout << "We've had a scroll event" << endl;
-    if (event.GetOrientation() == wxVERTICAL)
-    {
-        vertCanvasPosition = event.GetPosition();
-        Render(CANVAStotalCycles);
-    }
-    else if (event.GetOrientation() == wxHORIZONTAL)
-    {
-        horizCanvasPosition = event.GetPosition();
-        Render(CANVAStotalCycles);
-    }
-}
-
-// Function to set size of vertical scroll bar, called when canvas resized
-void MyGLCanvas::setCanvasVerticalScrollBar()
-{
-    vertCanvasPosition = 0;
-  // Proportion of a trace by which the canvas will move when scroll position changes
-    int scrollHeight = unitHeight/5;
-  // Set maximum scroll point such that only the last monitor is visible
-    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
-    SetScrollbar(wxVERTICAL,0,10,10+numPositions,true);
-}
-
-// Function to set size of horizontal scroll bar, called when canvas resized
-void MyGLCanvas::setCanvasHorizontalScrollBar(int position)
-{   
-    cout << "Canvas thinks that the scrollbar is at position: " << position << endl;
-    int numHorizPositions = (CANVAStotalCycles) - (120);        
-    if (position == -1)
-        position = numHorizPositions;
-    if (numHorizPositions > 0)
-        SetScrollbar(wxHORIZONTAL,position,100,100+numHorizPositions,true);
-    else
-        SetScrollbar(wxHORIZONTAL,0,100,-1,true);
-}
-
-
-// Callback function for when the canvas is resized
-void MyGLCanvas::OnSize(wxSizeEvent& event)
-{
-    cout << "we've had a size event" << endl;
-    wxGLCanvas::OnSize(event); // required on some platforms
-    init = false;
-    setCanvasVerticalScrollBar();
-    int position = GetScrollPos(wxHORIZONTAL);
-    setCanvasHorizontalScrollBar(position);
-    vertCanvasPosition = 0;
-    Refresh(); // required by some buggy nvidia graphics drivers,
-    Update();  // harmless on other platforms!
-}
-
-  // Callback function for mouse events inside the GL canvas
-void MyGLCanvas::OnMouse(wxMouseEvent& event)
-{
-    // Currently not doing anything
-    return;
-}
-
 void MyGLCanvas::populateTraceMatrix()
 {
     for (int n=0; n < (mmz->moncount()); n++)
@@ -355,7 +263,6 @@ void MyGLCanvas::populateMonitorNameVector()
     }
 }
 
-
 void MyGLCanvas::setCANVAStotalCycles(int c)
 {
     CANVAStotalCycles = c;
@@ -364,6 +271,37 @@ void MyGLCanvas::setCANVAStotalCycles(int c)
 void MyGLCanvas::setCANVAScyclesCompleted(int c)
 {
     CANVAScyclesCompleted = c;
+}
+
+
+
+// Function to set size of vertical scroll bar, called when canvas resized
+void MyGLCanvas::setCanvasVerticalScrollBar()
+{
+    vertCanvasPosition = 0;
+  // Proportion of a trace by which the canvas will move when scroll position changes
+    int scrollHeight = unitHeight/5;
+  // Set maximum scroll point such that only the last monitor is visible
+    int numPositions = scrollHeight * 2.5 * (monitorNameVector.size()-1);
+    SetScrollbar(wxVERTICAL,0,10,10+numPositions,true);
+}
+
+// Function to set size of horizontal scroll bar, called when canvas resized
+void MyGLCanvas::setCanvasHorizontalScrollBar(int position)
+{   
+    cout << "Canvas thinks that the scrollbar is at position: " << position << endl;
+    int numHorizPositions = (CANVAStotalCycles) - (120);        
+    if (position == -1)
+        position = numHorizPositions;
+    if (numHorizPositions > 0)
+        SetScrollbar(wxHORIZONTAL,position,100,100+numHorizPositions,true);
+    else
+        SetScrollbar(wxHORIZONTAL,0,100,-1,true);
+}
+
+void MyGLCanvas::setHorizontalPosition(int position)
+{
+    horizCanvasPosition = position;
 }
 
 void MyGLCanvas::setNames(names* names_mod)
@@ -381,10 +319,73 @@ void MyGLCanvas::setNetwork(network* network_mod)
     netz = network_mod;
 }
 
-void MyGLCanvas::setHorizontalPosition(int position)
+
+// Function to initialise the GL context
+void MyGLCanvas::InitGL()
 {
-    horizCanvasPosition = position;
+     int w, h;
+
+     GetClientSize(&w, &h);
+     SetCurrent();
+     glDrawBuffer(GL_BACK);
+     glClearColor(1.0, 1.0, 1.0, 0.0);
+     glViewport(0, 0, (GLint) w, (GLint) h);
+     glMatrixMode(GL_PROJECTION);
+     glLoadIdentity();
+     glOrtho(0, w, 0, h, -1, 1);
+     glMatrixMode(GL_MODELVIEW);
+     glLoadIdentity();
 }
+
+// Callback function for when the canvas is exposed
+void MyGLCanvas::OnPaint(wxPaintEvent& event)
+{
+    int w, h;
+    wxString text;
+
+    wxPaintDC dc(this); // required for correct refreshing under MS windows
+    GetClientSize(&w, &h);
+    text.Printf(wxT("Canvas redrawn by OnPaint callback, canvas size is %d by %d"), w, h);
+    Render(CANVAStotalCycles);
+}
+
+// Callback for Scroll Event
+void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
+{   
+    cout << "We've had a scroll event" << endl;
+    if (event.GetOrientation() == wxVERTICAL)
+    {
+        vertCanvasPosition = event.GetPosition();
+        Render(CANVAStotalCycles);
+    }
+    else if (event.GetOrientation() == wxHORIZONTAL)
+    {
+        horizCanvasPosition = event.GetPosition();
+        Render(CANVAStotalCycles);
+    }
+}
+
+// Callback function for when the canvas is resized
+void MyGLCanvas::OnSize(wxSizeEvent& event)
+{
+    cout << "we've had a size event" << endl;
+    wxGLCanvas::OnSize(event); // required on some platforms
+    init = false;
+    setCanvasVerticalScrollBar();
+    int position = GetScrollPos(wxHORIZONTAL);
+    setCanvasHorizontalScrollBar(position);
+    vertCanvasPosition = 0;
+    Refresh(); // required by some buggy nvidia graphics drivers,
+    Update();  // harmless on other platforms!
+}
+
+
+
+
+
+
+
+
 // MyFrame *******************************************************************************************************************************
 //         *******************************************************************************************************************************
 BEGIN_EVENT_TABLE(MyFrame, wxFrame)
@@ -402,14 +403,6 @@ BEGIN_EVENT_TABLE(MyFrame, wxFrame)
     EVT_BUTTON(SWITCH_BUTTON_1, MyFrame::OnButtonSwitch1)
     EVT_BUTTON(START_TIMER_BUTTON, MyFrame::OnButtonStartTimer)
     EVT_BUTTON(STOP_TIMER_BUTTON, MyFrame::OnButtonStopTimer)
-
-  // Combo Box Events
-    EVT_COMBOBOX(ZAP_TRACE_COMBO_BOX, MyFrame::OnSelect)
-    EVT_COMBOBOX(ADD_TRACE_COMBO_BOX, MyFrame::OnSelect)
-
-  // SpinControl Events
-    EVT_SPINCTRL(RUN_SPINCTRL,  MyFrame::OnSpin)
-    EVT_SPINCTRL(CONT_SPINCTRL, MyFrame::OnSpin)
 
   // Command Line Events
     EVT_TEXT_ENTER(COMMAND_LINE, MyFrame::OnText)
@@ -625,28 +618,6 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     SetSizer(frame_sizer);
 }
 
-void MyFrame::populateSwitchNameVector()
-{
-    switchNameVector.clear();
-    for (int i=0; i<(canvas->deviceNameVector.size()); i++)
-    {
-        // Convert wxString in the vector to namestring_t (std::string)
-        name_t did = getIdFromWxString(canvas->deviceNameVector[i]);
-        devicekind dkind = netz->netzdevkind(did);
-        if (dkind == aswitch)
-        {
-            switchNameVector.push_back(canvas->deviceNameVector[i]);
-        }
-    }
-}
-
-
-name_t MyFrame::getIdFromWxString(wxString inStr)
-{
-    namestring_t devStr = string(inStr.mb_str());
-    return nmz->cvtname(devStr);
-}
-
 
 void MyFrame::OnExit(wxCommandEvent &event)
   // Callback for the exit menu item
@@ -665,15 +636,13 @@ void MyFrame::OnNew(wxCommandEvent &event)
     system(command.c_str());
 }
 
-
-// Callback for the run button
 void MyFrame::OnRunButton(wxCommandEvent &event)
 {
   // Call the run function to run the network for the number of cycles currently in the combo box
     RunFunction();
 }
 
-// Callback for the continue button
+
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
     ContinueFunction();
@@ -859,14 +828,6 @@ void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
     WriteToCommandLine(commandLineText);
 }
 
-  // Callback for the spin control
-void MyFrame::OnSpin(wxSpinEvent &event)
-{
-    wxString text;
-    text.Printf(wxT("New spinctrl value %d"), event.GetPosition());
-    canvas->Render(FRAMEtotalCycles);
-}
-
   // Callback for the text entry field
 void MyFrame::OnText(wxCommandEvent &event)
 {
@@ -928,22 +889,6 @@ void MyFrame::runnetwork(int ncycles)
     {
         FRAMEcyclesCompleted = 0;
     }
-}
-
-
-void MyFrame::errorBox(wxString errorBox)
-{
-    wxString message;
-    message.Printf(wxT("%s"),errorBox.c_str());
-    wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
-    about.ShowModal();
-    return;
-}
-
-
-void MyFrame::OnSelect(wxCommandEvent &event)
-{
-    wxString trace = event.GetString();
 }
 
 void MyFrame::RunFunction()
@@ -1024,6 +969,14 @@ void MyFrame::ContinueFunction()
     
 }
 
+void MyFrame::errorBox(wxString errorBox)
+{
+    wxString message;
+    message.Printf(wxT("%s"),errorBox.c_str());
+    wxMessageDialog about(this,message,wxT("About"), wxICON_INFORMATION | wxOK);
+    about.ShowModal();
+    return;
+}
 
 bool MyFrame::isdtype(name_t did)
 {
@@ -1219,4 +1172,29 @@ void MyFrame::WriteToCommandLine(wxString commandLineText)
     commandLine->WriteText(commandLineText);
     commandLine->SetInsertionPoint(0);
 }
+
+void MyFrame::populateSwitchNameVector()
+{
+    switchNameVector.clear();
+    for (int i=0; i<(canvas->deviceNameVector.size()); i++)
+    {
+        // Convert wxString in the vector to namestring_t (std::string)
+        name_t did = getIdFromWxString(canvas->deviceNameVector[i]);
+        devicekind dkind = netz->netzdevkind(did);
+        if (dkind == aswitch)
+        {
+            switchNameVector.push_back(canvas->deviceNameVector[i]);
+        }
+    }
+}
+
+
+name_t MyFrame::getIdFromWxString(wxString inStr)
+{
+    namestring_t devStr = string(inStr.mb_str());
+    return nmz->cvtname(devStr);
+}
+
+
+
 
