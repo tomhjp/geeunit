@@ -6,7 +6,7 @@ STARTFILE
     C = SWITCH(0);
     dtypeSet = SWITCH(0);
     dtypeClear = SWITCH(0);
-    clk1 = CLOCK(5);
+    clk1 = CLOCK(1);
     dtype1 = DTYPE;
     and1 = AND(2);
     nand1 = NAND(2);

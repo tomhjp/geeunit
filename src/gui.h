@@ -29,6 +29,10 @@ enum {
   ADD_TRACE_COMBO_BOX,
   SWITCH_COMBO_BOX,
   OPEN_DIALOG,
+  ROLLING_TIMER = wxID_HIGHEST,
+  START_TIMER_BUTTON,
+  STOP_TIMER_BUTTON,
+  VERTICAL_SCROLL_BAR,
 }; // widget identifiers
 
 class MyGLCanvas;
@@ -63,7 +67,10 @@ class MyFrame: public wxFrame
         wxStaticText *runStaticText;
         wxStaticText *contStaticText;
         wxTextCtrl   *commandLine;
-        wxFileDialog     *openDialog;
+        wxFileDialog *openDialog;
+        wxTimer      *rollingTimer;
+        wxButton     *startTimerButton;
+        wxButton     *stopTimerButton;
 
         vector<wxString> switchNameVector;
 
@@ -83,14 +90,17 @@ class MyFrame: public wxFrame
         void OnSelect(wxCommandEvent& event);
         void OnSpin(wxSpinEvent& event);        // callback for spin control
         void OnText(wxCommandEvent& event);     // callback for text entry field
+        void OnButtonStartTimer(wxCommandEvent& event);
+        void OnButtonStopTimer(wxCommandEvent& event);     
+        void OnTimer(wxTimerEvent& event);
         void errorBox(wxString errorBox);
         void RunFunction();
+        void ContinueFunction();
         bool isdtype(name_t did);
         void checkMonitorName(wxString monitorName, wxString& deviceName, wxString& outputName, bool& isDtype);
         void resetCanvas();
         void OpenFile();
-
-
+        void WriteToCommandLine(wxString commandLineText);
         void populateSwitchNameVector();
         name_t getIdFromWxString(wxString inStr);
 
@@ -111,7 +121,8 @@ class MyGLCanvas: public wxGLCanvas
     void populateMonitorNameVector();
     void setCyclesDisplayed(int c);
     void setCyclesCompleted(int c);
-    void setCanvasScrollBar();
+    void setCanvasVerticalScrollBar();
+    void setCanvasHorizontalScrollBar();
     void setNames(names* names_mod);
     void setMonitor(monitor* monitor_mod);
     void setNetwork(network* network_mod);
@@ -129,16 +140,20 @@ class MyGLCanvas: public wxGLCanvas
         int cyclesdisplayed;               // how many simulation cycles have been displayed
         int cyclescompleted;
         int unitHeight;
+        int unitWidth;
         monitor *mmz;                      // pointer to monitor class, used to extract signal traces
         names *nmz;                        // pointer to names class, used to extract signal names
+        wxScrollBar *verticalScrollBar;
         network *netz;
 
-        unsigned int canvasPosition;
+        unsigned int vertCanvasPosition;
+        unsigned int horizCanvasPosition;
 
         void InitGL();                     // function to initialise GL context
         void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
         void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
         void OnScroll(wxScrollWinEvent& event);
+        void OnHorizontalScroll(wxScrollWinEvent& event);
         void OnMouse(wxMouseEvent& event); // callback for mouse events inside
 
         DECLARE_EVENT_TABLE()
