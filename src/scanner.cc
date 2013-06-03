@@ -201,6 +201,7 @@ symboltype_t scanner_t::symbolType(namestring_t namestring)
     else if (!namestring.compare("DTYPE"))       s = dtypesym;
     else if (!namestring.compare("XOR"))         s = xorsym;
     else if (!namestring.compare("CLOCK"))       s = clksym;   // to prevent interference with dtype.CLK input
+    else if (!namestring.compare("SIGGEN"))      s = siggensym;  
     else if (!namestring.compare(","))           s = commasym;
     else if (!namestring.compare(";"))           s = semicolsym;
     else if (!namestring.compare("("))           s = opsym;

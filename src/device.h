@@ -33,6 +33,14 @@ class Switch: public Device
     bool paramInValidRange(int param);
 };   
 
+class Siggen: public Device
+{
+  public:
+    Siggen(void);
+    bool param1InValidRange(int param); 
+    bool paramNInValidRange(int param);
+};
+
 class Gate: public Device
 {
   public: 

@@ -109,6 +109,18 @@ class paramRangeErrClk: public Error
 	paramRangeErrClk(int l, int c);
 };
 
+class param1RangeErrSigGen: public Error
+{
+    public:
+    param1RangeErrSigGen(int l, int c);
+};
+
+class paramNRangeErrSigGen: public Error
+{
+    public:
+    paramNRangeErrSigGen(int l, int c);
+};
+
 class expCPSym : public Error
 {
 	public:
@@ -120,6 +132,12 @@ class expSemiColSym: public Error
 	public:
 	expSemiColSym(int l, int c);
 };	
+
+class expCommaSym: public Error
+{
+    public:
+    expCommaSym(int l, int c);
+};
 
 class unExpEndSym: public Error
 {

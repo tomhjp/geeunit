@@ -161,26 +161,46 @@ void devices::makedtype (name_t id)
 
 
 /***********************************************************************
+ * 
+ * Used to make new Signal Generator devices. 
+ * Called by makedevice()
+ * 
+ */
+void devices::makesiggen(name_t id, vector<int> parameter, bool& ok)
+{
+    devlink d; 
+    netz->adddevice(asiggen, id, d);
+    netz->addoutput(d, blankname);
+    d-> frequency = parameter[0];
+    parameter.erase(parameter.begin());     // deletes the frequency parameter from the vector
+    d->pattern = parameter; 
+}
+    
+/***********************************************************************
  *
  * Adds a device to the network of the specified kind and name.  The  
  * variant is used with such things as gates where it specifies the   
  * number of inputs. 'ok' returns true if operation succeeds.         
  *
  */
-void devices::makedevice (devicekind dkind, name_t did, int variant, bool& ok)
+void devices::makedevice (devicekind dkind, name_t did, vector<int> parameter, bool& ok)
 {
   ok = true;
+  int variant;
   switch (dkind) {
     case aswitch:
+      variant = parameter[0];  
       makeswitch (did, variant, ok);
       break;
     case aclock:
+      variant = parameter[0];   
       makeclock (did, variant);
       break;
     case andgate:
     case nandgate:
     case orgate:
     case norgate:
+      variant = parameter[0];   
       makegate (dkind, did, variant, ok);
       break;
     case xorgate:
@@ -188,6 +208,8 @@ void devices::makedevice (devicekind dkind, name_t did, int variant, bool& ok)
       break;
     case dtype:
       makedtype(did);
+    case asiggen:
+      makesiggen(did, parameter, ok);
       break;
   }
 }
@@ -329,6 +351,54 @@ void devices::execclock(devlink d)
   }
 }
 
+/***********************************************************************
+ *
+ * Used to simulate the operation of signal generator devices.
+ * Called by executedevices.
+ *
+ */
+void devices::execsiggen(devlink d)
+{
+  if (d->olist->sig == rising)
+    signalupdate (high, d->olist->sig);
+  else {
+    if (d->olist->sig == falling)
+      signalupdate (low, d->olist->sig);
+  }
+}
+
+/***********************************************************************
+ *
+ * Increment the counters in the signal generator devices and initiate 
+ * changes in their outputs when the end of their period is reached.
+ * Called by executedevices.
+ *
+ */
+void devices::updatesiggens (void)
+{
+  devlink d;
+  for (d = netz->devicelist (); d != NULL; d = d->next) {
+    if (d->kind == asiggen) 
+    {
+      if (d->counter == d->frequency) 
+      {
+        d->counter = 0;
+        d->patcount++; 
+        if(d->patcount > d->pattern.size())
+            d->patcount = 0;
+        if (d->olist->sig == high && d->pattern[d->patcount] == high)
+          d->olist->sig = high;
+        else if (d->olist->sig == high && d->pattern[d->patcount] == low)
+          d->olist->sig = falling;
+        else if (d->olist->sig == low && d->pattern[d->patcount] == high)
+          d->olist->sig = rising;  
+        else if (d->olist->sig == low && d->pattern[d->patcount] == low)
+          d->olist->sig = low;  
+      }
+      (d->counter)++;
+    }
+  }
+}
 
 /***********************************************************************
  *
@@ -341,13 +411,15 @@ void devices::updateclocks (void)
 {
   devlink d;
   for (d = netz->devicelist (); d != NULL; d = d->next) {
-    if (d->kind == aclock) {
-      if (d->counter == d->frequency) {
-	d->counter = 0;
-	if (d->olist->sig == high)
-	  d->olist->sig = falling;
-	else
-	  d->olist->sig = rising;
+    if (d->kind == aclock) 
+    {
+      if (d->counter == d->frequency) 
+      {
+        d->counter = 0;
+        if (d->olist->sig == high)
+          d->olist->sig = falling;
+        else
+          d->olist->sig = rising;
       }
       (d->counter)++;
     }

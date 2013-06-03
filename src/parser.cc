@@ -278,25 +278,41 @@ bool parser::makeDevLine(void)
     devicekind dkind; 
     symboltype_t devtype; 
     name_t id;
-    int variant;
+    vector<int> variant;
      
     id = nmz->lookup(context[0].namestring);
     
     if((isAndSym(context[2])) || (isNandSym(context[2])) || (isOrSym(context[2])) || (isNorSym(context[2])) || (isSwitchSym(context[2])) || (isClkSym(context[2])))
     {
-        /* If the device is a gate, clock, or switch                   */
+        /* If the device is a gate, clock, or switch                               */
         /* The makedevice() method must be passed a parameter in the variant field */ 
-        variant = context[4].num;
+        variant.push_back(context[4].num);
+    }
+    else if(isSigGenSym(context[2]))
+    {
+        /* Device is a Signal generator                                             */
+        /* The makedevice method needs the parameter vector                         */
+        bool moreparams = true; 
+        int symnum = 4;
+        while(moreparams)
+        {
+            variant.push_back(context[symnum].num);
+            symnum++;
+            if(isCpSym(context[symnum]))
+                moreparams = false; 
+            symnum++; 
+        }    
     }
     
-    if(isAndSym(context[2])) dkind = andgate;
-    else if(isNandSym(context[2])) dkind = nandgate;
-    else if(isOrSym(context[2])) dkind = orgate;
-    else if(isNorSym(context[2])) dkind = norgate;
-    else if(isSwitchSym(context[2])) dkind = aswitch; 
-    else if(isClkSym(context[2])) dkind = aclock;  
-    else if(isDtypeSym(context[2])) dkind = dtype;
-    else if(isXorSym(context[2])) dkind = xorgate;
+    if(isAndSym(context[2]))            dkind = andgate;
+    else if(isNandSym(context[2]))      dkind = nandgate;
+    else if(isOrSym(context[2]))        dkind = orgate;
+    else if(isNorSym(context[2]))       dkind = norgate;
+    else if(isSwitchSym(context[2]))    dkind = aswitch; 
+    else if(isClkSym(context[2]))       dkind = aclock;  
+    else if(isDtypeSym(context[2]))     dkind = dtype;
+    else if(isXorSym(context[2]))       dkind = xorgate;
+    else if(isSigGenSym(context[2]))    dkind = asiggen;
     
     dmz->makedevice(dkind, id, variant, ok);
     nmz->setPos(context[0].namestring, context[0].line, context[0].col);
@@ -313,6 +329,7 @@ bool parser::checkDevLine(void)
     Xor xorgate;    
     Gate gate; 
     Switch switchdev; 
+    Siggen siggendev;
 
     /* First symbol in the line must be a devicename which is currently undefined. */ 
     if(isStrSym(context[0]))
@@ -404,8 +421,61 @@ bool parser::checkDevLine(void)
             return false;
         }
     }
+    /* The SIGGEN device can have as many parameters as the user chooses  */ 
+    else if(isSigGenSym(context[2]))
+    {
+        if(!isOpSym(context[3]))
+        {
+            errorvector.push_back(new expOPSym(context[3].line, context[3].col));
+            return false; 
+        }
+        if(!isNumSym(context[4]))
+            {
+                errorvector.push_back(new expNumSym(context[4].line, context[4].col));
+                return false;
+            }
+        if(!siggendev.param1InValidRange(context[4].num))
+        {
+            errorvector.push_back(new param1RangeErrSigGen(context[4].line, context[4].col));
+            return false; 
+        }
+        bool moreparams = true;     // used to break out of the loop when ')' is found
+        int symnum = 5;      // used to keep track of the symbol number in the while loops
+        while (moreparams)
+        {
+            if(isCpSym(context[symnum]))
+            {
+                moreparams = false;         // ')' symbol denotes end of input 
+            }    
+            else if(!isCommaSym(context[symnum]))
+            {
+                errorvector.push_back(new expCommaSym(context[symnum].line, context[symnum].col));
+                return false; 
+            }
+            symnum ++;
+            if(moreparams)
+            {
+                 if(!isNumSym(context[symnum]))
+                {
+                    errorvector.push_back(new expNumSym(context[symnum].line, context[symnum].col));
+                    return false;
+                }
+                if(!siggendev.paramNInValidRange(context[symnum].num))
+                {
+                    errorvector.push_back(new paramNRangeErrSigGen(context[symnum].line, context[symnum].col));
+                    return false; 
+                }
+                symnum ++;
+            }
+        }
+        if(!isSemiColSym(context[symnum]))
+        {
+            errorvector.push_back(new expSemiColSym(context[symnum].line, context[symnum].col));
+            return false;
+        }
+    }
     /* the third symbol is not a devicetype */ 
-    else if((!isSwitchSym(context[2])) || (!isAndSym(context[2])) || (!isNandSym(context[2])) || (!isOrSym(context[2])) || (!isNorSym(context[2])) || (!isDtypeSym(context[2])) || (!isXorSym(context[2])) || (!isClkSym(context[2])))
+    else if((!isSwitchSym(context[2])) || (!isAndSym(context[2])) || (!isNandSym(context[2])) || (!isOrSym(context[2])) || (!isNorSym(context[2])) || (!isDtypeSym(context[2])) || (!isXorSym(context[2])) || (!isClkSym(context[2])) || (!isSigGenSym(context[2])))
     {
         errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
         return false; 
@@ -595,7 +665,7 @@ bool parser::checkConLine(void)
             if(!gateInputUnconnected(context[6], devid))
             {
                 devlink devicelink = netz->finddevice(devid); 
-		name_t inputid = nmz->cvtname(context[6].namestring);
+                name_t inputid = nmz->cvtname(context[6].namestring);
                 errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, inputid, devicelink, netz));
                 return false;
             }
@@ -627,14 +697,14 @@ bool parser::checkConLine(void)
             if(!isSemiColSym(context[7]))
             {
                 // reports the column where the ';' was expected, not where the error was detected 
-		int col = context[6].col + context[6].namestring.length();		
-		errorvector.push_back(new expSemiColSym(context[6].line, col));
+                int col = context[6].col + context[6].namestring.length();		
+                errorvector.push_back(new expSemiColSym(context[6].line, col));
                 return false;
             }
-	    if(context[6].symboltype == dclksym)
-	    {
-		warningvector.push_back(new nonClkInput(context[0].line, context[0].col));
-	    }
+            if(context[6].symboltype == dclksym)
+            {
+            warningvector.push_back(new nonClkInput(context[0].line, context[0].col));
+            }
         }
     }
     
@@ -780,6 +850,14 @@ bool parser::isDtypeSym(symbol_t symbol)
     return retval;
 }
 
+bool parser::isSigGenSym(symbol_t symbol)
+{
+    bool retval = false; 
+    if(symbol.symboltype == siggensym)
+        retval = true; 
+    return retval; 
+}
+
 bool parser::isEqualSym(symbol_t symbol)
 {
     bool retval = false;
@@ -848,6 +926,14 @@ bool parser::isSemiColSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == semicolsym)
+        retval = true; 
+    return retval; 
+}
+
+bool parser::isCommaSym(symbol_t symbol)
+{
+    bool retval = false; 
+    if(symbol.symboltype == commasym)
         retval = true; 
     return retval; 
 }
