@@ -20,6 +20,7 @@ class devices{
   void makeclock (name_t id, int frequency);
   void makegate (devicekind dkind, name_t did, int ninputs, bool& ok);
   void makedtype (name_t id);
+  void makesiggen(name_t id, vector<int> parameter, bool& ok);
   void signalupdate (asignal target, asignal& sig);
   asignal inv (asignal s);
   void execswitch (devlink d);
@@ -27,11 +28,13 @@ class devices{
   void execxorgate(devlink d);
   void execdtype (devlink d);
   void execclock(devlink d);
+  void execsiggen(devlink d);
   void updateclocks (void);
+  void updatesiggens (void);
   void outsig (asignal s);
 
 public:
-  void makedevice (devicekind dkind, name_t did, int variant, bool& ok);
+  void makedevice (devicekind dkind, name_t did, vector<int> parameter, bool& ok);
     /* Adds a device to the network of the specified kind and name.  The   */
     /* variant is used with such things as gates where it specifies the    */
     /* number of inputs. 'ok' returns true if operation succeeds.          */

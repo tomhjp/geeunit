@@ -6,7 +6,7 @@
 /* Network specification */
 
 typedef enum {falling, low, rising, high} asignal;
-typedef enum {aswitch, aclock, andgate, nandgate, orgate,
+typedef enum {aswitch, aclock, asiggen, andgate, nandgate, orgate,
 	      norgate, xorgate, dtype, baddevice} devicekind;
 
 struct outputrec {
@@ -31,8 +31,10 @@ struct devicerec {
   /* the next elements are only used by some of the device kinds */
   asignal swstate;      // used when kind == aswitch
   int frequency;        // used when kind == aclock
-  int counter;          // used when kind == aclock
+  int counter;          // used when kind == aclock or asiggen
+  int patcount;         // used when kind == asiggen.  keeps index to pattern array. 
   asignal memory;       // used when kind == dtype
+  vector<int> pattern;  // used when kind == asiggen
 };
 typedef devicerec* devlink;
 

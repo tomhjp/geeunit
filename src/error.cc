@@ -123,6 +123,20 @@ paramRangeErrSwitch::paramRangeErrSwitch(int l, int c)
 	col = c;
 }
 
+param1RangeErrSigGen::param1RangeErrSigGen(int l, int c)
+{
+	errorMessage = "Parameter 1 out of valid range - SIGGEN period device parameters must in the range 1-65535";
+	line = l;
+	col = c;
+}
+
+paramNRangeErrSigGen::paramNRangeErrSigGen(int l, int c)
+{
+	errorMessage = "Parameter out of valid range - SIGGEN pattern device parameters must be 1 or 0";
+	line = l;
+	col = c;
+}
+
 paramRangeErrGate::paramRangeErrGate(int l, int c)
 {
 	errorMessage = "Parameter out of valid range - the valid range is 1-16";
@@ -149,6 +163,13 @@ expSemiColSym::expSemiColSym(int l, int c)
 	errorMessage = "Expected a ';' symbol.  The parser thinks this should be the end of the line"; 
 	line = l; 
 	col = c;
+}
+
+expCommaSym::expCommaSym(int l, int c)
+{
+    errorMessage = "Expected a ',' symbol between parameters, or a ')' symbol if all parameters have been input";
+    line = l; 
+    col = c; 
 }
 
 unExpEndSym::unExpEndSym(int l, int c)

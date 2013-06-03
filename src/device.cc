@@ -55,6 +55,24 @@ bool Switch::paramInValidRange(int param)
     else return false; 
 }
 
+Siggen::Siggen(void)
+{
+    return;
+}
+
+bool Siggen::param1InValidRange(int param) 
+{  
+    if(param < 65536 && param > 0) return true; 
+    else return false; 
+}
+
+bool Siggen::paramNInValidRange(int param)
+{
+    if(param==1 || param ==0) return true;
+    else return false; 
+}
+
+
 /* Constructor for Gate class */ 
 Gate::Gate(void) 
 {
@@ -63,7 +81,7 @@ Gate::Gate(void)
 
 bool Gate::paramInValidRange(int param)
 {
-    if(param < 17 && param > 0) return true;
+    if((param < 17) && (param > 0)) return true;
     else return false;
 }
 
