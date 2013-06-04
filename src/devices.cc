@@ -83,13 +83,15 @@ void devices::setswitch (name_t sid, asignal level, bool& ok)
  */
 void devices::makeswitch (name_t id, int setting, bool& ok)
 {
-  devlink d;
-  ok = (setting <= 1);
-  if (ok) {
-    netz->adddevice (aswitch, id, d);
-    netz->addoutput (d, blankname);
-    d->swstate = (setting == 0) ? low : high;
-  }
+    devlink d;
+    ok = (setting <= 1);
+    if (ok)
+    {
+        netz->adddevice (aswitch, id, d);
+        netz->addoutput (d, blankname);
+        d->swstate = (setting == 0) ? low : high;
+        d->olist->sig = d->swstate;
+    }
 }
 
 
@@ -269,7 +271,12 @@ asignal devices::inv (asignal s)
  */
 void devices::execswitch (devlink d)
 {
-  signalupdate (d->swstate, d->olist->sig);
+    name_t did = d->id;
+    namestring_t n = nmz->getName(did);
+    cout << "BEFORE SWITCH UPDATE, switch target" << n << " is at " << d->swstate << endl; 
+    signalupdate (d->swstate, d->olist->sig);
+    
+    cout << "AFTER SWITCH UPDATE, switch " << n << " is at " << d->olist->sig << " and the input state is " << d->swstate << endl;
 }
 
 
@@ -282,16 +289,17 @@ void devices::execswitch (devlink d)
  */
 void devices::execgate (devlink d, asignal x, asignal y)
 {
-  asignal newoutp;
-  inplink inp = d->ilist;
-  outplink outp = d->olist;
-  newoutp = y;
-  while ((inp != NULL) && (newoutp == y)) {
-    if (inp->connect->sig == inv (x))
-      newoutp = inv (y);
-    inp = inp->next;
-  }
-  signalupdate (newoutp, outp->sig);
+    asignal newoutp;
+    inplink inp = d->ilist;
+    outplink outp = d->olist;
+    newoutp = y;
+    while ((inp != NULL) && (newoutp == y)) {
+        if (inp->connect->sig == inv (x))
+            newoutp = inv (y);
+        inp = inp->next;
+    }
+    signalupdate (newoutp, outp->sig);
+    cout << "Gate kind, outp->sig = " << d->kind << ", " << outp->sig << endl;
 }
 
 
@@ -303,12 +311,13 @@ void devices::execgate (devlink d, asignal x, asignal y)
  */
 void devices::execxorgate(devlink d)
 {
-  asignal newoutp;
-  if (d->ilist->connect->sig == d->ilist->next->connect->sig)
-    newoutp = low;
-  else
-    newoutp = high;
-  signalupdate (newoutp, d->olist->sig);
+    asignal newoutp;
+    if (d->ilist->connect->sig == d->ilist->next->connect->sig)
+        newoutp = low;
+    else
+        newoutp = high;
+    signalupdate (newoutp, d->olist->sig);
+    cout << "XOR GATE outp->sig = " << d->olist->sig << endl;
 }
 
 
@@ -341,10 +350,14 @@ void devices::execdtype (devlink d)
         d->memory = low;
     if ((datainput == falling) || (datainput == rising))
     {
-        if ((rand() % 2) == 0)
+        cout << "Doing random stuff" << endl;
+        int r = rand() % 2;
+        if (r == 0)
             d->memory = low;
-        else
+        else if (r == 1)
             d->memory = high;
+        else
+            cout << "Shouldn't have got here" << endl;
     }
     if (setinput == high)
         d->memory = high;
@@ -353,6 +366,9 @@ void devices::execdtype (devlink d)
 
     signalupdate (d->memory, qout->sig);
     signalupdate (inv (d->memory), qbarout->sig);
+    
+    //cout << "Current dtype Q state is " <<qout->sig << endl;
+    //cout << "Current dtype QBAR state is " << qbarout->sig << endl << endl;
 }
 
 
@@ -486,6 +502,14 @@ void devices::executedevices (bool& ok)
     if (debugging)
         cout << "Start of execution cycle" << endl;
 
+    vector<devlink> localList;
+    vector<devlink> localClocks;
+    for (d = netz->devicelist (); d != NULL; d = d->next)
+    {
+        if ((d->kind == aclock) || (d->kind == asiggen))
+            localClocks.push_back(d);
+    }
+
     updateclocks ();
     updatesiggens();
     machinecycle = 0;
@@ -497,7 +521,7 @@ void devices::executedevices (bool& ok)
             cout << "machine cycle # " << machinecycle << endl;
 
         steadystate = true;
-        for (d = netz->devicelist (); d != NULL; d = d->next)
+        /*for (d = netz->devicelist (); d != NULL; d = d->next)
         {
             switch (d->kind)
             {
@@ -512,10 +536,54 @@ void devices::executedevices (bool& ok)
                 case asiggen:  execsiggen (d);           break;
             }
 
-        if (debugging)
-	        showdevice (d);
-	    }
+        
+	    }*/
+        
+        localList.clear();
+        for (d = netz->devicelist (); d != NULL; d = d->next)
+        {
+            if ((d->kind != aclock) && (d->kind != asiggen))
+                localList.push_back(d);
+        }
+        cout << "localList size = " << localList.size() << endl;
+        
+        while (localList.size() > 0)
+        {
+            int r = rand() % localList.size();
+            d = localList[r];
+            //cout << "executing device " << r << " of " << localList.size() << endl;
+
+            switch (d->kind)
+            {
+                case aswitch:  execswitch (d);           break;
+                case orgate:   execgate (d, low, low);   break;
+                case norgate:  execgate (d, low, high);  break;
+                case andgate:  execgate (d, high, high); break;
+                case nandgate: execgate (d, high, low);  break;
+                case xorgate:  execxorgate (d);          break;
+                case dtype:    execdtype (d);            break;
+                default:       cout << "Probably found a clock or siggen in localList!" << endl;
+            }
+
+            localList.erase(localList.begin()+r);
+            if (debugging)
+                showdevice (d);
+        }
+        for (int i=0; i<localClocks.size(); i++)
+        {
+            d = localClocks[i];
+            switch (d->kind)
+            {
+                case aclock:   execclock (d);            break;
+                case asiggen:  execsiggen (d);           break;
+                default:       cout << "Eek, found a non-clock or siggen in localClocks" << endl;
+            }
+            if (debugging)
+                showdevice (d);
+        }
     } while ((! steadystate) && (machinecycle < maxmachinecycles));
+    cout << "Took " << machinecycle << " cycles to exit loop" << endl;
+    cout << "Steadystate = " << steadystate << endl;
 
     if (debugging)
         cout << "End of execution cycle" << endl;

@@ -4,7 +4,7 @@
 #include <GL/glut.h>
 #include <string>
 
-//#define USE_GUI
+#define USE_GUI
 
 IMPLEMENT_APP(MyApp)
   
