@@ -148,15 +148,15 @@ void devices::makegate (devicekind dkind, name_t did, int ninputs, bool& ok)
  */
 void devices::makedtype (name_t id)
 {
-  devlink d;
-  netz->adddevice (dtype, id, d);
-  netz->addinput (d, datapin);
-  netz->addinput (d, clkpin);
-  netz->addinput (d, setpin);
-  netz->addinput (d, clrpin);
-  netz->addoutput (d, qpin);
-  netz->addoutput (d, qbarpin);
-  d->memory = low;
+    devlink d;
+    netz->adddevice (dtype, id, d);
+    netz->addinput (d, datapin);
+    netz->addinput (d, clkpin);
+    netz->addinput (d, setpin);
+    netz->addinput (d, clrpin);
+    netz->addoutput (d, qpin);
+    netz->addoutput (d, qbarpin);
+    d->memory = low;
 }
 
 
@@ -174,6 +174,14 @@ void devices::makesiggen(name_t id, vector<int> parameter, bool& ok)
     d-> frequency = parameter[0];
     parameter.erase(parameter.begin());     // deletes the frequency parameter from the vector
     d->pattern = parameter; 
+    d->counter = 0;
+    d->patcount = 0;
+    
+    /* initialise state */ 
+    if(d->pattern[0] == 0)
+        d->olist->sig = falling;
+    else if(d->pattern[0] == 1)
+        d->olist->sig = rising; 
 }
     
 /***********************************************************************
@@ -208,6 +216,7 @@ void devices::makedevice (devicekind dkind, name_t did, vector<int> parameter, b
       break;
     case dtype:
       makedtype(did);
+      break;
     case asiggen:
       makesiggen(did, parameter, ok);
       break;
@@ -313,25 +322,32 @@ void devices::execxorgate(devlink d)
  */
 void devices::execdtype (devlink d)
 {
-  asignal datainput, clkinput, setinput, clrinput;
-  inplink i;
-  outplink qout, qbarout;
-  i = netz->findinput (d, datapin); datainput = i->connect->sig;
-  i = netz->findinput (d, clkpin);  clkinput  = i->connect->sig;
-  i = netz->findinput (d, clrpin);  clrinput  = i->connect->sig;
-  i = netz->findinput (d, setpin);  setinput  = i->connect->sig;
-  qout = netz->findoutput (d, qpin);
-  qbarout = netz->findoutput (d, qbarpin);
-  if ((clkinput == rising) && ((datainput == high) || (datainput == falling)))
-    d->memory = high;
-  if ((clkinput == rising) && ((datainput == low) || (datainput == rising)))
-    d->memory = low;
-  if (setinput == high)
-    d->memory = high;
-  if (clrinput == high)
-    d->memory = low;
-  signalupdate (d->memory, qout->sig);
-  signalupdate (inv (d->memory), qbarout->sig);
+    asignal datainput, clkinput, setinput, clrinput, oldsignal;
+    inplink i;
+    outplink qout, qbarout;
+
+    i = netz->findinput (d, datapin); datainput = i->connect->sig; 
+    i = netz->findinput (d, clkpin);  clkinput  = i->connect->sig;
+    i = netz->findinput (d, clrpin);  clrinput  = i->connect->sig;
+    i = netz->findinput (d, setpin);  setinput  = i->connect->sig;
+
+    if(firstpass) 
+        i->oldsig = datainput;
+        
+    qout = netz->findoutput (d, qpin);
+    qbarout = netz->findoutput (d, qbarpin);
+
+    if ((clkinput == rising) && ((datainput == high) || (datainput == falling)))
+        d->memory = high;
+    if ((clkinput == rising) && ((datainput == low) || (datainput == rising)))
+        d->memory = low;
+    if (setinput == high)
+        d->memory = high;
+    if (clrinput == high)
+        d->memory = low;
+
+    signalupdate (d->memory, qout->sig);
+    signalupdate (inv (d->memory), qbarout->sig);
 }
 
 
@@ -360,10 +376,14 @@ void devices::execclock(devlink d)
 void devices::execsiggen(devlink d)
 {
   if (d->olist->sig == rising)
+  {
     signalupdate (high, d->olist->sig);
-  else {
-    if (d->olist->sig == falling)
+    cout << "Siggen set to high" << endl; 
+  }
+  else if (d->olist->sig == falling)
+  {
       signalupdate (low, d->olist->sig);
+      cout << "Siggen set to low" << endl; 
   }
 }
 
@@ -376,28 +396,40 @@ void devices::execsiggen(devlink d)
  */
 void devices::updatesiggens (void)
 {
-  devlink d;
-  for (d = netz->devicelist (); d != NULL; d = d->next) {
-    if (d->kind == asiggen) 
+    devlink d;
+    for (d = netz->devicelist (); d != NULL; d = d->next) 
     {
-      if (d->counter == d->frequency) 
-      {
-        d->counter = 0;
-        d->patcount++; 
-        if(d->patcount > d->pattern.size())
-            d->patcount = 0;
-        if (d->olist->sig == high && d->pattern[d->patcount] == high)
-          d->olist->sig = high;
-        else if (d->olist->sig == high && d->pattern[d->patcount] == low)
-          d->olist->sig = falling;
-        else if (d->olist->sig == low && d->pattern[d->patcount] == high)
-          d->olist->sig = rising;  
-        else if (d->olist->sig == low && d->pattern[d->patcount] == low)
-          d->olist->sig = low;  
-      }
-      (d->counter)++;
+        if (d->kind == asiggen) 
+        {
+            if (d->counter == d->frequency) 
+            {
+                d->counter = 0;
+                d->patcount++;
+                if(d->patcount == d->pattern.size())
+                    d->patcount = 0;
+                /*
+                if (d->olist->sig == high && d->pattern[d->patcount] == high)
+                d->olist->sig = high;
+                else if (d->olist->sig == high && d->pattern[d->patcount] == low)
+                d->olist->sig = falling;
+                else if (d->olist->sig == low && d->pattern[d->patcount] == high)
+                d->olist->sig = rising;  
+                else if (d->olist->sig == low && d->pattern[d->patcount] == low)
+                d->olist->sig = low;  
+                */
+
+                if(d->pattern[d->patcount] == 1)
+                {
+                    d->olist->sig = rising;
+                }
+                else if(d->pattern[d->patcount] == 0)
+                {
+                    d->olist->sig = falling;
+                }
+            }
+            (d->counter)++;
+        }
     }
-  }
 }
 
 /***********************************************************************
@@ -417,9 +449,15 @@ void devices::updateclocks (void)
       {
         d->counter = 0;
         if (d->olist->sig == high)
+        {
           d->olist->sig = falling;
+          cout << "Set clk to falling " <<endl; 
+        }
         else
+        {
           d->olist->sig = rising;
+          cout << "Set clk to rising" <<endl; 
+        }  
       }
       (d->counter)++;
     }
@@ -444,7 +482,9 @@ void devices::executedevices (bool& ok)
         cout << "Start of execution cycle" << endl;
         
     updateclocks ();
+    updatesiggens();
     machinecycle = 0;
+    firstpass = true; 
     do 
     {
         machinecycle++;
@@ -464,14 +504,31 @@ void devices::executedevices (bool& ok)
                 case andgate:  execgate (d, high, high); break;
                 case nandgate: execgate (d, high, low);  break;
                 case xorgate:  execxorgate (d);          break;
-                case dtype:    execdtype (d);            break;     
+                case dtype:    execdtype (d);            break;
+                case asiggen:  execsiggen (d);           break;   
             }
         
         if (debugging)
 	        showdevice (d);
-	    }        
+	    }    
+        firstpass = false;     
     } while ((! steadystate) && (machinecycle < maxmachinecycles));
     
+    for (d = netz->devicelist (); d != NULL; d = d->next) 
+    {
+        switch (d->kind) 
+        {
+            case aswitch:  execswitch (d);           break;
+            case aclock:   execclock (d);            break;
+            case orgate:   execgate (d, low, low);   break;
+            case norgate:  execgate (d, low, high);  break;
+            case andgate:  execgate (d, high, high); break;
+            case nandgate: execgate (d, high, low);  break;
+            case xorgate:  execxorgate (d);          break;
+            case dtype:    execdtype (d);            break;
+            case asiggen:  execsiggen (d);           break;   
+        }
+    } 
     if (debugging)
         cout << "End of execution cycle" << endl;
         

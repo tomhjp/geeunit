@@ -280,6 +280,7 @@ bool parser::makeDevLine(void)
     name_t id;
     vector<int> variant;
      
+     
     id = nmz->lookup(context[0].namestring);
     
     if((isAndSym(context[2])) || (isNandSym(context[2])) || (isOrSym(context[2])) || (isNorSym(context[2])) || (isSwitchSym(context[2])) || (isClkSym(context[2])))
@@ -314,7 +315,18 @@ bool parser::makeDevLine(void)
     else if(isXorSym(context[2]))       dkind = xorgate;
     else if(isSigGenSym(context[2]))    dkind = asiggen;
     
+    if(dkind == dtype || dkind == xorgate)
+    {
+        variant.push_back(0);
+    }
+    
     dmz->makedevice(dkind, id, variant, ok);
+    cout << "Making device of kind " <<dkind << endl; 
+    for(int hl =0; hl<variant.size(); hl++)
+    {
+        cout << " varriant val is " << variant[hl] << endl;
+    }
+    cout <<endl; 
     nmz->setPos(context[0].namestring, context[0].line, context[0].col);
     return ok; 
 }
@@ -475,7 +487,7 @@ bool parser::checkDevLine(void)
         }
     }
     /* the third symbol is not a devicetype */ 
-    else if((!isSwitchSym(context[2])) || (!isAndSym(context[2])) || (!isNandSym(context[2])) || (!isOrSym(context[2])) || (!isNorSym(context[2])) || (!isDtypeSym(context[2])) || (!isXorSym(context[2])) || (!isClkSym(context[2])) || (!isSigGenSym(context[2])))
+    else if((!isSwitchSym(context[2])) && (!isAndSym(context[2])) && (!isNandSym(context[2])) && (!isOrSym(context[2])) && (!isNorSym(context[2])) && (!isDtypeSym(context[2])) && (!isXorSym(context[2])) && (!isClkSym(context[2])) && (!isSigGenSym(context[2])))
     {
         errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
         return false; 

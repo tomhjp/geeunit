@@ -14,6 +14,9 @@ class devices{
   name_t      clkpin, datapin, setpin;
   name_t      clrpin, qpin, qbarpin;     /* Input and Output Pin names */
   bool        debugging;
+  
+  /* section flag */
+  bool firstpass; 
 
   void showdevice (devlink d);
   void makeswitch (name_t id, int setting, bool& ok);

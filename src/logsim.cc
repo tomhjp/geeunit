@@ -4,7 +4,7 @@
 #include <GL/glut.h>
 #include <string>
 
-#define USE_GUI
+//#define USE_GUI
 
 IMPLEMENT_APP(MyApp)
   
@@ -60,7 +60,7 @@ bool MyApp::OnInit()
     // it some fake ASCII ones instead
     char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
     // Construct the GUI
-    MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 800), nmz, dmz, mmz, netz,smz,pmz);
+    MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 700), nmz, dmz, mmz, netz,smz,pmz);
     frame->Show(true);
     return(true); // enter the GUI event loop
 #else
