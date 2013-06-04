@@ -137,6 +137,13 @@ paramNRangeErrSigGen::paramNRangeErrSigGen(int l, int c)
 	col = c;
 }
 
+tooFewParamsSiggen::tooFewParamsSiggen(int l, int c)
+{
+    errorMessage = "SIGGEN devices take a minimum of two parameters";
+    line = l; 
+    col = cl
+}
+
 paramRangeErrGate::paramRangeErrGate(int l, int c)
 {
 	errorMessage = "Parameter out of valid range - the valid range is 1-16";

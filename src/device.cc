@@ -57,7 +57,7 @@ bool Switch::paramInValidRange(int param)
 
 Siggen::Siggen(void)
 {
-    return;
+    validNumParams = 2; 
 }
 
 bool Siggen::param1InValidRange(int param) 
