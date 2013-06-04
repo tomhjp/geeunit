@@ -34,6 +34,7 @@ enum {
   START_TIMER_BUTTON,
   STOP_TIMER_BUTTON,
   VERTICAL_SCROLL_BAR,
+  EXIT,
 }; 
 
 class MyGLCanvas;
@@ -87,7 +88,8 @@ class MyFrame: public wxFrame
         vector<wxString> switchNameVector;
         int  FRAMEcyclesCompleted;                  // How many cycles were completed in the most recent run.
         int  FRAMEtotalCycles;                      // Total number of cycles completed.
-                                                    
+        bool clearToRun;                                                    
+                                                      
   // Callbacks for fileMenu events                                   
         void OnExit(wxCommandEvent& event);         
         void OnOpen(wxCommandEvent& event);
@@ -142,7 +144,7 @@ class MyGLCanvas: public wxGLCanvas
     void setNames(names* names_mod);
     void setMonitor(monitor* monitor_mod);
     void setNetwork(network* network_mod);
-    void setClearToRunFlag(bool flag);
+    void setClearToDrawFlag(bool flag);
 
   // Define some variables used by the Canvas Class
     typedef vector<vector<asignal> > IntMatrix;
@@ -152,7 +154,7 @@ class MyGLCanvas: public wxGLCanvas
     vector<wxString> monitorNameVector;
     
     int numDtypes;
-    bool clearToRun;
+    bool clearToDraw;
 
     private:
   // Variable initialised on start-up and never altered. 
