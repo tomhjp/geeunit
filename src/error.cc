@@ -258,7 +258,7 @@ foundSymAfterEndf::foundSymAfterEndf(int l, int c)
 
 unconnectInp::unconnectInp()
 {
-    errorMessage = "Unconnected input(s) detected (listed above)";
+    errorMessage = "Unconnected input(s) detected (listed above error messages)";
     hasPos = false;
 }	
 

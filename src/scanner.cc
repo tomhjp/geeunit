@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <cstdlib>
 #include <fstream>
 //#include <boost>
@@ -428,11 +429,14 @@ void scanner_t::nextSymbol(symbol_t &symbol)
     }
 }
 
-void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
+string scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
 {
     // clear the eofbit so that we can successfully seek the beginning of the file again
     inf.clear();
     inf.seekg(inf.beg);
+    
+    ostringstream os;
+    string outstr = "";
     
     /* Only try to label a position if it is an error with a position
      * For example, missing inputs do not have their location printed out */
@@ -446,39 +450,41 @@ void scanner_t::printError(int line, int col, string errorStr, bool hasPosition)
             if (!getline(inf, lineStr))
             {
                 // failed to read this line from the file (it didn't exist)
-                cout << "Bad line value, " << line << ". Seems to be outside the line " << \
-                        "range of the file, " << l+1 << endl;
-                return;
+                os << "Bad line value, " << line << ". Seems to be outside the line " << \
+                      "range of the file, " << l+1 << endl;
+                return os.str();
             }
             else if ((col > lineStr.length()+1) && (l+1 == line))
             {
                 // if col is outside range on the line we are looking for
-                cout << "Bad col value " << col << ". Greater than line length " \
-                     << lineStr.length() << " of line " << l+1 << endl;
-                return;
+                os << "Bad col value " << col << ". Greater than line length " \
+                   << lineStr.length() << " of line " << l+1 << endl;
+                return os.str();
             }
             else if (l+1 == line)
             {
                 // reached the line on which an error is being reported without line or col fault
-                cout << lineStr << endl;
+                os << lineStr << endl;
                 if (lineStr.length() <= 80)
                 {
                     for (int i=0; i<col-1; i++)
-                        cout << " ";
-                    cout << "^" << endl;
-                    cout << line << "," << col <<": "<<errorStr << endl << endl;
+                        os << " ";
+                    os << "^" << endl;
+                    os << line << "," << col <<": "<<errorStr << endl << endl;
                 }
                 else
                 {
                     // Position of error will be reported poorly because the file line wraps on the command line
-                    cout << "Warning: The line with the error is longer than the default command window size. " << \
-                            "Please try adding new lines to the definition file to receive accurate position reporting"\
-                            << endl;
-                    cout << errorStr << endl << endl;
+                    os << "Warning: The line with the error is longer than the default command window size. " << \
+                          "Please try adding new lines to the definition file to receive accurate position reporting"\
+                          << endl;
+                    os << errorStr << endl << endl;
                 }
             }
         }
     }
     else
-        cout << errorStr << endl;
+        os << errorStr << endl;
+
+    return os.str();
 }
