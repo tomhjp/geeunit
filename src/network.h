@@ -78,8 +78,9 @@ class network {
     /* 'outp' output of device 'odev'. 'ok' is set true if operation       */
     /* succeeds.                                                           */
  
-  void checknetwork (bool& ok);
-    /* Checks that all inputs are connected to an output.                  */
+  string checknetwork (bool& ok);
+    /* Checks that all inputs are connected to an output, and returns a    */
+    /* string contining a list of unconnected inputs                       */
  
   int getLineDefd(devlink dev, name_t id);
     /* Returns the line at which the input connection was defined. 	 */

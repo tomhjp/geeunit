@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include "network.h"
  
 using namespace std;
@@ -193,10 +194,12 @@ void network::makeconnection (name_t idev, name_t inp, name_t odev, name_t outp,
  * Checks that all inputs are connected to an output.   
  *
  */
-void network::checknetwork (bool& ok)
+string network::checknetwork (bool& ok)
 {
     devlink d;
     inplink i;
+    stringstream ss; 
+    string inputlist; 
     ok = true;
     for (d = devs; d != NULL; d = d->next)
     {
@@ -204,18 +207,20 @@ void network::checknetwork (bool& ok)
         {
             if (i->connect == NULL)
             {
-                cout << "Unconnected Input : ";
-                nmz->writename (d->id);
+                ss << "Unconnected Input : ";
+                ss << nmz-> getName(d->id);
                 if (i->id != blankname)
                 {
-                    cout << ".";
-                    nmz->writename (i->id);
+                    ss << ".";
+                    ss << nmz-> getName(i->id);
                 }
-                cout << endl;
+                ss << endl;
                 ok = false;
             }
         }
     }
+    inputlist = ss.str();
+    return inputlist; 
 }
 
 

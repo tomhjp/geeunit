@@ -7,20 +7,20 @@
 #include "network.h"
 
 
-using namespace std; 
+using namespace std;
 
-class Error 
+class Error
 {
-  protected:  
+  protected:
     bool hasPos;
     int line;
-    int col; 
-    string errorMessage; 
-  public: 
-    void printErrMsg(void); 
+    int col;
+    string errorMessage;
+  public:
+    void printErrMsg(void);
     void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     Error(void);
-}; 
+};
 
 /********************************************************/
 /****************   "Simple" errors *********************/
@@ -57,56 +57,56 @@ class expEndFSym : public Error
 
 class noSemiCol : public Error
 {
-	public:
-	noSemiCol(int l, int c);
-}; 
+    public:
+    noSemiCol(int l, int c);
+};
 
 class expDevName : public Error
 {
-	public: 
-	expDevName(int l, int c);
+    public:
+    expDevName(int l, int c);
 };
 
 class expEqualSym : public Error
 {
-	public:
-	expEqualSym(int l, int c);
+    public:
+    expEqualSym(int l, int c);
 };
 
 class expOPSym : public Error
 {
-	public:
-	expOPSym(int l, int c);
+    public:
+    expOPSym(int l, int c);
 };
 
 class expNumSym: public Error
 {
-	public:
-	expNumSym(int l, int c);
+    public:
+    expNumSym(int l, int c);
 };
 
 class expDevTypeSym: public Error
 {
-	public:
-	expDevTypeSym(int l, int c);
+    public:
+    expDevTypeSym(int l, int c);
 };
 
 class paramRangeErrSwitch: public Error
 {
-	public:
-	paramRangeErrSwitch(int l, int c);
+    public:
+    paramRangeErrSwitch(int l, int c);
 };
 
 class paramRangeErrGate: public Error
 {
-	public:
-	paramRangeErrGate(int l, int c);
+    public:
+    paramRangeErrGate(int l, int c);
 };
 
 class paramRangeErrClk: public Error
 {
-	public:
-	paramRangeErrClk(int l, int c);
+    public:
+    paramRangeErrClk(int l, int c);
 };
 
 class param1RangeErrSigGen: public Error
@@ -123,15 +123,15 @@ class paramNRangeErrSigGen: public Error
 
 class expCPSym : public Error
 {
-	public:
-	expCPSym(int l, int c);
+    public:
+    expCPSym(int l, int c);
 };
-	
+
 class expSemiColSym: public Error
 {
-	public:
-	expSemiColSym(int l, int c);
-};	
+    public:
+    expSemiColSym(int l, int c);
+};
 
 class expCommaSym: public Error
 {
@@ -151,7 +151,7 @@ class devNameUndef: public Error
     devNameUndef(int l, int c);
 };
 
-class expConnPuncSym: public Error	
+class expConnPuncSym: public Error
 {
     public:
     expConnPuncSym(int l, int c);
@@ -193,6 +193,12 @@ class inputUnDefd: public Error
     inputUnDefd(int l, int c);
 };
 
+class unconnectInp: public Error
+{ 
+  public:
+    unconnectInp(string list);
+};
+
 class badDevType: public Error
 {
     public:
@@ -209,12 +215,6 @@ class foundSymAfterEndf: public Error
 {
     public:
     foundSymAfterEndf(int l, int c);
-};
-
-class unconnectInp: public Error
-{
-    public:
-    unconnectInp();
 };
 
 class overMaxMonLimit: public Error
@@ -239,14 +239,15 @@ class fatalErr: public Error
 /********* more complex errors to report *******************/
 /***********************************************************/
 
+
 class inputPrevConnected: public Error
 {
-    int initconline;	
+    int initconline;
     int getInitCon(void);
-    void makeLongErrMsg(void);    
+    void makeLongErrMsg(void);
     network* netz;
     devlink devicelink;
-    name_t ipid; 
+    name_t ipid;
     string longErrMsg;
   public:
     inputPrevConnected(int l, int c, name_t id, devlink dev, network* network_mod);
@@ -260,15 +261,15 @@ class nameAlreadyDefd : public Error
     int initdefcol;
     void getInitDef(void);
     void makeLongErrMsg(void);
-    namestring_t devname; 
-    names* nmz; 
+    namestring_t devname;
+    names* nmz;
     string longErrMsg;
   public:
     nameAlreadyDefd(int l, int c, namestring_t dev, names* names_mod);
     void getErrorDetails(int &l, int &c, string &errmsg, bool &hasPosition);
     void printErrMsg(void);
-};	
-	
+};
+
 #endif
 
 

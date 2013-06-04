@@ -235,6 +235,13 @@ inputUnDefd::inputUnDefd(int l, int c)
     col = c;
 }
 
+unconnectInp::unconnectInp(string list)
+{
+    errorMessage = "Unconnected input(s) detected (listed below)";
+    hasPos = false;
+    errorMessage = errorMessage + "\n" + list; 
+}	
+
 badDevType::badDevType(int l, int c)
 {
     errorMessage = "Invalid devicetype entered"; 
@@ -256,11 +263,6 @@ foundSymAfterEndf::foundSymAfterEndf(int l, int c)
 	col = c;
 }
 
-unconnectInp::unconnectInp()
-{
-    errorMessage = "Unconnected input(s) detected (listed above)";
-    hasPos = false;
-}	
 
 overMaxMonLimit::overMaxMonLimit(int l, int c)
 {

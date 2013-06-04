@@ -18,7 +18,7 @@ STARTFILE
 
     CONNECTIONS
 
-    A -> nand1.I1;
+
     A -> nor1.I1;
     B -> nand1.I2;
     B -> and1.I1;

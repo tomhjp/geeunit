@@ -52,11 +52,12 @@ void parser::mainLineBuild(symbol_t symbol)
             if(section == consect)
             {
                 bool allInsCon;
-                netz->checknetwork(allInsCon);
+                string unconinplist;
+                unconinplist = netz->checknetwork(allInsCon);
                 if(!allInsCon)
                 {
                     // check all inputs to find those which are not connected 
-                    errorvector.push_back(new unconnectInp());
+                    errorvector.push_back(new unconnectInp(unconinplist));
                 }
             }
             needskeyflag = 1;

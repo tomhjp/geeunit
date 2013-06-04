@@ -514,6 +514,7 @@ void devices::executedevices (bool& ok)
         firstpass = false;     
     } while ((! steadystate) && (machinecycle < maxmachinecycles));
     
+    /* Second loop implements hold time and allows us to check that oldsig == sig */ 
     for (d = netz->devicelist (); d != NULL; d = d->next) 
     {
         switch (d->kind) 
