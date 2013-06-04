@@ -446,6 +446,14 @@ bool parser::checkDevLine(void)
             errorvector.push_back(new param1RangeErrSigGen(context[4].line, context[4].col));
             return false;
         }
+        /* checks that at least two parameters are input to the SIGGEN device   */ 
+        /* (the period of the SIGGEN and a pattern of at least one bit)         */
+        if(!isNumSym(context[6]))
+        {
+            errorvector.push_back(new tooFewParamsSiggen(context[6].line, context[6].col));
+            return false;
+        }
+        
         bool moreparams = true;     // used to break out of the loop when ')' is found
         int symnum = 5;      // used to keep track of the symbol number in the while loops
         while (moreparams)

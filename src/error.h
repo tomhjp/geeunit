@@ -121,6 +121,12 @@ class paramNRangeErrSigGen: public Error
     paramNRangeErrSigGen(int l, int c);
 };
 
+class tooFewParamsSiggen: public Error
+{
+    public:
+    tooFewParamsSiggen(int l, int c);
+};
+
 class expCPSym : public Error
 {
     public:
