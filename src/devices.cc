@@ -271,12 +271,7 @@ asignal devices::inv (asignal s)
  */
 void devices::execswitch (devlink d)
 {
-    name_t did = d->id;
-    namestring_t n = nmz->getName(did);
-    cout << "BEFORE SWITCH UPDATE, switch target" << n << " is at " << d->swstate << endl; 
     signalupdate (d->swstate, d->olist->sig);
-    
-    cout << "AFTER SWITCH UPDATE, switch " << n << " is at " << d->olist->sig << " and the input state is " << d->swstate << endl;
 }
 
 
@@ -299,7 +294,6 @@ void devices::execgate (devlink d, asignal x, asignal y)
         inp = inp->next;
     }
     signalupdate (newoutp, outp->sig);
-    cout << "Gate kind, outp->sig = " << d->kind << ", " << outp->sig << endl;
 }
 
 
@@ -317,7 +311,6 @@ void devices::execxorgate(devlink d)
     else
         newoutp = high;
     signalupdate (newoutp, d->olist->sig);
-    cout << "XOR GATE outp->sig = " << d->olist->sig << endl;
 }
 
 
@@ -350,7 +343,9 @@ void devices::execdtype (devlink d)
         d->memory = low;
     if ((datainput == falling) || (datainput == rising))
     {
-        cout << "Doing random stuff" << endl;
+        /* If the datainput rises or falls during the setup or hold period
+         * we output random data and alert the user at the command line */
+        cout << "Outputting indeterminate data" << endl;
         int r = rand() % 2;
         if (r == 0)
             d->memory = low;
@@ -366,9 +361,6 @@ void devices::execdtype (devlink d)
 
     signalupdate (d->memory, qout->sig);
     signalupdate (inv (d->memory), qbarout->sig);
-    
-    //cout << "Current dtype Q state is " <<qout->sig << endl;
-    //cout << "Current dtype QBAR state is " << qbarout->sig << endl << endl;
 }
 
 
@@ -396,16 +388,10 @@ void devices::execclock(devlink d)
  */
 void devices::execsiggen(devlink d)
 {
-  if (d->olist->sig == rising)
-  {
-    signalupdate (high, d->olist->sig);
-    cout << "Siggen set to high" << endl;
-  }
-  else if (d->olist->sig == falling)
-  {
-      signalupdate (low, d->olist->sig);
-      cout << "Siggen set to low" << endl;
-  }
+    if (d->olist->sig == rising)
+        signalupdate(high, d->olist->sig);
+    else if (d->olist->sig == falling)
+        signalupdate(low, d->olist->sig);
 }
 
 /***********************************************************************
@@ -428,17 +414,6 @@ void devices::updatesiggens (void)
                 d->patcount++;
                 if(d->patcount == d->pattern.size())
                     d->patcount = 0;
-                /*
-                if (d->olist->sig == high && d->pattern[d->patcount] == high)
-                d->olist->sig = high;
-                else if (d->olist->sig == high && d->pattern[d->patcount] == low)
-                d->olist->sig = falling;
-                else if (d->olist->sig == low && d->pattern[d->patcount] == high)
-                d->olist->sig = rising;
-                else if (d->olist->sig == low && d->pattern[d->patcount] == low)
-                d->olist->sig = low;
-                */
-
                 if(d->pattern[d->patcount] == 1)
                 {
                     d->olist->sig = rising;
@@ -462,27 +437,22 @@ void devices::updatesiggens (void)
  */
 void devices::updateclocks (void)
 {
-  devlink d;
-  for (d = netz->devicelist (); d != NULL; d = d->next) {
-    if (d->kind == aclock)
+    devlink d;
+    for (d = netz->devicelist (); d != NULL; d = d->next)
     {
-      if (d->counter == d->frequency)
-      {
-        d->counter = 0;
-        if (d->olist->sig == high)
+        if (d->kind == aclock)
         {
-          d->olist->sig = falling;
-          cout << "Set clk to falling " <<endl;
+            if (d->counter == d->frequency)
+            {
+                d->counter = 0;
+                if (d->olist->sig == high)
+                    d->olist->sig = falling;
+                else
+                    d->olist->sig = rising;
+            }
+            (d->counter)++;
         }
-        else
-        {
-          d->olist->sig = rising;
-          cout << "Set clk to rising" <<endl;
-        }
-      }
-      (d->counter)++;
     }
-  }
 }
 
 
@@ -516,28 +486,10 @@ void devices::executedevices (bool& ok)
     do
     {
         machinecycle++;
+        steadystate = true;
 
         if (debugging)
             cout << "machine cycle # " << machinecycle << endl;
-
-        steadystate = true;
-        /*for (d = netz->devicelist (); d != NULL; d = d->next)
-        {
-            switch (d->kind)
-            {
-                case aswitch:  execswitch (d);           break;
-                case aclock:   execclock (d);            break;
-                case orgate:   execgate (d, low, low);   break;
-                case norgate:  execgate (d, low, high);  break;
-                case andgate:  execgate (d, high, high); break;
-                case nandgate: execgate (d, high, low);  break;
-                case xorgate:  execxorgate (d);          break;
-                case dtype:    execdtype (d);            break;
-                case asiggen:  execsiggen (d);           break;
-            }
-
-        
-	    }*/
         
         localList.clear();
         for (d = netz->devicelist (); d != NULL; d = d->next)
@@ -545,13 +497,11 @@ void devices::executedevices (bool& ok)
             if ((d->kind != aclock) && (d->kind != asiggen))
                 localList.push_back(d);
         }
-        cout << "localList size = " << localList.size() << endl;
         
         while (localList.size() > 0)
         {
             int r = rand() % localList.size();
             d = localList[r];
-            //cout << "executing device " << r << " of " << localList.size() << endl;
 
             switch (d->kind)
             {
@@ -581,9 +531,20 @@ void devices::executedevices (bool& ok)
             if (debugging)
                 showdevice (d);
         }
+        
+        /* Used to test whether the DTYPE non-zero hold period is outputting * 
+         * an indeterminate signal if input changes during hold              */
+        /*
+        if(machinecycle == 1)
+        {
+            name_t sid = nmz->cvtname("sw");
+            bool newok;
+            setswitch(sid, high, newok);
+            if(newok)
+                cout << "Switched switch ok" << endl; 
+        }
+        */
     } while ((! steadystate) && (machinecycle < maxmachinecycles));
-    cout << "Took " << machinecycle << " cycles to exit loop" << endl;
-    cout << "Steadystate = " << steadystate << endl;
 
     if (debugging)
         cout << "End of execution cycle" << endl;
