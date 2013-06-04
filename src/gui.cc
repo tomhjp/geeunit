@@ -30,6 +30,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     horizCanvasPosition = 0;
     unitHeight = 20;
     numDtypes = 0;
+    clearToRun = true;
 
     /* Populate deviceNameVector with the wxString names of all devices in the network */
     devlink dlink = netz->devicelist();     // Find beginning of the list of devices
@@ -53,8 +54,6 @@ void MyGLCanvas::Render(int totalCycles)
   // trace is displayed.
 {
 
- //   cout << "Canvas thinks that the total number of cycles run is: "<< CANVAStotalCycles << endl;
- //   cout << "Canvas thinks that the number of new cycles completed is: "<< CANVAScyclesCompleted << endl;
   // Initialise Variables that Render needs
     float y;
     unsigned int i,j,c,t;
@@ -70,7 +69,6 @@ void MyGLCanvas::Render(int totalCycles)
     unitHeight = 20;
     traceboxWidth = width - 2*margin - labelWidth - 2*traceMargin;
     traceboxHeight = height - 2*margin - 2*traceMargin;
-    cout << "Canvas thinks that horizCanvasPosition = " << horizCanvasPosition << endl;
 
 //    if (unitWidth < 2)
         unitWidth = 5;
@@ -84,104 +82,120 @@ void MyGLCanvas::Render(int totalCycles)
     }
 
     glClear(GL_COLOR_BUFFER_BIT);
-
-    //If there are monitors then draw the first monitor signal, get trace from monitor class
-    if ((totalCycles > 0) && (mmz->moncount() > 0))
+    
+    if (clearToRun)
     {
-        int offset = 0;
-        //cout << "HCP = " << horizCanvasPosition << endl; 
+        //If there are monitors then draw the first monitor signal, get trace from monitor class
+        if ((totalCycles > 0) && (mmz->moncount() > 0))
+        {
+            int offset = 0;
+            
+            if (unitWidth > 30)
+            {
+                unitWidth = 30;
+            }
+
+            for (t=0; t<traceMatrix.size(); t++)
+            {
+                glColor3f(0.9, 0.9, 0.9);
+
+                glBegin(GL_QUADS);
+                x = (margin + labelWidth);
+                y = (traceboxHeight + margin - 2.5*unitHeight*t + vertCanvasPosition*5 + 3);
+
+                glVertex2f(x,y);
+                glVertex2f(x,y-unitHeight-6);
+                glVertex2f(width,y - unitHeight-2*traceMargin);
+                glVertex2f(width,y);
+                glEnd();
+
+                glColor3f(0.0, 0.0, 1.0);
+
+                glBegin(GL_LINE_STRIP);
+                    bool skipLow = false, skipHigh = false;
+                    for (c=0; c<traceMatrix[0].size(); c++)
+                    {
+                        s = traceMatrix[t][c];
+                        if (s==low)
+                        {
+                            y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + vertCanvasPosition*5);
+                            x = margin + labelWidth + traceMargin + unitWidth*c - horizCanvasPosition*unitWidth;
+                        }
+
+                        if (s==high)
+                        {
+                            y = (traceboxHeight + margin - 2.5*unitHeight*t + vertCanvasPosition*5);
+                            x = margin + labelWidth + traceMargin + unitWidth*c - horizCanvasPosition*unitWidth;
+                        }
+                        
+                        if (x > margin + labelWidth + traceMargin)
+                            glVertex2f(x,y);
+                        if (x + unitWidth > margin + labelWidth + traceMargin)
+                            glVertex2f(x+unitWidth, y);
+                        
+                    }
+                glEnd();
+            }
         
-        if (unitWidth > 30)
-        {
-            unitWidth = 30;
-        }
 
-        for (t=0; t<traceMatrix.size(); t++)
-        {
-            glColor3f(0.9, 0.9, 0.9);
+            int axisSpacing = 5;
+            if (CANVAStotalCycles > 1000)
+                axisSpacing = 10;
 
-            glBegin(GL_QUADS);
-            x = (margin + labelWidth);
-            y = (traceboxHeight + margin - 2.5*unitHeight*t + vertCanvasPosition*5 + 3);
-
-            glVertex2f(x,y);
-            glVertex2f(x,y-unitHeight-6);
-            glVertex2f(width,y - unitHeight-2*traceMargin);
-            glVertex2f(width,y);
-            glEnd();
-
-            glColor3f(0.0, 0.0, 1.0);
-
-            glBegin(GL_LINE_STRIP);
-                bool skipLow = false, skipHigh = false;
+            for (t=0; t<traceMatrix.size(); t++)
+            {
                 for (c=0; c<traceMatrix[0].size(); c++)
                 {
-                    s = traceMatrix[t][c];
-                    if (s==low)
+                    if (c%axisSpacing == 0)
                     {
-                        y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + vertCanvasPosition*5);
-                        x = margin + labelWidth + traceMargin + unitWidth*c - horizCanvasPosition*unitWidth;
-                    }
-
-                    if (s==high)
-                    {
-                        y = (traceboxHeight + margin - 2.5*unitHeight*t + vertCanvasPosition*5);
-                        x = margin + labelWidth + traceMargin + unitWidth*c - horizCanvasPosition*unitWidth;
-                    }
-                    
-                    if (x > margin + labelWidth + traceMargin)
-                        glVertex2f(x,y);
-                    if (x + unitWidth > margin + labelWidth + traceMargin)
-                        glVertex2f(x+unitWidth, y);
-                    
-                }
-            glEnd();
-        }
-
-
-        int axisSpacing = 5;
-        if (CANVAStotalCycles > 1000)
-            axisSpacing = 10;
-
-        for (t=0; t<traceMatrix.size(); t++)
-        {
-            for (c=0; c<traceMatrix[0].size(); c++)
-            {
-                if (c%axisSpacing == 0)
-                {
-                    wxString axisLabel;
-                    axisLabel.Printf(wxT("%d"),c);
-                    x = margin + labelWidth + traceMargin + unitWidth*c - 6 - horizCanvasPosition*unitWidth;
-                    y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + vertCanvasPosition*5 - 15);
-                    if (x > margin + labelWidth + traceMargin)
-                    {
-                        glColor3f(0.0, 0.0, 0.0);
-                        glRasterPos2f(x,y);
-                        for (i=0; i < axisLabel.Len() ; i++)
+                        wxString axisLabel;
+                        axisLabel.Printf(wxT("%d"),c);
+                        x = margin + labelWidth + traceMargin + unitWidth*c - 6 - horizCanvasPosition*unitWidth;
+                        y = (traceboxHeight + margin - unitHeight - 2.5*unitHeight*t + vertCanvasPosition*5 - 15);
+                        if (x > margin + labelWidth + traceMargin)
                         {
-                            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, axisLabel[i]);
+                            glColor3f(0.0, 0.0, 0.0);
+                            glRasterPos2f(x,y);
+                            for (i=0; i < axisLabel.Len() ; i++)
+                            {
+                                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, axisLabel[i]);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // Write out labels for the traces
-        for (int j=0; j<monitorNameVector.size(); j++)
-        {
-            y = (traceboxHeight-1 - 2.5*unitHeight*j + vertCanvasPosition*5);
-            glColor3f(0.0, 0.0, 0.0);
-            glRasterPos2f(margin/2,y);
-
-            wxString traceText;
-            traceText = monitorNameVector[j];
-
-            // Write out label for a trace
-            for (i = 0; i < traceText.Len() ; i++)
+            // Write out labels for the traces
+            for (int j=0; j<monitorNameVector.size(); j++)
             {
-                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
+                y = (traceboxHeight-1 - 2.5*unitHeight*j + vertCanvasPosition*5);
+                glColor3f(0.0, 0.0, 0.0);
+                glRasterPos2f(margin/2,y);
+
+                wxString traceText;
+                traceText = monitorNameVector[j];
+
+                // Write out label for a trace
+                for (i = 0; i < traceText.Len() ; i++)
+                {
+                    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
+                }
             }
         }
+    }
+    else
+    {
+                y = (traceboxHeight-1 - 2.5*unitHeight*j + vertCanvasPosition*5);
+                glColor3f(1.0, 0.0, 0.0);
+                glRasterPos2f(width/10,height/2);
+
+                wxString traceText = wxT("An Error Occured on Loading and the Canvas could not be Drawn.\nPlease open a valid .ldf file");
+
+                // Write out label for a trace
+                for (i = 0; i < traceText.Len() ; i++)
+                {
+                    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, traceText[i]);
+                }
     }
 
 /*    for (int j=0; j<625; j++)
@@ -289,8 +303,9 @@ void MyGLCanvas::setCanvasVerticalScrollBar()
 // Function to set size of horizontal scroll bar, called when canvas resized
 void MyGLCanvas::setCanvasHorizontalScrollBar(int position)
 {   
-    cout << "Canvas thinks that the scrollbar is at position: " << position << endl;
-    int numHorizPositions = (CANVAStotalCycles) - (120);        
+    int width, height;
+    GetClientSize(&width,&height);
+    int numHorizPositions = (CANVAStotalCycles) - ((width-90)/5);        
     if (position == -1)
         position = numHorizPositions;
     if (numHorizPositions > 0)
@@ -302,6 +317,11 @@ void MyGLCanvas::setCanvasHorizontalScrollBar(int position)
 void MyGLCanvas::setHorizontalPosition(int position)
 {
     horizCanvasPosition = position;
+}
+
+void MyGLCanvas::setVerticalPosition(int position)
+{
+    vertCanvasPosition = position;
 }
 
 void MyGLCanvas::setNames(names* names_mod)
@@ -317,6 +337,11 @@ void MyGLCanvas::setMonitor(monitor* monitor_mod)
 void MyGLCanvas::setNetwork(network* network_mod)
 {
     netz = network_mod;
+}
+
+void MyGLCanvas::setClearToRunFlag(bool flag)
+{
+    clearToRun = flag;
 }
 
 
@@ -352,7 +377,6 @@ void MyGLCanvas::OnPaint(wxPaintEvent& event)
 // Callback for Scroll Event
 void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
 {   
-    cout << "We've had a scroll event" << endl;
     if (event.GetOrientation() == wxVERTICAL)
     {
         vertCanvasPosition = event.GetPosition();
@@ -368,7 +392,6 @@ void MyGLCanvas::OnScroll(wxScrollWinEvent& event)
 // Callback function for when the canvas is resized
 void MyGLCanvas::OnSize(wxSizeEvent& event)
 {
-    cout << "we've had a size event" << endl;
     wxGLCanvas::OnSize(event); // required on some platforms
     init = false;
     setCanvasVerticalScrollBar();
@@ -538,7 +561,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     contButton = new wxButton(this, CONT_BUTTON, wxT("Continue"));
     runSpin = new wxSpinCtrl(this, RUN_SPINCTRL, wxString(wxT("10")));
     contSpin = new wxSpinCtrl(this, CONT_SPINCTRL, wxString(wxT("10")));
-    commandLine = new wxTextCtrl(this, COMMAND_LINE, wxT(""), wxDefaultPosition, wxSize(150,30), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
+    commandLine = new wxTextCtrl(this, COMMAND_LINE, wxT(""), wxDefaultPosition, wxSize(150,60), wxTE_PROCESS_ENTER|wxTE_MULTILINE);
     commandLine->WriteText(wxT("# GUI running. Press Run to display signals."));
     commandLine->SetInsertionPoint(0);
     runStaticText = new wxStaticText(this, wxID_ANY, wxT("Cycles"));
@@ -551,12 +574,12 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   // Place Zap Controls
     wxBoxSizer *zap_sizer = new wxBoxSizer(wxVERTICAL);
-    zap_sizer->Add(zapTraceComboBox,0,wxTOP|wxLEFT,20);
+    zap_sizer->Add(zapTraceComboBox,0,wxTOP|wxLEFT,5);
     zap_sizer->Add(zapTraceButton,0,wxALIGN_CENTRE|wxBOTTOM,20);
 
   // Place Add controls
     wxBoxSizer *add_sizer = new wxBoxSizer(wxVERTICAL);
-    add_sizer->Add(addTraceComboBox,0,wxTOP|wxRIGHT,20);
+    add_sizer->Add(addTraceComboBox,0,wxTOP|wxRIGHT,5);
     add_sizer->Add(addTraceButton,0,wxALIGN_CENTRE|wxBOTTOM,20);
 
   // Place switch combo
@@ -568,23 +591,24 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     switchButton_sizer->Add(switchButton0,0,wxLEFT|wxBOTTOM,20);
     switchButton_sizer->Add(switchButton1,0,wxRIGHT|wxBOTTOM,20);
 
-  // Place Buttons
+  // Place run Buttons
     wxBoxSizer *run_button_sizer = new wxBoxSizer(wxHORIZONTAL);
     run_button_sizer->Add(runButton, 0, wxTOP|wxLEFT, 20);
     run_button_sizer->Add(runSpin, 0, wxEXPAND | wxTOP, 20);
     run_button_sizer->Add(runStaticText,0,wxALIGN_CENTRE|wxTOP|wxRIGHT,20);
 
-  // Place Buttons
+  // Place run Buttons
     wxBoxSizer *cont_button_sizer = new wxBoxSizer(wxHORIZONTAL);
     cont_button_sizer->Add(contButton, 0, wxBOTTOM|wxLEFT, 20);
     cont_button_sizer->Add(contSpin, 0, wxEXPAND | wxBOTTOM, 20);
     cont_button_sizer->Add(contStaticText,0,wxALIGN_CENTRE|wxBOTTOM|wxRIGHT,20);
     
+  // Network Static Box Sizer   
     wxStaticBoxSizer *network_sizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Run or Continue Network"));
     network_sizer->Add(run_button_sizer,0,wxALIGN_CENTRE,0);
     network_sizer->Add(cont_button_sizer,0,wxALIGN_CENTRE,0);
     
-  // Place Buttons
+  // Place timer Buttons
     wxStaticBoxSizer *timer_button_sizer = new wxStaticBoxSizer(wxHORIZONTAL,this,wxT("Continuous Mode"));
     timer_button_sizer->Add(startTimerButton,0,wxALIGN_CENTRE|wxALL,20);
     timer_button_sizer->Add(stopTimerButton,0,wxALIGN_CENTRE| wxALL,20);
@@ -597,8 +621,8 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
   // NESTED SIZERS FOR PLACEMENT OF CONTROL LOOPS
   //**********************************************************************************************************************************
-    frame_sizer->Add(topsizer,5, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,30);
-    frame_sizer->Add(commandLine,1,wxEXPAND | wxALL,20);
+    frame_sizer->Add(topsizer,5, wxEXPAND | wxTOP|wxLEFT|wxBOTTOM,20);
+    frame_sizer->Add(commandLine,1,wxEXPAND | wxALL,10);
 
     topsizer->Add(canvas,3,wxEXPAND,0);
     topsizer->Add(sidebar_sizer,2,wxALIGN_CENTRE,0);
@@ -740,11 +764,8 @@ void MyFrame::OnButtonAdd(wxCommandEvent &event)
     did = nmz->cvtname(namestring);
     if (isDtype)
     {
-        cout << "IT'S A DTYPE" << endl;
         namestring_t type = string(outputName.mb_str());
-        cout << type << endl;
         outp = nmz->cvtname(type);
-        cout << "outp = " << outp << endl;
     }
     else
         outp = blankname;
@@ -946,26 +967,20 @@ void MyFrame::ContinueFunction()
 
   // Populate the traceMatrix and render the canvas
     canvas->appendToTraceMatrix();
+    int canvasHeight, canvasWidth;
+    canvas->GetClientSize(&canvasWidth, &canvasHeight);
     
-   // cout << "Frame thinks that the total number of cycles run is: "<< FRAMEtotalCycles << endl;
-    //cout << "Frame thinks that the number of new cycles completed is: "<< FRAMEcyclesCompleted << endl;
-    cout << "*** PRESSED RUN BUTTON TOTAL CYCLES = " << FRAMEtotalCycles << endl;
-    cout << "setting scrollbar" << endl;
-    cout << "setting HorizontalPosition" << endl;
-    if (FRAMEtotalCycles > 119)
+    if (FRAMEtotalCycles > ((canvasWidth-90)/5))
     {   
-        canvas->setHorizontalPosition(FRAMEtotalCycles-120);
+        canvas->setHorizontalPosition(FRAMEtotalCycles-((canvasWidth-90)/5));
         canvas->setCanvasHorizontalScrollBar(-1);
     }
-    cout << "Rendering" << endl;
     canvas->Render(FRAMEtotalCycles);
     
     
     wxString commandLineText;
     commandLineText.Printf(wxT("# Network continued for %d cycles\n"),FRAMEcyclesCompleted);
     WriteToCommandLine(commandLineText);
-    
-    cout << "Exit Continue Button Function" << endl;
     
 }
 
@@ -1027,15 +1042,28 @@ void MyFrame::resetCanvas()
     }
 
   // Reset the network and run for a few cycles (set to an arbitrary 10 here)
+    FRAMEtotalCycles = 0;
     FRAMEcyclesCompleted = 0;
+    canvas->setCANVAStotalCycles(0);
+    canvas->setCANVAScyclesCompleted(0);
+    canvas->setHorizontalPosition(0);
+    canvas->setVerticalPosition(0);
+    
+  // Run network for 10 cycles
+    mmz->resetmonitor();   
     runnetwork(10);
+  
+  // Update all the cycles values  
     FRAMEtotalCycles += FRAMEcyclesCompleted;
+    canvas->setCANVAStotalCycles(FRAMEtotalCycles);
+    canvas->setCANVAScyclesCompleted(FRAMEcyclesCompleted);
 
-  // Populate the traceMatrix, switchVector
+  // Populate the traceMatrix, switchVector, monitorNameVector
     canvas->populateMonitorNameVector();
     populateSwitchNameVector();
-
     canvas->populateTraceMatrix();
+    
+  // Set the scroll bars   
     canvas->setCanvasVerticalScrollBar();
     canvas->setCanvasHorizontalScrollBar(0);
 
@@ -1094,13 +1122,19 @@ void MyFrame::resetCanvas()
 
     switchComboBox->Clear();
     switchComboBox->Append(switchArray);
-
+    
 }
 
 void MyFrame::OpenFile()
 {
+  // To start with, stop the rolling timer.
+    rollingTimer->Stop();
+    
     wxFileDialog *openDialog = new wxFileDialog(this,wxT("Open file"), wxT(""), wxT(""), wxT("*.ldf"),wxFD_OPEN, wxDefaultPosition);
     openDialog->ShowModal();
+    
+    
+    
     wxString fid = openDialog->GetPath();
     wxString fileName = fid.AfterLast('/');
     string fileid = string(fid.mb_str());
@@ -1140,6 +1174,12 @@ void MyFrame::OpenFile()
     {
         errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
         smz->printError(line, col, errorMessage, hasPosition);
+            
+        wxString wxErrorMessage(errorMessage.c_str(), wxConvUTF8);
+        wxString wxErrorString;
+        wxErrorString.Printf(wxT("Line: %d Col: %d %s"),line,col,wxErrorMessage.c_str());
+        WriteToCommandLine(wxT("\n# "));
+        WriteToCommandLine(wxErrorString);
     }
     for (int i=0; i<warningVector.size(); i++)
     {
@@ -1151,15 +1191,20 @@ void MyFrame::OpenFile()
         wxString wxCommand;
         wxCommand.Printf(wxT("gedit %s &"),fid.c_str());
   
+  
         string command = string(wxCommand.mb_str());
         system(command.c_str());
-        wxString commandLineText;
-        commandLineText.Printf(wxT("# %s contained an Error and cannot be simulated. Please open a valid file\n"),fileName.c_str());
-        WriteToCommandLine(commandLineText);
-        errorBox(commandLineText);
-        OpenFile();
+        
+/*        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s contained an Error and cannot be simulated. See the GUI command line for error details\n"),fileName.c_str());*/
+        
+//        WriteToCommandLine(commandLineText);
+        canvas->setClearToRunFlag(false);
+        canvas->Render(0);
         return;
     }
+    
+    canvas->setClearToRunFlag(true);
     resetCanvas();
     canvas->Render(FRAMEtotalCycles);
     wxString commandLineText;

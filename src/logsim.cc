@@ -62,6 +62,7 @@ bool MyApp::OnInit()
     char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
     // Construct the GUI
     MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 700), nmz, dmz, mmz, netz,smz,pmz);
+    frame->SetMinSize(wxSize(1024,768));
     frame->Show(true);
     return(true); // enter the GUI event loop
 #else
