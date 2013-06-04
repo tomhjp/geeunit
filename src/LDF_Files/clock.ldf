@@ -1,0 +1,10 @@
+STARTFILE
+    DEVICES
+    clock1 = CLOCK(1);
+    END
+    CONNECTIONS
+    END
+    MONITORS
+    clock1;
+    END
+ENDFILE
