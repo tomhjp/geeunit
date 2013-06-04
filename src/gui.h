@@ -138,9 +138,11 @@ class MyGLCanvas: public wxGLCanvas
     void setCanvasVerticalScrollBar();
     void setCanvasHorizontalScrollBar(int position);
     void setHorizontalPosition(int position);
+    void setVerticalPosition(int position);
     void setNames(names* names_mod);
     void setMonitor(monitor* monitor_mod);
     void setNetwork(network* network_mod);
+    void setClearToRunFlag(bool flag);
 
   // Define some variables used by the Canvas Class
     typedef vector<vector<asignal> > IntMatrix;
@@ -150,6 +152,7 @@ class MyGLCanvas: public wxGLCanvas
     vector<wxString> monitorNameVector;
     
     int numDtypes;
+    bool clearToRun;
 
     private:
   // Variable initialised on start-up and never altered. 
