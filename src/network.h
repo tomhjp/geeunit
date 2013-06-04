@@ -5,7 +5,7 @@
 
 /* Network specification */
 
-typedef enum {falling, low, rising, high, indeterminate} asignal;
+typedef enum {falling, low, rising, high} asignal;
 typedef enum {aswitch, aclock, asiggen, andgate, nandgate, orgate,
 	      norgate, xorgate, dtype, baddevice} devicekind;
 
@@ -20,7 +20,6 @@ struct inputrec {
   outplink  connect;
   int       lineDefd;
   inputrec* next;
-  asignal   oldsig;
 };
 typedef inputrec* inplink;
 struct devicerec {

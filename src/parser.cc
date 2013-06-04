@@ -321,12 +321,6 @@ bool parser::makeDevLine(void)
     }
     
     dmz->makedevice(dkind, id, variant, ok);
-    cout << "Making device of kind " <<dkind << endl; 
-    for(int hl =0; hl<variant.size(); hl++)
-    {
-        cout << " varriant val is " << variant[hl] << endl;
-    }
-    cout <<endl; 
     nmz->setPos(context[0].namestring, context[0].line, context[0].col);
     return ok; 
 }
