@@ -141,7 +141,7 @@ tooFewParamsSiggen::tooFewParamsSiggen(int l, int c)
 {
     errorMessage = "SIGGEN devices take a minimum of two parameters";
     line = l; 
-    col = cl
+    col = c;
 }
 
 paramRangeErrGate::paramRangeErrGate(int l, int c)

@@ -13,6 +13,7 @@ STARTFILE
     or1 = OR(2);
     nor1 = NOR(2);
     xor1 = XOR;
+    siggen = SIGGEN(3, 1, 0, 1, 1, 1, 0, 0);
     
     END
 
@@ -20,6 +21,7 @@ STARTFILE
 
 
     A -> nor1.I1;
+    siggen -> nand1.I1; 
     B -> nand1.I2;
     B -> and1.I1;
     C -> and1.I2;
