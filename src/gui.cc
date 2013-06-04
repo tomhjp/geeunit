@@ -30,7 +30,7 @@ MyGLCanvas::MyGLCanvas(wxWindow *parent, wxWindowID id, monitor* monitor_mod, na
     horizCanvasPosition = 0;
     unitHeight = 20;
     numDtypes = 0;
-    clearToRun = true;
+    clearToDraw = true;
 
     /* Populate deviceNameVector with the wxString names of all devices in the network */
     devlink dlink = netz->devicelist();     // Find beginning of the list of devices
@@ -83,7 +83,7 @@ void MyGLCanvas::Render(int totalCycles)
 
     glClear(GL_COLOR_BUFFER_BIT);
     
-    if (clearToRun)
+    if (clearToDraw)
     {
         //If there are monitors then draw the first monitor signal, get trace from monitor class
         if ((totalCycles > 0) && (mmz->moncount() > 0))
@@ -339,9 +339,9 @@ void MyGLCanvas::setNetwork(network* network_mod)
     netz = network_mod;
 }
 
-void MyGLCanvas::setClearToRunFlag(bool flag)
+void MyGLCanvas::setClearToDrawFlag(bool flag)
 {
-    clearToRun = flag;
+    clearToDraw = flag;
 }
 
 
@@ -442,6 +442,7 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
   // Constructor - initialises pointers to names, devices and monitor classes, lays out widgets
   // using sizers
 {
+    clearToRun = true;
     SetIcon(wxIcon(wx_icon));
     nmz = names_mod;
     dmz = devices_mod;
@@ -457,7 +458,6 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
     }
 
     wxMenuBar *menuBar = new wxMenuBar;
-
     wxMenu *fileMenu = new wxMenu;
 
     fileMenu->Append(wxID_NEW ,wxT("&New"));
@@ -466,10 +466,11 @@ MyFrame::MyFrame(wxWindow *parent, const wxString& title, const wxPoint& pos, co
 
 
     menuBar->Append(fileMenu, wxT("&File"));
-
-
-
-    SetMenuBar(menuBar);;
+    SetMenuBar(menuBar);
+    
+ //   wxToolBar *toolBar = CreateToolBar(wxNO_BORDER | wxTB_HORIZONTAL,-1,wxT("ToolBar"));
+ //   toolBar->AddTool(wxID_EXIT,exit,wxT("Exit Application"));
+    
     // Define the Trace Canvas
     canvas = new MyGLCanvas(this, wxID_ANY, monitor_mod, names_mod, network_mod);
     FRAMEcyclesCompleted = 0;
@@ -663,221 +664,243 @@ void MyFrame::OnNew(wxCommandEvent &event)
 void MyFrame::OnRunButton(wxCommandEvent &event)
 {
   // Call the run function to run the network for the number of cycles currently in the combo box
-    RunFunction();
+  if (clearToRun)
+  {
+      RunFunction();
+  }
 }
 
 
 void MyFrame::OnContButton(wxCommandEvent &event)
 {
-    ContinueFunction();
+    if (clearToRun)
+    {
+        ContinueFunction();
+    }
 }
 
 
   // Callback for Zap PushButton
 void MyFrame::OnButtonZap(wxCommandEvent &event)
 {
- // Take values from zap combobox
-    wxString selectionStr = zapTraceComboBox->GetStringSelection();
-    int selection = zapTraceComboBox->GetSelection();
-
-    if (selectionStr.IsEmpty())
+    if (clearToRun)
     {
-        errorBox(wxT("You need to select a device to monitor!"));
-        zapTraceComboBox->SetValue(wxT("Choose trace to zap"));
-        return;
-    }
-
- // Error checking
-    bool found = false;
-    for (int i=0; i<canvas->monitorNameVector.size(); i++)
-    {
-        if (selectionStr == canvas->monitorNameVector[i])
+     // Take values from zap combobox
+        wxString selectionStr = zapTraceComboBox->GetStringSelection();
+        int selection = zapTraceComboBox->GetSelection();
+        if (selectionStr.IsEmpty())
         {
-            found = true;
-            break;
+            errorBox(wxT("You need to select a device to monitor!"));
+            zapTraceComboBox->SetValue(wxT("Choose trace to zap"));
+            return;
         }
+
+     // Error checking
+        bool found = false;
+        for (int i=0; i<canvas->monitorNameVector.size(); i++)
+        {
+            if (selectionStr == canvas->monitorNameVector[i])
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            errorBox(wxT("Sorry we couldn't find the monitor you tried to zap"));
+            return;
+        }
+      // Find namestring of device
+        string devNamestring = string(selectionStr.mb_str());
+        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s removed\n"),selectionStr.c_str());
+
+      // Remove the selected monitor from the monitorNameVector and delete selection from combobox list
+        canvas->monitorNameVector.erase(canvas->monitorNameVector.begin() + selection);
+        zapTraceComboBox->Delete(selection);
+        // Get monintor name and remove it from the list of monitors in mmz
+        name_t did, outp;
+        mmz->getmonname(selection, did, outp);
+        bool ok;
+        mmz->remmonitor(did, outp, ok);
+        if (!ok)
+        {
+            cout << "Something went wrong with removing a monitor" << endl;
+        }
+     // Populate the new traceMatrix and Render the canvas to remove the desired trace
+        canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
+        WriteToCommandLine(commandLineText);
+     // Reset the text in the ComboBox
+        zapTraceComboBox->SetValue(wxT("Choose trace to zap"));
+     // Resize the scroll bar
+        canvas->setCanvasVerticalScrollBar();
+        canvas->Render(FRAMEtotalCycles);
     }
-
-    if (!found)
-    {
-        errorBox(wxT("Sorry we couldn't find the monitor you tried to zap"));
-        return;
-    }
-  // Find namestring of device
-    string devNamestring = string(selectionStr.mb_str());
-
-    wxString commandLineText;
-    commandLineText.Printf(wxT("# %s removed\n"),selectionStr.c_str());
-
-  // Remove the selected monitor from the monitorNameVector and delete selection from combobox list
-    canvas->monitorNameVector.erase(canvas->monitorNameVector.begin() + selection);
-    zapTraceComboBox->Delete(selection);
-
-
-  // Get monintor name and remove it from the list of monitors in mmz
-    name_t did, outp;
-    mmz->getmonname(selection, did, outp);
-    bool ok;
-    mmz->remmonitor(did, outp, ok);
-    if (!ok)
-    {
-        cout << "Something went wrong with removing a monitor" << endl;
-    }
-
-  // Populate the new traceMatrix and Render the canvas to remove the desired trace
-    canvas->traceMatrix.erase(canvas->traceMatrix.begin() + selection);
-    WriteToCommandLine(commandLineText);
-
-  // Reset the text in the ComboBox
-    zapTraceComboBox->SetValue(wxT("Choose trace to zap"));
-
-  // Resize the scroll bar
-    canvas->setCanvasVerticalScrollBar();
-    
-    canvas->Render(FRAMEtotalCycles);
 }
 
 void MyFrame::OnButtonAdd(wxCommandEvent &event)
   // Callback for second pushbutton
 {  // Get string selected and index of selection
-    wxString selectionStr = addTraceComboBox->GetStringSelection();
-    int selection = addTraceComboBox->GetSelection();
-
-    if (selectionStr.IsEmpty())
+    if (clearToRun)
     {
-        errorBox(wxT("You need to select a device to monitor"));
+
+        wxString selectionStr = addTraceComboBox->GetStringSelection();
+        int selection = addTraceComboBox->GetSelection();
+
+        if (selectionStr.IsEmpty())
+        {
+            errorBox(wxT("You need to select a device to monitor"));
+            addTraceComboBox->SetValue(wxT("Choose trace to add"));
+            return;
+        }
+        bool isDtype;
+        wxString deviceName;
+        wxString outputName;
+        wxString monitorName = selectionStr;
+        checkMonitorName(monitorName,deviceName,outputName,isDtype);
+
+      // Convert chosen string into a nameString
+        string deviceString = string(deviceName.mb_str());
+        namestring_t namestring = (namestring_t) deviceString;
+
+      // Add chosen monitor to list of monitors in mmz
+        name_t did, outp;
+        did = nmz->cvtname(namestring);
+        if (isDtype)
+        {
+            namestring_t type = string(outputName.mb_str());
+            outp = nmz->cvtname(type);
+        }
+        else
+            outp = blankname;
+
+        bool ok;
+        mmz->makemonitor(did, outp, ok);
+        if (!ok)
+        {
+            cout << "Something went wrong with adding a monitor" << endl;
+        }
+
+      // Add chosen monitor to monitorNameVector, append monitor to zap button.
+        canvas->monitorNameVector.push_back(selectionStr);
+        zapTraceComboBox->Append(selectionStr);
+
+      // Create message string for the canvas
+        wxString text;
+        text.Printf(wxT("%s added"),selectionStr.c_str());
+
+      // Warn the user that I'll run for 10 cycles
+        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s added. Network will now be run for %d cycles\n"),selectionStr.c_str(),runSpin->GetValue());
+        WriteToCommandLine(commandLineText);
+
+      // Run the network for a few values
+        RunFunction();
+
+      // Reset the text in the ComboBox
         addTraceComboBox->SetValue(wxT("Choose trace to add"));
-        return;
+
+      // Resize the scroll bar
+        canvas->setCanvasVerticalScrollBar();
     }
-    bool isDtype;
-    wxString deviceName;
-    wxString outputName;
-    wxString monitorName = selectionStr;
-    checkMonitorName(monitorName,deviceName,outputName,isDtype);
-
-  // Convert chosen string into a nameString
-    string deviceString = string(deviceName.mb_str());
-    namestring_t namestring = (namestring_t) deviceString;
-
-  // Add chosen monitor to list of monitors in mmz
-    name_t did, outp;
-    did = nmz->cvtname(namestring);
-    if (isDtype)
-    {
-        namestring_t type = string(outputName.mb_str());
-        outp = nmz->cvtname(type);
-    }
-    else
-        outp = blankname;
-
-    bool ok;
-    mmz->makemonitor(did, outp, ok);
-    if (!ok)
-    {
-        cout << "Something went wrong with adding a monitor" << endl;
-    }
-
-  // Add chosen monitor to monitorNameVector, append monitor to zap button.
-    canvas->monitorNameVector.push_back(selectionStr);
-    zapTraceComboBox->Append(selectionStr);
-
-  // Create message string for the canvas
-    wxString text;
-    text.Printf(wxT("%s added"),selectionStr.c_str());
-
-  // Warn the user that I'll run for 10 cycles
-    wxString commandLineText;
-    commandLineText.Printf(wxT("# %s added. Network will now be run for %d cycles\n"),selectionStr.c_str(),runSpin->GetValue());
-    WriteToCommandLine(commandLineText);
-
-  // Run the network for a few values
-    RunFunction();
-
-  // Reset the text in the ComboBox
-    addTraceComboBox->SetValue(wxT("Choose trace to add"));
-
-  // Resize the scroll bar
-    canvas->setCanvasVerticalScrollBar();
 }
 
 // Callback for second pushbutton
 void MyFrame::OnButtonSwitch0(wxCommandEvent &event)
 {
-    if (switchComboBox->GetStringSelection().IsEmpty())
+    if (clearToRun)
     {
-        errorBox(wxT("You need to select a device to monitor"));
-        addTraceComboBox->SetValue(wxT("Choose trace to add!"));
-        return;
+        if (switchComboBox->GetStringSelection().IsEmpty())
+        {
+            errorBox(wxT("You need to select a device to monitor"));
+            addTraceComboBox->SetValue(wxT("Choose trace to add!"));
+            return;
+        }
+
+        name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
+        asignal s = low;
+        bool ok;
+
+        dmz->setswitch(sid, s, ok);
+        if (!ok)
+            cout << "Error setting switch to 0" << endl;
+
+        wxString swStr = switchComboBox->GetStringSelection();
+        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s changed to 0\n"),swStr.c_str());
+        WriteToCommandLine(commandLineText);
     }
-
-    name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
-    asignal s = low;
-    bool ok;
-
-    dmz->setswitch(sid, s, ok);
-    if (!ok)
-        cout << "Error setting switch to 0" << endl;
-
-    wxString swStr = switchComboBox->GetStringSelection();
-    wxString commandLineText;
-    commandLineText.Printf(wxT("# %s changed to 0\n"),swStr.c_str());
-    WriteToCommandLine(commandLineText);
 }
 
 // Callback for second pushbutton
 void MyFrame::OnButtonSwitch1(wxCommandEvent &event)
-{
-
-    if (switchComboBox->GetStringSelection().IsEmpty())
+{   
+    if (clearToRun)
     {
-        errorBox(wxT("You need to select a device to monitor"));
-        addTraceComboBox->SetValue(wxT("Choose trace to add!"));
-        return;
+
+        if (switchComboBox->GetStringSelection().IsEmpty())
+        {
+            errorBox(wxT("You need to select a device to monitor"));
+            addTraceComboBox->SetValue(wxT("Choose trace to add!"));
+            return;
+        }
+
+        name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
+        asignal s = high;
+        bool ok;
+
+        dmz->setswitch(sid, s, ok);
+        if (!ok)
+            cout << "Error setting switch to 1" << endl;
+
+        wxString swStr = switchComboBox->GetStringSelection();
+        wxString commandLineText;
+        commandLineText.Printf(wxT("# %s changed to 1\n"),swStr.c_str());
+        WriteToCommandLine(commandLineText);
     }
-
-    name_t sid = getIdFromWxString(switchComboBox->GetStringSelection());
-    asignal s = high;
-    bool ok;
-
-    dmz->setswitch(sid, s, ok);
-    if (!ok)
-        cout << "Error setting switch to 1" << endl;
-
-    wxString swStr = switchComboBox->GetStringSelection();
-    wxString commandLineText;
-    commandLineText.Printf(wxT("# %s changed to 1\n"),swStr.c_str());
-    WriteToCommandLine(commandLineText);
 }
 
   // Callback for the text entry field
 void MyFrame::OnText(wxCommandEvent &event)
 {
-    int numberOfLines = commandLine->GetNumberOfLines();
-    wxString text;
-    text.Printf(wxT("cmd: %s"), commandLine->GetLineText(numberOfLines).c_str());
-    commandLine->SetInsertionPoint(0);
-    commandLine->WriteText(wxT("\n"));
-    commandLine->SetInsertionPoint(0);
-    commandLine->WriteText(wxT("# "));
-    commandLine->SetInsertionPoint(2);
+    if (clearToRun)
+    {
+        int numberOfLines = commandLine->GetNumberOfLines();
+        wxString text;
+        text.Printf(wxT("cmd: %s"), commandLine->GetLineText(numberOfLines).c_str());
+        commandLine->SetInsertionPoint(0);
+        commandLine->WriteText(wxT("\n"));
+        commandLine->SetInsertionPoint(0);
+        commandLine->WriteText(wxT("# "));
+        commandLine->SetInsertionPoint(2);
+    }
 }
 
   // Callback for the time button
 void MyFrame::OnButtonStartTimer(wxCommandEvent &event)
 {
-   int INTERVAL = 500; // milliseconds
-   rollingTimer->Start(INTERVAL);
+    if (clearToRun)
+    {
+       int INTERVAL = 500; // milliseconds
+       rollingTimer->Start(INTERVAL);
+    }
 }
 
 void MyFrame::OnButtonStopTimer(wxCommandEvent &event)
 {
-   rollingTimer->Stop();
+    if (clearToRun)
+    {
+        rollingTimer->Stop();
+    }
 }
 
 
 void MyFrame::OnTimer(wxTimerEvent &event)
 {
-    ContinueFunction();
+    if (clearToRun)
+    {
+        ContinueFunction();
+    }
 }
 
 
@@ -1170,41 +1193,37 @@ void MyFrame::OpenFile()
     int line, col;
     string errorMessage;
     bool hasPosition;
+    
     for (int i=0; i<errorVector.size(); i++)
     {
         errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
-        smz->printError(line, col, errorMessage, hasPosition);
+        string errorString = smz->printError(line, col, errorMessage, hasPosition);
             
-        wxString wxErrorMessage(errorMessage.c_str(), wxConvUTF8);
-        wxString wxErrorString;
-        wxErrorString.Printf(wxT("Line: %d Col: %d %s"),line,col,wxErrorMessage.c_str());
-        WriteToCommandLine(wxT("\n# "));
+        wxString wxErrorString(errorString.c_str(), wxConvUTF8);
         WriteToCommandLine(wxErrorString);
     }
+    
     for (int i=0; i<warningVector.size(); i++)
     {
-        //warningVector[i]->getWarningDetails(line, col, errorMessage);
-        //smz->printError(line, col, errorMessage);
+        warningVector[i]->getWarningDetails(line, col, errorMessage, hasPosition);
+        string warningString = smz->printError(line, col, errorMessage, hasPosition);
+        
+        wxString wxWarningString(warningString.c_str(), wxConvUTF8);
+        WriteToCommandLine(wxWarningString);
+        
     }
+    
     if (errorVector.size() != 0)
     {
-        wxString wxCommand;
-        wxCommand.Printf(wxT("gedit %s &"),fid.c_str());
-  
-  
-        string command = string(wxCommand.mb_str());
-        system(command.c_str());
-        
-/*        wxString commandLineText;
-        commandLineText.Printf(wxT("# %s contained an Error and cannot be simulated. See the GUI command line for error details\n"),fileName.c_str());*/
-        
 //        WriteToCommandLine(commandLineText);
-        canvas->setClearToRunFlag(false);
+        canvas->setClearToDrawFlag(false);
+        clearToRun = false;
         canvas->Render(0);
         return;
     }
     
-    canvas->setClearToRunFlag(true);
+    canvas->setClearToDrawFlag(true);
+    clearToRun = true;
     resetCanvas();
     canvas->Render(FRAMEtotalCycles);
     wxString commandLineText;
