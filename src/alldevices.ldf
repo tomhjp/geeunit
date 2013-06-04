@@ -2,7 +2,7 @@ STARTFILE
     DEVICES
 
     A = SWITCH(1);
-    B = SWITCH(1);
+    B = SWITCH(0);
     C = SWITCH(0);
     dtypeSet = SWITCH(0);
     dtypeClear = SWITCH(0);
@@ -40,5 +40,13 @@ STARTFILE
     dtype1.Q;
     dtype1.QBAR;
     clk1;
+    and1;
+    nand1;
+    A;
+    B;
+    C;
+    or1;
+    xor1;
+    nor1;
     END
 ENDFILE

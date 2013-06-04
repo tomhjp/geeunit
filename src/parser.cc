@@ -14,9 +14,9 @@ using namespace std;
 
 void parser::preStartFCheck(symbol_t symbol)
 {
-    if(symbol.symboltype != startfsym) 
+    if(symbol.symboltype != startfsym)
     {
-        errorvector.push_back(new noStrtFile(symbol.line, symbol.col)); 
+        errorvector.push_back(new noStrtFile(symbol.line, symbol.col));
     }
     else needskeyflag=1;
     return;
@@ -36,11 +36,11 @@ void parser::mainLineBuild(symbol_t symbol)
 {
     context.push_back(symbol);
     if(symbol.symboltype == endsym)
-    { 
+    {
         /* an END symbol has been found */
         if(context.size() != 1)
         {
-            /* The END symbol is not on a new line */     
+            /* The END symbol is not on a new line */
             errorvector.push_back(new unExpEndSym(symbol.line, symbol.col));
             needskeyflag = 1;
             emptyContextVector();
@@ -63,14 +63,14 @@ void parser::mainLineBuild(symbol_t symbol)
             needskeyflag = 1;
             emptyContextVector();
             return;
-        }    
+        }
     }
-    
+
     else if(!isSemiColSym(symbol))
     {
         return;
     }
-    else 
+    else
     {
         bool done;
         if(section == devsect)
@@ -78,8 +78,8 @@ void parser::mainLineBuild(symbol_t symbol)
             bool pass = checkDevLine();
             if(pass)
             {
-                //make the device 
-                done = makeDevLine();        
+                //make the device
+                done = makeDevLine();
                 if(!done)
                 {
                     errorvector.push_back(new lineBuildFailed(context[0].line, 0));
@@ -89,11 +89,11 @@ void parser::mainLineBuild(symbol_t symbol)
                 emptyContextVector();
                 return;
             }
-            else 
+            else
             {
                 emptyContextVector();
                 return;
-            } 
+            }
         }
         else if(section == consect)
         {
@@ -109,9 +109,9 @@ void parser::mainLineBuild(symbol_t symbol)
                     return;
                 }
                 emptyContextVector();
-                return; 
+                return;
             }
-            else 
+            else
             {
                 emptyContextVector();
                 return;
@@ -138,8 +138,8 @@ void parser::mainLineBuild(symbol_t symbol)
                 emptyContextVector();
                 return;
             }
-        }    
-    }   
+        }
+    }
 }
 
 
@@ -149,35 +149,35 @@ bool parser::makeMonLine(void)
     name_t dev, outp, opid;
     devicekind opdevkind;
     devlink opdevlink;
-    
+
     if(nummonitorsmade < MAXMONITORS)
     {
-	dev = nmz->lookup(context[0].namestring);
-	opdevlink = netz->finddevice(dev);
-	opdevkind = opdevlink->kind;
-	if(opdevkind != dtype)
-	{
-	    /* The monitor is not monitoring a dtype output */ 
-	    outp = blankname;  // these device types have only one output 
-	}
-	else
-	{
-	    /* The monitor is monitoring a dtype output     */
-	    namestring_t opdevstring, opstring;
-	    opstring = context[2].namestring;
-	    opdevstring = context[0].namestring;
-	    opid = nmz->cvtname(opstring);
-	    devlink devicelink = netz->finddevice(dev); 
-	    outplink outputlink = netz->findoutput(devicelink, opid);
-	    outp = outputlink->id;
-	}
-	mmz->makemonitor(dev, outp, ok);
-	nummonitorsmade++; 
+        dev = nmz->lookup(context[0].namestring);
+        opdevlink = netz->finddevice(dev);
+        opdevkind = opdevlink->kind;
+        if(opdevkind != dtype)
+        {
+            /* The monitor is not monitoring a dtype output */
+            outp = blankname;  // these device types have only one output
+        }
+        else
+        {
+            /* The monitor is monitoring a dtype output     */
+            namestring_t opdevstring, opstring;
+            opstring = context[2].namestring;
+            opdevstring = context[0].namestring;
+            opid = nmz->cvtname(opstring);
+            devlink devicelink = netz->finddevice(dev);
+            outplink outputlink = netz->findoutput(devicelink, opid);
+            outp = outputlink->id;
+        }
+        mmz->makemonitor(dev, outp, ok);
+        nummonitorsmade++;
     }
     else
     {
-	errorvector.push_back(new overMaxMonLimit(context[0].line, context[0].col));
-	ok = true;	// Overflow been handled correctly - do not register a parser error on return 
+    errorvector.push_back(new overMaxMonLimit(context[0].line, context[0].col));
+    ok = true;  // Overflow been handled correctly - do not register a parser error on return
     }
     return ok;
 }
@@ -186,13 +186,13 @@ bool parser::makeMonLine(void)
 /* Carries out the connection construction after a line has been successfully parsed    */
 bool parser::makeConLine(void)
 {
-    bool ok; 
-    int line; 
-    name_t idev, inp, odev, outp, ipid; 
-    devlink opdevlink, ipdevlink; 
+    bool ok;
+    int line;
+    name_t idev, inp, odev, outp, ipid;
+    devlink opdevlink, ipdevlink;
     devicekind ipdevkind, opdevkind;
     namestring_t ipstring, opstring;
-    
+
     line = context[0].line;
     odev = nmz->lookup(context[0].namestring);
     opdevlink = netz->finddevice(odev);
@@ -200,30 +200,30 @@ bool parser::makeConLine(void)
 
     if(opdevkind != dtype)
     {
-    /* The output device is not a dtype */ 
-    
+    /* The output device is not a dtype */
+
     idev = nmz->lookup(context[2].namestring);
     devlink ipdevlink = netz->finddevice(idev);
     ipdevkind = ipdevlink->kind;
-    
-    outp = blankname;           // These devices only have one output. 
+
+    outp = blankname;           // These devices only have one output.
     if(ipdevkind != dtype)
     {
-        /* The input device is not a dtype  */ 
+        /* The input device is not a dtype  */
         /* ie. non-dtype -> non-dtype   */
         ipstring = context[4].namestring;
         name_t ipid = nmz->cvtname(ipstring);
         inplink inputlink = netz->findinput(ipdevlink, ipid);
-        inp = inputlink->id; 
+        inp = inputlink->id;
     }
     else
-    {   
+    {
         /* The input device is a dtype  */
         /* ie non-dtype -> dtype            */
         ipstring = context[4].namestring;
         name_t ipid = nmz->cvtname(ipstring);
-        if(context[4].symboltype == ddatasym) inp = nmz->cvtname("DATA"); 
-        else if(context[4].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
+        if(context[4].symboltype == ddatasym) inp = nmz->cvtname("DATA");
+        else if(context[4].symboltype == dclksym) inp = nmz->cvtname("CLK");
         else if(context[4].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
         else if(context[4].symboltype == dsetsym) inp = nmz->cvtname("SET");
     }
@@ -237,124 +237,118 @@ bool parser::makeConLine(void)
         opdevstring = context[0].namestring;
         name_t opid = nmz->cvtname(opstring);
         opdevid = nmz->cvtname(opdevstring);
-        devlink devicelink = netz->finddevice(opdevid); 
+        devlink devicelink = netz->finddevice(opdevid);
         outplink outputlink = netz->findoutput(devicelink, opid);
         outp = outputlink->id;
-          
-          
+
+
         idev = nmz->lookup(context[4].namestring);
         devlink ipdevlink = netz->finddevice(idev);
-        ipdevkind = ipdevlink->kind;  
+        ipdevkind = ipdevlink->kind;
 
         if(ipdevkind != dtype)
         {
-            /* The input device is not a dtype  */ 
+            /* The input device is not a dtype  */
             /* ie dtype -> non-dtype            */
             name_t ipid;
             ipstring = context[6].namestring;
             ipid = nmz->cvtname(ipstring);
             inplink inputlink = netz->findinput(ipdevlink, ipid);
-            inp = inputlink->id; 
+            inp = inputlink->id;
         }
         else
         {
             /* The input device is a dtype  */
             /* ie. dtype -> dtype           */
 
-            if(context[6].symboltype == ddatasym) inp = nmz->cvtname("DATA"); 
-            else if(context[6].symboltype == dclksym) inp = nmz->cvtname("CLK"); 
+            if(context[6].symboltype == ddatasym) inp = nmz->cvtname("DATA");
+            else if(context[6].symboltype == dclksym) inp = nmz->cvtname("CLK");
             else if(context[6].symboltype == dclearsym) inp = nmz->cvtname("CLEAR");
             else if(context[6].symboltype == dsetsym) inp = nmz->cvtname("SET");
         }
     }
- 
+
     netz->makeconnection(idev, inp, odev, outp, line, ok);
-    return ok; 
+    return ok;
 }
 
 /* Carries out the device construction after a line has been successfully parsed    */
-bool parser::makeDevLine(void) 
+bool parser::makeDevLine(void)
 {
-    bool ok;  //used to check the makedevice method completes successfully 
-    devicekind dkind; 
-    symboltype_t devtype; 
+    bool ok;  //used to check the makedevice method completes successfully
+    devicekind dkind;
+    symboltype_t devtype;
     name_t id;
     vector<int> variant;
-     
-     
+
+
     id = nmz->lookup(context[0].namestring);
-    
+
     if((isAndSym(context[2])) || (isNandSym(context[2])) || (isOrSym(context[2])) || (isNorSym(context[2])) || (isSwitchSym(context[2])) || (isClkSym(context[2])))
     {
         /* If the device is a gate, clock, or switch                               */
-        /* The makedevice() method must be passed a parameter in the variant field */ 
+        /* The makedevice() method must be passed a parameter in the variant field */
         variant.push_back(context[4].num);
     }
     else if(isSigGenSym(context[2]))
     {
         /* Device is a Signal generator                                             */
         /* The makedevice method needs the parameter vector                         */
-        bool moreparams = true; 
+        bool moreparams = true;
         int symnum = 4;
         while(moreparams)
         {
             variant.push_back(context[symnum].num);
             symnum++;
             if(isCpSym(context[symnum]))
-                moreparams = false; 
-            symnum++; 
-        }    
+                moreparams = false;
+            symnum++;
+        }
     }
-    
+
     if(isAndSym(context[2]))            dkind = andgate;
     else if(isNandSym(context[2]))      dkind = nandgate;
     else if(isOrSym(context[2]))        dkind = orgate;
     else if(isNorSym(context[2]))       dkind = norgate;
-    else if(isSwitchSym(context[2]))    dkind = aswitch; 
-    else if(isClkSym(context[2]))       dkind = aclock;  
+    else if(isSwitchSym(context[2]))    dkind = aswitch;
+    else if(isClkSym(context[2]))       dkind = aclock;
     else if(isDtypeSym(context[2]))     dkind = dtype;
     else if(isXorSym(context[2]))       dkind = xorgate;
     else if(isSigGenSym(context[2]))    dkind = asiggen;
-    
+
     if(dkind == dtype || dkind == xorgate)
     {
         variant.push_back(0);
     }
-    
+
     dmz->makedevice(dkind, id, variant, ok);
-    cout << "Making device of kind " <<dkind << endl; 
-    for(int hl =0; hl<variant.size(); hl++)
-    {
-        cout << " varriant val is " << variant[hl] << endl;
-    }
-    cout <<endl; 
     nmz->setPos(context[0].namestring, context[0].line, context[0].col);
-    return ok; 
+    return ok;
 }
 
-/* Checks the syntax and semantics of lines in the DEVICES section  */ 
-/* returns true if the line is syntactically and semantically correct   */ 
+/* Checks the syntax and semantics of lines in the DEVICES section  */
+/* returns true if the line is syntactically and semantically correct   */
 bool parser::checkDevLine(void)
 {
-    /* creates objects from the device.cc file */ 
+    /* creates objects from the device.cc file */
     Dtype dtypedev; // used to check validity of parameters passed from input file
-    Clk clkdev;    
-    Xor xorgate;    
-    Gate gate; 
-    Switch switchdev; 
+    Clk clkdev;
+    Xor xorgate;
+    Gate gate;
+    Switch switchdev;
     Siggen siggendev;
 
-    /* First symbol in the line must be a devicename which is currently undefined. */ 
+    /* First symbol in the line must be a devicename which is currently undefined. */
     if(isStrSym(context[0]))
     {
-        // search namelist for a device with this name. 
+        // search namelist for a device with this name.
         name_t namedefd;
-        namedefd = nmz->cvtname(context[0].namestring); 
+        namedefd = nmz->cvtname(context[0].namestring);
         if(namedefd != blankname)
-        {   
+        {
             errorvector.push_back(new nameAlreadyDefd(context[0].line, context[0].col, context[0].namestring, nmz));
             return false;
-        }   
+        }
     }
     else
     {
@@ -368,13 +362,13 @@ bool parser::checkDevLine(void)
         return false;
     }
     /* Third symbol must be a devicetype. The syntax branches depending on which devicetype is called */
-    /* These devices take a single number as their parameter */  
+    /* These devices take a single number as their parameter */
     if((isClkSym(context[2])) || (isSwitchSym(context[2])) || (isAndSym(context[2])) || (isNandSym(context[2])) || (isOrSym(context[2])) || (isNorSym(context[2])))
-    {    
+    {
         if(!isOpSym(context[3]))
         {
             errorvector.push_back(new expOPSym(context[3].line, context[3].col));
-            return false; 
+            return false;
         }
         if(!isNumSym(context[4]))
         {
@@ -390,8 +384,8 @@ bool parser::checkDevLine(void)
                 if(!switchdev.paramInValidRange(context[4].num))
                 {
                     errorvector.push_back(new paramRangeErrSwitch(context[4].line, context[4].col));
-                    return false; 
-                }   
+                    return false;
+                }
             }
             else if((isAndSym(context[2])) || (isNandSym(context[2])) || (isOrSym(context[2])) || (isNorSym(context[2])))
             {
@@ -414,33 +408,33 @@ bool parser::checkDevLine(void)
         {
             errorvector.push_back(new expCPSym(context[5].line, context[5].col));
             return false;
-        }   
+        }
         if(!isSemiColSym(context[6]))
         {
-	    // reports the column where the ';' was expected, not where the error was detected 
-	    int col = context[5].col + context[5].namestring.length();		
+        // reports the column where the ';' was expected, not where the error was detected
+        int col = context[5].col + context[5].namestring.length();
             errorvector.push_back(new expSemiColSym(context[5].line, col));
             return false;
         }
     }
-    /* These are devicetypes which take no parameters  */ 
+    /* These are devicetypes which take no parameters  */
     else if(isDtypeSym(context[2]) || (isXorSym(context[2])))
     {
         if(!isSemiColSym(context[3]))
         {
-	    // reports the column where the ';' was expected, not where the error was detected 
-	    int col = context[2].col + context[2].namestring.length();		
+        // reports the column where the ';' was expected, not where the error was detected
+        int col = context[2].col + context[2].namestring.length();
             errorvector.push_back(new expSemiColSym(context[2].line, col));
             return false;
         }
     }
-    /* The SIGGEN device can have as many parameters as the user chooses  */ 
+    /* The SIGGEN device can have as many parameters as the user chooses  */
     else if(isSigGenSym(context[2]))
     {
         if(!isOpSym(context[3]))
         {
             errorvector.push_back(new expOPSym(context[3].line, context[3].col));
-            return false; 
+            return false;
         }
         if(!isNumSym(context[4]))
             {
@@ -450,7 +444,7 @@ bool parser::checkDevLine(void)
         if(!siggendev.param1InValidRange(context[4].num))
         {
             errorvector.push_back(new param1RangeErrSigGen(context[4].line, context[4].col));
-            return false; 
+            return false;
         }
         bool moreparams = true;     // used to break out of the loop when ')' is found
         int symnum = 5;      // used to keep track of the symbol number in the while loops
@@ -458,12 +452,12 @@ bool parser::checkDevLine(void)
         {
             if(isCpSym(context[symnum]))
             {
-                moreparams = false;         // ')' symbol denotes end of input 
-            }    
+                moreparams = false;         // ')' symbol denotes end of input
+            }
             else if(!isCommaSym(context[symnum]))
             {
                 errorvector.push_back(new expCommaSym(context[symnum].line, context[symnum].col));
-                return false; 
+                return false;
             }
             symnum ++;
             if(moreparams)
@@ -476,7 +470,7 @@ bool parser::checkDevLine(void)
                 if(!siggendev.paramNInValidRange(context[symnum].num))
                 {
                     errorvector.push_back(new paramNRangeErrSigGen(context[symnum].line, context[symnum].col));
-                    return false; 
+                    return false;
                 }
                 symnum ++;
             }
@@ -487,18 +481,18 @@ bool parser::checkDevLine(void)
             return false;
         }
     }
-    /* the third symbol is not a devicetype */ 
+    /* the third symbol is not a devicetype */
     else if((!isSwitchSym(context[2])) && (!isAndSym(context[2])) && (!isNandSym(context[2])) && (!isOrSym(context[2])) && (!isNorSym(context[2])) && (!isDtypeSym(context[2])) && (!isXorSym(context[2])) && (!isClkSym(context[2])) && (!isSigGenSym(context[2])))
     {
         errorvector.push_back(new expDevTypeSym(context[2].line, context[2].col));
-        return false; 
+        return false;
     }
-    
-    /* The line has passed all semantic and syntactic checks and should now be built */ 
+
+    /* The line has passed all semantic and syntactic checks and should now be built */
     return true;
-    
+
 }
- 
+
 /* Checks the syntax and semantics of a line in the CONNECTIONS section */
 bool parser::checkConLine(void)
 {
@@ -513,10 +507,10 @@ bool parser::checkConLine(void)
         return false;
     }
     /* check which devicetype is the output device on the line  */
-    devicekind opdevkind, ipdevkind; 
+    devicekind opdevkind, ipdevkind;
     name_t opid, ipid;
-    devlink opdevlink, ipdevlink; 
-    
+    devlink opdevlink, ipdevlink;
+
     opid = nmz->cvtname(context[0].namestring);
     opdevlink = netz->finddevice(opid);
     opdevkind = opdevlink->kind;
@@ -528,7 +522,7 @@ bool parser::checkConLine(void)
     }
     else if(opdevkind != dtype)
     {
-        /* device output is not from a dtype device */ 
+        /* device output is not from a dtype device */
         if(!isConnPuncSym(context[1]))
         {
             errorvector.push_back(new expConnPuncSym(context[1].line, context[2].col));
@@ -537,7 +531,7 @@ bool parser::checkConLine(void)
         if(!isStrSym(context[2]))
         {
             errorvector.push_back(new expDevName(context[2].line, context[2].col));
-            return false; 
+            return false;
         }
         if(!devNameDefined(context[2]))
         {
@@ -550,7 +544,7 @@ bool parser::checkConLine(void)
             return false;
         }
 
-        /* the following depend on whether the device input is from a dtype or not */ 
+        /* the following depend on whether the device input is from a dtype or not */
 
         ipid = nmz->cvtname(context[2].namestring);
         ipdevlink = netz->finddevice(ipid);
@@ -558,8 +552,8 @@ bool parser::checkConLine(void)
 
         if(ipdevkind != dtype)
         {
-            /* input device is not a dtype device   */ 
-            /* ie. nondtype -> nondtype             */ 
+            /* input device is not a dtype device   */
+            /* ie. nondtype -> nondtype             */
             name_t devid = nmz->cvtname(context[2].namestring); // gets the id for the device
             if(!isStrSym(context[4]))
             {
@@ -575,30 +569,30 @@ bool parser::checkConLine(void)
             {
                 if(!gateInputUnconnected(context[4], devid))
                 {
-		    if(connectRedefined(context[2], context[4], context[0], context[0]))
-		    {
-			warningvector.push_back(new redefCon(context[0].line, context[0].col));
-		    }
-		    else
-		    {
-			devlink devicelink = netz->finddevice(devid); 
-			name_t inputid = nmz->cvtname(context[4].namestring);
-			errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
-			return false;
-		    }
+            if(connectRedefined(context[2], context[4], context[0], context[0]))
+            {
+            warningvector.push_back(new redefCon(context[0].line, context[0].col));
+            }
+            else
+            {
+            devlink devicelink = netz->finddevice(devid);
+            name_t inputid = nmz->cvtname(context[4].namestring);
+            errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
+            return false;
+            }
                 }
             }
             if(!isSemiColSym(context[5]))
             {
-                // reports the column where the ';' was expected, not where the error was detected 
-		int col = context[4].col + context[4].namestring.length();		
-		errorvector.push_back(new expSemiColSym(context[4].line, col));
+                // reports the column where the ';' was expected, not where the error was detected
+        int col = context[4].col + context[4].namestring.length();
+        errorvector.push_back(new expSemiColSym(context[4].line, col));
                 return false;
             }
         }
         else
         {
-            /* input device is a dtype device   */ 
+            /* input device is a dtype device   */
             /* ie. non-dtype -> dtype       */
             if(!isDtypeInput(context[4]))
             {
@@ -608,19 +602,19 @@ bool parser::checkConLine(void)
             if(!dtypeInputUnconnected(context[2], context[4]))
             {
                 name_t devid = nmz->cvtname(context[2].namestring); // gets the id for the device
-                devlink devicelink = netz->finddevice(devid); 
-		name_t inputid = nmz->cvtname(context[4].namestring);
+                devlink devicelink = netz->finddevice(devid);
+        name_t inputid = nmz->cvtname(context[4].namestring);
                 errorvector.push_back(new inputPrevConnected(context[4].line, context[4].col, inputid, devicelink, netz));
                 return false;
             }
             if(!isSemiColSym(context[5]))
             {
-                // reports the column where the ';' was expected, not where the error was detected 
-		int col = context[4].col + context[4].namestring.length();		
-		errorvector.push_back(new expSemiColSym(context[4].line, col));
+                // reports the column where the ';' was expected, not where the error was detected
+        int col = context[4].col + context[4].namestring.length();
+        errorvector.push_back(new expSemiColSym(context[4].line, col));
                 return false;
             }
-            
+
         }
     }
     else
@@ -639,7 +633,7 @@ bool parser::checkConLine(void)
         if(!isConnPuncSym(context[3]))
         {
             errorvector.push_back(new expConnPuncSym(context[3].line, context[3].col));
-            return false; 
+            return false;
         }
         if(!isStrSym(context[4]))
         {
@@ -656,13 +650,13 @@ bool parser::checkConLine(void)
             errorvector.push_back(new expDotSym(context[5].line, context[5].col));
             return false;
         }
-        /* The following depend on whether the input device is a dtype or not */ 
+        /* The following depend on whether the input device is a dtype or not */
         ipid = nmz->cvtname(context[4].namestring);
         ipdevlink = netz->finddevice(ipid);
         ipdevkind = ipdevlink->kind;
         if(ipdevkind != dtype)
         {
-            /* Input device is not a dtype  */ 
+            /* Input device is not a dtype  */
             /* ie. dtype -> nondtype        */
             name_t devid = nmz->cvtname(context[4].namestring); // gets the id for the device
             if(!isStrSym(context[6]))
@@ -677,16 +671,16 @@ bool parser::checkConLine(void)
             }
             if(!gateInputUnconnected(context[6], devid))
             {
-                devlink devicelink = netz->finddevice(devid); 
+                devlink devicelink = netz->finddevice(devid);
                 name_t inputid = nmz->cvtname(context[6].namestring);
                 errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, inputid, devicelink, netz));
                 return false;
             }
             if(!isSemiColSym(context[7]))
             {
-                // reports the column where the ';' was expected, not where the error was detected 
-		int col = context[6].col + context[6].namestring.length();		
-		errorvector.push_back(new expSemiColSym(context[6].line, col));
+                // reports the column where the ';' was expected, not where the error was detected
+        int col = context[6].col + context[6].namestring.length();
+        errorvector.push_back(new expSemiColSym(context[6].line, col));
                 return false;
             }
         }
@@ -702,15 +696,15 @@ bool parser::checkConLine(void)
             if(!dtypeInputUnconnected(context[4], context[6]))
             {
                 name_t devid = nmz->cvtname(context[4].namestring); // gets the id for the device
-                devlink devicelink = netz->finddevice(devid); 
-		name_t inputid = nmz->cvtname(context[4].namestring);
+                devlink devicelink = netz->finddevice(devid);
+        name_t inputid = nmz->cvtname(context[4].namestring);
                 errorvector.push_back(new inputPrevConnected(context[6].line, context[6].col, inputid, devicelink, netz));
                 return false;
             }
             if(!isSemiColSym(context[7]))
             {
-                // reports the column where the ';' was expected, not where the error was detected 
-                int col = context[6].col + context[6].namestring.length();		
+                // reports the column where the ';' was expected, not where the error was detected
+                int col = context[6].col + context[6].namestring.length();
                 errorvector.push_back(new expSemiColSym(context[6].line, col));
                 return false;
             }
@@ -720,15 +714,15 @@ bool parser::checkConLine(void)
             }
         }
     }
-    
+
     /* The line has passed all syntactic and semantic checks and should now be built  */
-    return true; 
+    return true;
 }
 
 /* Checks the syntax and semantics of a line in the MONITORS section    */
-/* Returns true if the line is syntactically and semantically correct   */ 
+/* Returns true if the line is syntactically and semantically correct   */
 bool parser::checkMonLine(void)
-{    
+{
     if(!isStrSym(context[0]))
     {
         errorvector.push_back(new expDevName(context[0].line, context[0].col));
@@ -741,10 +735,10 @@ bool parser::checkMonLine(void)
     }
     /* The following depend on the device type being monitored, as  */
     /* dtype devices have multiple outputs              */
-    devicekind opdevkind; 
+    devicekind opdevkind;
     name_t opid;
-    devlink opdevlink; 
-    
+    devlink opdevlink;
+
     opid = nmz->cvtname(context[0].namestring);
     opdevlink = netz->finddevice(opid);
     opdevkind = opdevlink->kind;
@@ -759,15 +753,15 @@ bool parser::checkMonLine(void)
         /* Monitoring a non-dtype device output  */
         if(!isSemiColSym(context[1]))
         {
-	    // reports the column where the ';' was expected, not where the error was detected 
-	    int col = context[0].col + context[0].namestring.length();		
-	    errorvector.push_back(new expSemiColSym(context[0].line, col));
+        // reports the column where the ';' was expected, not where the error was detected
+        int col = context[0].col + context[0].namestring.length();
+        errorvector.push_back(new expSemiColSym(context[0].line, col));
             return false;
         }
     }
     else
     {
-        /* Monitoring a dtype device output     */ 
+        /* Monitoring a dtype device output     */
         if(!isDotSym(context[1]))
         {
             errorvector.push_back(new expDotSym(context[1].line, context[1].col));
@@ -780,16 +774,16 @@ bool parser::checkMonLine(void)
         }
         if(!isSemiColSym(context[3]))
         {
-            // reports the column where the ';' was expected, not where the error was detected 
-	    int col = context[2].col + context[2].namestring.length();		
-	    errorvector.push_back(new expSemiColSym(context[2].line, col));
+            // reports the column where the ';' was expected, not where the error was detected
+        int col = context[2].col + context[2].namestring.length();
+        errorvector.push_back(new expSemiColSym(context[2].line, col));
             return false;
         }
     }
-    
-    /* The line is syntactically and semantically correct and should now be built  */ 
-    return true; 
-        
+
+    /* The line is syntactically and semantically correct and should now be built  */
+    return true;
+
 }
 
 /* Empties the context vector ready for reuse               */
@@ -803,7 +797,7 @@ bool parser::isClkSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == clksym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -811,7 +805,7 @@ bool parser::isAndSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == andsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -819,7 +813,7 @@ bool parser::isNandSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == nandsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -827,7 +821,7 @@ bool parser::isOrSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == orsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -835,7 +829,7 @@ bool parser::isNorSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == norsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -843,7 +837,7 @@ bool parser::isXorSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == xorsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -851,7 +845,7 @@ bool parser::isSwitchSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == switchsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -859,23 +853,23 @@ bool parser::isDtypeSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == dtypesym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
 bool parser::isSigGenSym(symbol_t symbol)
 {
-    bool retval = false; 
+    bool retval = false;
     if(symbol.symboltype == siggensym)
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::isEqualSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == equalsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -883,7 +877,7 @@ bool parser::isOpSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == opsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -891,7 +885,7 @@ bool parser::isCpSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == cpsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -900,30 +894,30 @@ bool parser::isDevSym(symbol_t symbol)
     bool retval = false;
     if(symbol.symboltype == devsym)
         retval = true;
-    return retval; 
-}    
+    return retval;
+}
 
 bool parser::isStrSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == strsym)
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::isNumSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == numsym)
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::isConnPuncSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == connpuncsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -931,7 +925,7 @@ bool parser::isDotSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == dotsym)
-        retval = true; 
+        retval = true;
     return retval;
 }
 
@@ -939,41 +933,41 @@ bool parser::isSemiColSym(symbol_t symbol)
 {
     bool retval = false;
     if(symbol.symboltype == semicolsym)
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::isCommaSym(symbol_t symbol)
 {
-    bool retval = false; 
+    bool retval = false;
     if(symbol.symboltype == commasym)
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::isDtypeInput(symbol_t symbol)
 {
-    bool retval = false; 
+    bool retval = false;
     if((symbol.symboltype == ddatasym) || (symbol.symboltype == dclksym) || (symbol.symboltype == dsetsym) || (symbol.symboltype == dclearsym))
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::isDtypeOutput(symbol_t symbol)
 {
-    bool retval = false; 
+    bool retval = false;
     if((symbol.symboltype == qsym) || (symbol.symboltype == qbarsym))
-        retval = true; 
-    return retval; 
+        retval = true;
+    return retval;
 }
 
 bool parser::devNameDefined(symbol_t symbol)
 {
-    bool retval = true; 
-    name_t namedefd; 
-    namedefd = nmz->cvtname(symbol.namestring); 
+    bool retval = true;
+    name_t namedefd;
+    namedefd = nmz->cvtname(symbol.namestring);
     if(namedefd == blankname)
-        retval = false; 
+        retval = false;
     return retval;
 }
 
@@ -982,183 +976,183 @@ bool parser::gateInputDefined(symbol_t symbol, name_t devid)
     bool retval = false;
     namestring_t ipstring = symbol.namestring;
     name_t ipid = nmz->cvtname(ipstring);
-    devlink devicelink = netz->finddevice(devid); 
-    inplink inputlink = netz->findinput(devicelink, ipid); //gets a link to the input referenced 
-    /* checks that the input exists. returns NULL if the input is not found */ 
+    devlink devicelink = netz->finddevice(devid);
+    inplink inputlink = netz->findinput(devicelink, ipid); //gets a link to the input referenced
+    /* checks that the input exists. returns NULL if the input is not found */
     if(inputlink != NULL)
-        retval = true; 
-    return retval; 
-}    
+        retval = true;
+    return retval;
+}
 
 bool parser::gateInputUnconnected(symbol_t symbol, name_t devid)
-{    
+{
     bool retval = false;
     namestring_t ipstring = symbol.namestring;
     name_t ipid = nmz->cvtname(ipstring);
-    devlink devicelink = netz->finddevice(devid); 
+    devlink devicelink = netz->finddevice(devid);
     inplink inputlink = netz->findinput(devicelink, ipid);
     if(inputlink->connect == NULL)
-        retval = true;      
+        retval = true;
     return retval;
- 
+
 }
 
 bool parser::connectRedefined(symbol_t idevsymbol, symbol_t ipsymbol, symbol_t odevsymbol, symbol_t opsymbol)
-{    
-    /* tests whether the connection is the ame as that already stored  */ 
+{
+    /* tests whether the connection is the ame as that already stored  */
     bool retval = false;
-  
-    name_t idevid = nmz->cvtname(idevsymbol.namestring); 
+
+    name_t idevid = nmz->cvtname(idevsymbol.namestring);
     devlink idevlink = netz->finddevice(idevid);
-    name_t ipid = nmz->cvtname(ipsymbol.namestring); 
+    name_t ipid = nmz->cvtname(ipsymbol.namestring);
     inplink incon = netz->findinput(idevlink, ipid);
     outplink con = incon->connect;
     name_t iconid = con->id;
-    
+
     name_t odevid = nmz->cvtname(odevsymbol.namestring);
     devlink odevlink = netz->finddevice(odevid);
-   
+
     name_t opid;
-    if(odevlink->kind ==dtype) opid = nmz->cvtname(opsymbol.namestring); 
-    else 
-	opid = blankname;
+    if(odevlink->kind ==dtype) opid = nmz->cvtname(opsymbol.namestring);
+    else
+    opid = blankname;
 
     outplink outcon = netz->findoutput(odevlink, opid);
     name_t oconid = outcon->id;
 
     if(iconid == oconid)
-	retval = true;
-	
-    return retval;
-}
- 
-bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
-{
- 
-    bool retval = false; 
-    name_t devid, ipid; 
-    devid = nmz->cvtname(dtypename.namestring); // gets the id for the device
-    devlink devicelink = netz->finddevice(devid); 
-    if (dtypeinput.symboltype == ddatasym) ipid = nmz->cvtname("DATA");
-    else if (dtypeinput.symboltype == dclksym) ipid = nmz->cvtname("CLK");
-    else if (dtypeinput.symboltype == dclearsym) ipid = nmz->cvtname("CLEAR");
-    else if (dtypeinput.symboltype == dsetsym) ipid = nmz->cvtname("SET");  
-    inplink inputlink = netz->findinput(devicelink, ipid);
-    if(inputlink->connect == NULL)
-        retval = true; 
+    retval = true;
+
     return retval;
 }
 
-/* Finds the next expected keyword after a keyword          */ 
-/* only called if the needskeyflag = 1              */ 
-/* used to check that the next symbol after END or STARTFILE is correct  */ 
+bool parser::dtypeInputUnconnected(symbol_t dtypename, symbol_t dtypeinput)
+{
+
+    bool retval = false;
+    name_t devid, ipid;
+    devid = nmz->cvtname(dtypename.namestring); // gets the id for the device
+    devlink devicelink = netz->finddevice(devid);
+    if (dtypeinput.symboltype == ddatasym) ipid = nmz->cvtname("DATA");
+    else if (dtypeinput.symboltype == dclksym) ipid = nmz->cvtname("CLK");
+    else if (dtypeinput.symboltype == dclearsym) ipid = nmz->cvtname("CLEAR");
+    else if (dtypeinput.symboltype == dsetsym) ipid = nmz->cvtname("SET");
+    inplink inputlink = netz->findinput(devicelink, ipid);
+    if(inputlink->connect == NULL)
+        retval = true;
+    return retval;
+}
+
+/* Finds the next expected keyword after a keyword          */
+/* only called if the needskeyflag = 1              */
+/* used to check that the next symbol after END or STARTFILE is correct  */
 void parser::nextKeyWordCheck(symbol_t symbol)
 {
     if(section==prestartfsect)
     {
         if((symbol.symboltype != devsym) && (nodevsymflag == 0))
-        {   
+        {
             errorvector.push_back(new expDeviSym(symbol.line, symbol.col));
-            nodevsymflag = 1; 
+            nodevsymflag = 1;
             return;
         }
-        else if(symbol.symboltype != devsym && nodevsymflag == 1) 
+        else if(symbol.symboltype != devsym && nodevsymflag == 1)
             return;
         else
         {
-            needskeyflag=0; 
+            needskeyflag=0;
             section=devsect;
-            return; 
+            return;
         }
     }
     else if(section==devsect)
     {
-	if(symbol.symboltype != connsym && noconsymflag == 0)
-	{
-	    errorvector.push_back(new expConSym(symbol.line, symbol.col));
-	    noconsymflag = 1;
-	    return;
-	}                   
-	else if(symbol.symboltype != connsym && noconsymflag == 1)
-	    return;
-	else
-	{
-	    needskeyflag=0;
-	    section=consect;
-	    return;
-	}
+    if(symbol.symboltype != connsym && noconsymflag == 0)
+    {
+        errorvector.push_back(new expConSym(symbol.line, symbol.col));
+        noconsymflag = 1;
+        return;
+    }
+    else if(symbol.symboltype != connsym && noconsymflag == 1)
+        return;
+    else
+    {
+        needskeyflag=0;
+        section=consect;
+        return;
+    }
     }
     else if(section==consect)
     {
-	if(symbol.symboltype != monsym && nomonsymflag == 0)
-	{
-	errorvector.push_back(new expMonSym(symbol.line, symbol.col));
-	nomonsymflag = 1;
-	return;
-	}                   
-	else if(symbol.symboltype != monsym && nomonsymflag == 1)
-	    return;
-	else
-	{
-	    needskeyflag=0;
-	    section=monsect;
-	    return;
-	}
+    if(symbol.symboltype != monsym && nomonsymflag == 0)
+    {
+    errorvector.push_back(new expMonSym(symbol.line, symbol.col));
+    nomonsymflag = 1;
+    return;
+    }
+    else if(symbol.symboltype != monsym && nomonsymflag == 1)
+        return;
+    else
+    {
+        needskeyflag=0;
+        section=monsect;
+        return;
+    }
     }
     else if(section==monsect)
     {
-	if(symbol.symboltype != endfsym && noendfsymflag == 0)
-	{
-	    errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
-	    noendfsymflag = 1;
-	    return;
-	}                   
-	else if(symbol.symboltype != endfsym && noendfsymflag == 1)
-	    return;
-	else
-	{
-	    needskeyflag=0;
-	    filenotcompleteflag = 0;        //file has been terminated correctly with ENDFILE
-	    section=postendfsect;
-	    return;
-	}
+    if(symbol.symboltype != endfsym && noendfsymflag == 0)
+    {
+        errorvector.push_back(new expEndFSym(symbol.line, symbol.col));
+        noendfsymflag = 1;
+        return;
+    }
+    else if(symbol.symboltype != endfsym && noendfsymflag == 1)
+        return;
+    else
+    {
+        needskeyflag=0;
+        filenotcompleteflag = 0;        //file has been terminated correctly with ENDFILE
+        section=postendfsect;
+        return;
+    }
     }
 }
 
-    
+
 /*****************************************************************************/
 /****************** Public methods *******************************************/
 /*****************************************************************************/
 /*****************************************************************************/
 
-/* read in symbols from the scanner, and calls the relevant parsing functions */ 
+/* read in symbols from the scanner, and calls the relevant parsing functions */
 void parser::readin (symbol_t symbol)
-{   
+{
     /* Calls the methods relevant to the section being parsed currently */
     if(symbol.symboltype == eofsym)
     {
-	if(filenotcompleteflag == 1)
-	{
-	    /* The file has terminated prematurely */ 
-	    errorvector.push_back(new fileNotComplete());
-	    return;
-	}
-    }
-    if(needskeyflag == 1) nextKeyWordCheck(symbol); 
-    else if(section == prestartfsect) preStartFCheck(symbol); 
-    else if((section == devsect) || (section == consect )|| (section == monsect)) mainLineBuild(symbol); 
-    else if(section == postendfsect) postEndFCheck(symbol);
-    else 
+    if(filenotcompleteflag == 1)
     {
-	/* The parser has broken - does not recognise which section it is in */ 
-	errorvector.push_back(new fatalErr(symbol.line, symbol.col));
+        /* The file has terminated prematurely */
+        errorvector.push_back(new fileNotComplete());
+        return;
+    }
+    }
+    if(needskeyflag == 1) nextKeyWordCheck(symbol);
+    else if(section == prestartfsect) preStartFCheck(symbol);
+    else if((section == devsect) || (section == consect )|| (section == monsect)) mainLineBuild(symbol);
+    else if(section == postendfsect) postEndFCheck(symbol);
+    else
+    {
+    /* The parser has broken - does not recognise which section it is in */
+    errorvector.push_back(new fatalErr(symbol.line, symbol.col));
     }
     return;
 }
 
 vector<Error*> parser::getErrorVector(void)
 {
-    return errorvector; 
+    return errorvector;
 }
 
 vector<Warning*> parser::getWarningVector(void)
@@ -1176,13 +1170,13 @@ parser::parser (network* network_mod, devices* devices_mod,
     nmz = names_mod;      /* netz->makeconnection (i1, i2, o1, o2, ok);   */
 
     /* any other initialisation you want to do? */
-    section = prestartfsect; 
+    section = prestartfsect;
     needskeyflag = 0;
     nodevsymflag = 0;
     noconsymflag = 0;
     nomonsymflag = 0;
     noendfsymflag = 0;
     filenotcompleteflag = 1;
-    nummonitorsmade = 0; 
+    nummonitorsmade = 0;
 }
 

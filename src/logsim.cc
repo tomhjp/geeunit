@@ -4,7 +4,7 @@
 #include <GL/glut.h>
 #include <string>
 
-//#define USE_GUI
+#define USE_GUI
 
 IMPLEMENT_APP(MyApp)
   
@@ -44,14 +44,15 @@ bool MyApp::OnInit()
     cout <<endl <<endl;   // spaces the "unconnected inputs" reporting from the error messages 
     for (int i=0; i<errorVector.size(); i++)
     {
+        string errorOutput;
         errorVector[i]->getErrorDetails(line, col, errorMessage, hasPosition);
-        smz->printError(line, col, errorMessage, hasPosition);
+        cout << smz->printError(line, col, errorMessage, hasPosition);
     }
     for (int i=0; i<warningVector.size(); i++)
     {
+        string warningOutput;
         warningVector[i]->getWarningDetails(line, col, errorMessage, hasPosition);
-        cout << line << " " << col <<endl; 
-        smz->printError(line, col, errorMessage, hasPosition);
+        cout << smz->printError(line, col, errorMessage, hasPosition);
     }
 
     if (errorVector.size() == 0) { // check the logic file parsed correctly, will be check that errorvector is empty
@@ -61,6 +62,7 @@ bool MyApp::OnInit()
     char **tmp1; int tmp2 = 0; glutInit(&tmp2, tmp1);
     // Construct the GUI
     MyFrame *frame = new MyFrame(NULL, wxT("Logic simulator"), wxDefaultPosition,  wxSize(1200, 700), nmz, dmz, mmz, netz,smz,pmz);
+    frame->SetMinSize(wxSize(1024,768));
     frame->Show(true);
     return(true); // enter the GUI event loop
 #else

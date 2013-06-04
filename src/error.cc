@@ -263,7 +263,6 @@ foundSymAfterEndf::foundSymAfterEndf(int l, int c)
 	col = c;
 }
 
-
 overMaxMonLimit::overMaxMonLimit(int l, int c)
 {
     errorMessage = "Maximum number of monitors (50) has been exceeded - monitor was not made";

@@ -1,6 +1,7 @@
 #include "devices.h"
 #include <iostream>
 #include <string>
+#include <cstdlib>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ void devices::outsig (asignal s)
 
 /***********************************************************************
  *
- * Used to print out device details and signal values 
+ * Used to print out device details and signal values
  * for debugging in executedevices.
  *
  */
@@ -57,8 +58,8 @@ void devices::showdevice (devlink d)
 
 /***********************************************************************
  *
- * Sets the state of the named switch. 'ok' returns false if switch  
- * not found.                                                        
+ * Sets the state of the named switch. 'ok' returns false if switch
+ * not found.
  *
  */
 void devices::setswitch (name_t sid, asignal level, bool& ok)
@@ -82,13 +83,15 @@ void devices::setswitch (name_t sid, asignal level, bool& ok)
  */
 void devices::makeswitch (name_t id, int setting, bool& ok)
 {
-  devlink d;
-  ok = (setting <= 1);
-  if (ok) {
-    netz->adddevice (aswitch, id, d);
-    netz->addoutput (d, blankname);
-    d->swstate = (setting == 0) ? low : high;
-  }
+    devlink d;
+    ok = (setting <= 1);
+    if (ok)
+    {
+        netz->adddevice (aswitch, id, d);
+        netz->addoutput (d, blankname);
+        d->swstate = (setting == 0) ? low : high;
+        d->olist->sig = d->swstate;
+    }
 }
 
 
@@ -110,7 +113,7 @@ void devices::makeclock (name_t id, int frequency)
 
 /***********************************************************************
  *
- * Used to make new AND, NAND, OR, NOR and XOR gates. 
+ * Used to make new AND, NAND, OR, NOR and XOR gates.
  * Called by makedevice.
  *
  */
@@ -161,34 +164,34 @@ void devices::makedtype (name_t id)
 
 
 /***********************************************************************
- * 
- * Used to make new Signal Generator devices. 
+ *
+ * Used to make new Signal Generator devices.
  * Called by makedevice()
- * 
+ *
  */
 void devices::makesiggen(name_t id, vector<int> parameter, bool& ok)
 {
-    devlink d; 
+    devlink d;
     netz->adddevice(asiggen, id, d);
     netz->addoutput(d, blankname);
     d-> frequency = parameter[0];
     parameter.erase(parameter.begin());     // deletes the frequency parameter from the vector
-    d->pattern = parameter; 
+    d->pattern = parameter;
     d->counter = 0;
     d->patcount = 0;
-    
-    /* initialise state */ 
+
+    /* initialise state */
     if(d->pattern[0] == 0)
         d->olist->sig = falling;
     else if(d->pattern[0] == 1)
-        d->olist->sig = rising; 
+        d->olist->sig = rising;
 }
-    
+
 /***********************************************************************
  *
- * Adds a device to the network of the specified kind and name.  The  
- * variant is used with such things as gates where it specifies the   
- * number of inputs. 'ok' returns true if operation succeeds.         
+ * Adds a device to the network of the specified kind and name.  The
+ * variant is used with such things as gates where it specifies the
+ * number of inputs. 'ok' returns true if operation succeeds.
  *
  */
 void devices::makedevice (devicekind dkind, name_t did, vector<int> parameter, bool& ok)
@@ -197,18 +200,18 @@ void devices::makedevice (devicekind dkind, name_t did, vector<int> parameter, b
   int variant;
   switch (dkind) {
     case aswitch:
-      variant = parameter[0];  
+      variant = parameter[0];
       makeswitch (did, variant, ok);
       break;
     case aclock:
-      variant = parameter[0];   
+      variant = parameter[0];
       makeclock (did, variant);
       break;
     case andgate:
     case nandgate:
     case orgate:
     case norgate:
-      variant = parameter[0];   
+      variant = parameter[0];
       makegate (dkind, did, variant, ok);
       break;
     case xorgate:
@@ -268,7 +271,7 @@ asignal devices::inv (asignal s)
  */
 void devices::execswitch (devlink d)
 {
-  signalupdate (d->swstate, d->olist->sig);
+    signalupdate (d->swstate, d->olist->sig);
 }
 
 
@@ -281,16 +284,16 @@ void devices::execswitch (devlink d)
  */
 void devices::execgate (devlink d, asignal x, asignal y)
 {
-  asignal newoutp;
-  inplink inp = d->ilist;
-  outplink outp = d->olist;
-  newoutp = y;
-  while ((inp != NULL) && (newoutp == y)) {
-    if (inp->connect->sig == inv (x))
-      newoutp = inv (y);
-    inp = inp->next;
-  }
-  signalupdate (newoutp, outp->sig);
+    asignal newoutp;
+    inplink inp = d->ilist;
+    outplink outp = d->olist;
+    newoutp = y;
+    while ((inp != NULL) && (newoutp == y)) {
+        if (inp->connect->sig == inv (x))
+            newoutp = inv (y);
+        inp = inp->next;
+    }
+    signalupdate (newoutp, outp->sig);
 }
 
 
@@ -302,12 +305,12 @@ void devices::execgate (devlink d, asignal x, asignal y)
  */
 void devices::execxorgate(devlink d)
 {
-  asignal newoutp;
-  if (d->ilist->connect->sig == d->ilist->next->connect->sig)
-    newoutp = low;
-  else
-    newoutp = high;
-  signalupdate (newoutp, d->olist->sig);
+    asignal newoutp;
+    if (d->ilist->connect->sig == d->ilist->next->connect->sig)
+        newoutp = low;
+    else
+        newoutp = high;
+    signalupdate (newoutp, d->olist->sig);
 }
 
 
@@ -326,21 +329,31 @@ void devices::execdtype (devlink d)
     inplink i;
     outplink qout, qbarout;
 
-    i = netz->findinput (d, datapin); datainput = i->connect->sig; 
+    i = netz->findinput (d, datapin); datainput = i->connect->sig;
     i = netz->findinput (d, clkpin);  clkinput  = i->connect->sig;
     i = netz->findinput (d, clrpin);  clrinput  = i->connect->sig;
     i = netz->findinput (d, setpin);  setinput  = i->connect->sig;
 
-    if(firstpass) 
-        i->oldsig = datainput;
-        
     qout = netz->findoutput (d, qpin);
     qbarout = netz->findoutput (d, qbarpin);
 
-    if ((clkinput == rising) && ((datainput == high) || (datainput == falling)))
+    if ((clkinput == rising) && (datainput == high))
         d->memory = high;
-    if ((clkinput == rising) && ((datainput == low) || (datainput == rising)))
+    if ((clkinput == rising) && (datainput == low))
         d->memory = low;
+    if ((datainput == falling) || (datainput == rising))
+    {
+        /* If the datainput rises or falls during the setup or hold period
+         * we output random data and alert the user at the command line */
+        cout << "Outputting indeterminate data" << endl;
+        int r = rand() % 2;
+        if (r == 0)
+            d->memory = low;
+        else if (r == 1)
+            d->memory = high;
+        else
+            cout << "Shouldn't have got here" << endl;
+    }
     if (setinput == high)
         d->memory = high;
     if (clrinput == high)
@@ -375,21 +388,15 @@ void devices::execclock(devlink d)
  */
 void devices::execsiggen(devlink d)
 {
-  if (d->olist->sig == rising)
-  {
-    signalupdate (high, d->olist->sig);
-    cout << "Siggen set to high" << endl; 
-  }
-  else if (d->olist->sig == falling)
-  {
-      signalupdate (low, d->olist->sig);
-      cout << "Siggen set to low" << endl; 
-  }
+    if (d->olist->sig == rising)
+        signalupdate(high, d->olist->sig);
+    else if (d->olist->sig == falling)
+        signalupdate(low, d->olist->sig);
 }
 
 /***********************************************************************
  *
- * Increment the counters in the signal generator devices and initiate 
+ * Increment the counters in the signal generator devices and initiate
  * changes in their outputs when the end of their period is reached.
  * Called by executedevices.
  *
@@ -397,27 +404,16 @@ void devices::execsiggen(devlink d)
 void devices::updatesiggens (void)
 {
     devlink d;
-    for (d = netz->devicelist (); d != NULL; d = d->next) 
+    for (d = netz->devicelist (); d != NULL; d = d->next)
     {
-        if (d->kind == asiggen) 
+        if (d->kind == asiggen)
         {
-            if (d->counter == d->frequency) 
+            if (d->counter == d->frequency)
             {
                 d->counter = 0;
                 d->patcount++;
                 if(d->patcount == d->pattern.size())
                     d->patcount = 0;
-                /*
-                if (d->olist->sig == high && d->pattern[d->patcount] == high)
-                d->olist->sig = high;
-                else if (d->olist->sig == high && d->pattern[d->patcount] == low)
-                d->olist->sig = falling;
-                else if (d->olist->sig == low && d->pattern[d->patcount] == high)
-                d->olist->sig = rising;  
-                else if (d->olist->sig == low && d->pattern[d->patcount] == low)
-                d->olist->sig = low;  
-                */
-
                 if(d->pattern[d->patcount] == 1)
                 {
                     d->olist->sig = rising;
@@ -441,35 +437,30 @@ void devices::updatesiggens (void)
  */
 void devices::updateclocks (void)
 {
-  devlink d;
-  for (d = netz->devicelist (); d != NULL; d = d->next) {
-    if (d->kind == aclock) 
+    devlink d;
+    for (d = netz->devicelist (); d != NULL; d = d->next)
     {
-      if (d->counter == d->frequency) 
-      {
-        d->counter = 0;
-        if (d->olist->sig == high)
+        if (d->kind == aclock)
         {
-          d->olist->sig = falling;
-          cout << "Set clk to falling " <<endl; 
+            if (d->counter == d->frequency)
+            {
+                d->counter = 0;
+                if (d->olist->sig == high)
+                    d->olist->sig = falling;
+                else
+                    d->olist->sig = rising;
+            }
+            (d->counter)++;
         }
-        else
-        {
-          d->olist->sig = rising;
-          cout << "Set clk to rising" <<endl; 
-        }  
-      }
-      (d->counter)++;
     }
-  }
 }
 
 
 /***********************************************************************
  *
- * Executes all devices in the network to simulate one complete clock 
- * cycle. 'ok' is returned false if network fails to stabilise (i.e.  
- * it is oscillating).                                            
+ * Executes all devices in the network to simulate one complete clock
+ * cycle. 'ok' is returned false if network fails to stabilise (i.e.
+ * it is oscillating).
  *
  */
 void devices::executedevices (bool& ok)
@@ -477,69 +468,94 @@ void devices::executedevices (bool& ok)
     const int maxmachinecycles = 20;
     devlink d;
     int machinecycle;
-    
+
     if (debugging)
         cout << "Start of execution cycle" << endl;
-        
+
+    vector<devlink> localList;
+    vector<devlink> localClocks;
+    for (d = netz->devicelist (); d != NULL; d = d->next)
+    {
+        if ((d->kind == aclock) || (d->kind == asiggen))
+            localClocks.push_back(d);
+    }
+
     updateclocks ();
     updatesiggens();
     machinecycle = 0;
-    firstpass = true; 
-    do 
+    do
     {
         machinecycle++;
-        
+        steadystate = true;
+
         if (debugging)
             cout << "machine cycle # " << machinecycle << endl;
-            
-        steadystate = true;
-        for (d = netz->devicelist (); d != NULL; d = d->next) 
+        
+        localList.clear();
+        for (d = netz->devicelist (); d != NULL; d = d->next)
         {
-            switch (d->kind) 
+            if ((d->kind != aclock) && (d->kind != asiggen))
+                localList.push_back(d);
+        }
+        
+        while (localList.size() > 0)
+        {
+            int r = rand() % localList.size();
+            d = localList[r];
+
+            switch (d->kind)
             {
                 case aswitch:  execswitch (d);           break;
-                case aclock:   execclock (d);            break;
                 case orgate:   execgate (d, low, low);   break;
                 case norgate:  execgate (d, low, high);  break;
                 case andgate:  execgate (d, high, high); break;
                 case nandgate: execgate (d, high, low);  break;
                 case xorgate:  execxorgate (d);          break;
                 case dtype:    execdtype (d);            break;
-                case asiggen:  execsiggen (d);           break;   
+                default:       cout << "Probably found a clock or siggen in localList!" << endl;
             }
-        
-        if (debugging)
-	        showdevice (d);
-	    }    
-        firstpass = false;     
-    } while ((! steadystate) && (machinecycle < maxmachinecycles));
-    
-    /* Second loop implements hold time and allows us to check that oldsig == sig */ 
-    for (d = netz->devicelist (); d != NULL; d = d->next) 
-    {
-        switch (d->kind) 
-        {
-            case aswitch:  execswitch (d);           break;
-            case aclock:   execclock (d);            break;
-            case orgate:   execgate (d, low, low);   break;
-            case norgate:  execgate (d, low, high);  break;
-            case andgate:  execgate (d, high, high); break;
-            case nandgate: execgate (d, high, low);  break;
-            case xorgate:  execxorgate (d);          break;
-            case dtype:    execdtype (d);            break;
-            case asiggen:  execsiggen (d);           break;   
+
+            localList.erase(localList.begin()+r);
+            if (debugging)
+                showdevice (d);
         }
-    } 
+        for (int i=0; i<localClocks.size(); i++)
+        {
+            d = localClocks[i];
+            switch (d->kind)
+            {
+                case aclock:   execclock (d);            break;
+                case asiggen:  execsiggen (d);           break;
+                default:       cout << "Eek, found a non-clock or siggen in localClocks" << endl;
+            }
+            if (debugging)
+                showdevice (d);
+        }
+        
+        /* Used to test whether the DTYPE non-zero hold period is outputting * 
+         * an indeterminate signal if input changes during hold              */
+        /*
+        if(machinecycle == 1)
+        {
+            name_t sid = nmz->cvtname("sw");
+            bool newok;
+            setswitch(sid, high, newok);
+            if(newok)
+                cout << "Switched switch ok" << endl; 
+        }
+        */
+    } while ((! steadystate) && (machinecycle < maxmachinecycles));
+
     if (debugging)
         cout << "End of execution cycle" << endl;
-        
+
     ok = steadystate;
 }
 
 
 /***********************************************************************
  *
- * Prints out the given device kind. 
+ * Prints out the given device kind.
  * Used by showdevice.
  *
  */
@@ -551,17 +567,17 @@ void devices::writedevice (devicekind k)
 
 /***********************************************************************
  *
- * Returns the kind of device corresponding to the given name.   
- * 'baddevice' is returned if the name is not a legal device.    
+ * Returns the kind of device corresponding to the given name.
+ * 'baddevice' is returned if the name is not a legal device.
  *
  */
- /* NB. cannot be used with entries in nametable to find their type. 	*/ 
+ /* NB. cannot be used with entries in nametable to find their type. 	*/
  /* search for them in devicelist instead (in network class) 		*/
 devicekind devices::devkind (name_t id)
 {
   devicekind d;
   d = aswitch;
-  
+
   while ((d != baddevice) && (dtab[d] != id))
     d = static_cast<devicekind>(d + 1);
   return (d);
@@ -580,10 +596,10 @@ void devices::debug (bool on)
 
 
 /***********************************************************************
- * 
+ *
  * Constructor for the devices class.
  * Registers the names of all the possible devices.
- * 
+ *
  */
 devices::devices (names* names_mod, network* net_mod)
 {
