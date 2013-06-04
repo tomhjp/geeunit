@@ -15,6 +15,7 @@
 #include <cstring>
 #include <vector>
 
+// widget identifiers
 enum {
   RUN_SPINCTRL = wxID_HIGHEST + 1,
   CONT_SPINCTRL,
@@ -33,7 +34,7 @@ enum {
   START_TIMER_BUTTON,
   STOP_TIMER_BUTTON,
   VERTICAL_SCROLL_BAR,
-}; // widget identifiers
+}; 
 
 class MyGLCanvas;
 
@@ -49,53 +50,66 @@ class MyFrame: public wxFrame
         names *nmz;                             // pointer to names class
         devices *dmz;                           // pointer to devices class
         monitor *mmz;                           // pointer to monitor class
-        network *netz;
-        scanner_t *smz;
-        parser *pmz;
+        network *netz;                          // pointer to network class
+        scanner_t *smz;                         // pointer to scanner class
+        parser *pmz;                            // pointer to parser class
 
-        wxSpinCtrl   *runSpin;
-        wxSpinCtrl   *contSpin;                       // control widget to select the number of cycles
-        wxComboBox   *zapTraceComboBox;           // pointer to combobox object
+                                                    
+  // Pointers to all the buttons Objects
         wxButton     *zapTraceButton;
-        wxComboBox   *addTraceComboBox;
-        wxButton     *addTraceButton;
-        wxComboBox   *switchComboBox;             // pointer to combobox object
+        wxButton     *addTraceButton;                      
         wxButton     *switchButton0;
         wxButton     *switchButton1;
         wxButton     *runButton;
         wxButton     *contButton;
+        wxButton     *startTimerButton;
+        wxButton     *stopTimerButton;
+        
+  // Pointers to comboBoxes Objects
+        wxComboBox   *zapTraceComboBox;           
+        wxComboBox   *addTraceComboBox;
+        wxComboBox   *switchComboBox;
+        
+  // Pointers to SpinControl Objects
+        wxSpinCtrl   *runSpin;
+        wxSpinCtrl   *contSpin;  
+  
+  // Pointers to StaticText objects
         wxStaticText *runStaticText;
         wxStaticText *contStaticText;
+        
+  // Pointer to Misc Controls
         wxTextCtrl   *commandLine;
         wxFileDialog *openDialog;
         wxTimer      *rollingTimer;
-        wxButton     *startTimerButton;
-        wxButton     *stopTimerButton;
 
+  // Defining some variables used by the Canvas Object
         vector<wxString> switchNameVector;
-
-        int cyclescompleted;                    // how many simulation cycles have been completed
-        void runnetwork(int ncycles);           // function to run the logic network
-        void OnExit(wxCommandEvent& event);     // callback for exit menu item
-        void OnAbout(wxCommandEvent& event);    // callback for about menu item
+        int  FRAMEcyclesCompleted;                  // How many cycles were completed in the most recent run.
+        int  FRAMEtotalCycles;                      // Total number of cycles completed.
+                                                    
+  // Callbacks for fileMenu events                                   
+        void OnExit(wxCommandEvent& event);         
         void OnOpen(wxCommandEvent& event);
         void OnNew(wxCommandEvent& event);
 
-        void OnRunButton(wxCommandEvent& event);   // callback for push button
+  // callback for all GUI Controls
+        void OnRunButton(wxCommandEvent& event);   
         void OnContButton(wxCommandEvent& event);
         void OnButtonZap(wxCommandEvent& event);
         void OnButtonAdd(wxCommandEvent& event);
         void OnButtonSwitch0(wxCommandEvent& event);
         void OnButtonSwitch1(wxCommandEvent& event);
-        void OnSelect(wxCommandEvent& event);
-        void OnSpin(wxSpinEvent& event);        // callback for spin control
-        void OnText(wxCommandEvent& event);     // callback for text entry field
+        void OnText(wxCommandEvent& event);     
         void OnButtonStartTimer(wxCommandEvent& event);
         void OnButtonStopTimer(wxCommandEvent& event);     
         void OnTimer(wxTimerEvent& event);
-        void errorBox(wxString errorBox);
+        
+  // Methods used by the MyFrame Class
+        void runnetwork(int ncycles); 
         void RunFunction();
         void ContinueFunction();
+        void errorBox(wxString errorBox);
         bool isdtype(name_t did);
         void checkMonitorName(wxString monitorName, wxString& deviceName, wxString& outputName, bool& isDtype);
         void resetCanvas();
@@ -114,48 +128,53 @@ class MyGLCanvas: public wxGLCanvas
         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0,
         const wxString& name = wxT("MyGLCanvas")); // constructor
 
-
-    void Render(wxString example_text = wxT(""), int cycles = -1); // function to draw canvas contents
+  // Define Public methods of the Canvas Class
+    void Render(int totalCycles);
     void populateTraceMatrix();
     void appendToTraceMatrix();
     void populateMonitorNameVector();
-    void setCyclesDisplayed(int c);
-    void setCyclesCompleted(int c);
+    void setCANVAStotalCycles(int c);
+    void setCANVAScyclesCompleted(int c);
     void setCanvasVerticalScrollBar();
-    void setCanvasHorizontalScrollBar();
+    void setCanvasHorizontalScrollBar(int position);
+    void setHorizontalPosition(int position);
     void setNames(names* names_mod);
     void setMonitor(monitor* monitor_mod);
     void setNetwork(network* network_mod);
 
+  // Define some variables used by the Canvas Class
     typedef vector<vector<asignal> > IntMatrix;
     IntMatrix traceMatrix;
-
+    
     vector<wxString> deviceNameVector;
     vector<wxString> monitorNameVector;
-
+    
     int numDtypes;
 
     private:
-        bool init;                         // has the GL context been initialised?
-        int cyclesdisplayed;               // how many simulation cycles have been displayed
-        int cyclescompleted;
+  // Variable initialised on start-up and never altered. 
+        bool init;
+        monitor *mmz;                      
+        names *nmz;
+        network *netz;
+        
+  // Variables defined for drawing on the Canvas                                          
+        int CANVAStotalCycles;                          
+        int CANVAScyclesCompleted;
         int unitHeight;
         int unitWidth;
-        monitor *mmz;                      // pointer to monitor class, used to extract signal traces
-        names *nmz;                        // pointer to names class, used to extract signal names
+        
+  // Variables to do with the Scroll Bar              
         wxScrollBar *verticalScrollBar;
-        network *netz;
-
         unsigned int vertCanvasPosition;
         unsigned int horizCanvasPosition;
 
-        void InitGL();                     // function to initialise GL context
-        void OnSize(wxSizeEvent& event);   // callback for when canvas is resized
-        void OnPaint(wxPaintEvent& event); // callback for when canvas is exposed
+  //  Event Callbacks for the Canvas
+        void InitGL();                    
+        void OnSize(wxSizeEvent& event);   
+        void OnPaint(wxPaintEvent& event); 
         void OnScroll(wxScrollWinEvent& event);
-        void OnHorizontalScroll(wxScrollWinEvent& event);
-        void OnMouse(wxMouseEvent& event); // callback for mouse events inside
-
+        
         DECLARE_EVENT_TABLE()
 };
 #endif /* gui_h */
