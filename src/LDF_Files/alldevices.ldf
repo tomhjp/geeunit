@@ -1,6 +1,6 @@
 STARTFILE
-    DEVICES
 
+    DEVICES
     A = SWITCH(1);
     B = SWITCH(0);
     C = SWITCH(0);
@@ -13,13 +13,11 @@ STARTFILE
     or1 = OR(2);
     nor1 = NOR(2);
     xor1 = XOR;
-    
     END
 
     CONNECTIONS
-
-
     A -> nor1.I1;
+    A -> nand1.I1;
     B -> nand1.I2;
     B -> and1.I1;
     C -> and1.I2;
@@ -32,11 +30,9 @@ STARTFILE
     clk1 -> dtype1.CLK;
     dtypeSet -> dtype1.SET;
     dtypeClear -> dtype1.CLEAR;
-
     END
 
     MONITORS
-    
     dtype1.Q;
     dtype1.QBAR;
     clk1;
@@ -49,4 +45,5 @@ STARTFILE
     xor1;
     nor1;
     END
+    
 ENDFILE
