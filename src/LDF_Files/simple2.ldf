@@ -1,0 +1,28 @@
+/* Second Simple Circuit */
+
+STARTFILE
+DEVICES
+	nor = NOR(2); 
+	not = NAND(1);	/* 1-input NAND gate = NOT gate */
+	or = OR(2);
+	and = NAND(3); 
+	A = SWITCH(1);
+	B = SWITCH(0);
+	C = SWITCH(1);
+	D = SWITCH(1); 
+/* Look at all of out devices aren't they great? */
+END
+CONNECTIONS
+	A -> nor.I1;
+	B -> nor.I2; 
+	C -> not.I1; 
+	C -> or.I1;
+	D -> or.I2; 
+	or -> and.I1;
+	not -> and.I2;
+	nor -> and.I3;
+END
+MONITORS
+	and; 
+END
+ENDFILE 

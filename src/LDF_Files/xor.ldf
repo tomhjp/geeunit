@@ -1,3 +1,5 @@
+/* XOR Circuit */
+
 STARTFILE
 DEVICES
     A = SWITCH(1);
